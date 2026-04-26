@@ -29,9 +29,10 @@ import { cn } from '../utils/cn';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,6 +44,16 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     }
+
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarOpen(false);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const toggleTheme = () => {
@@ -82,13 +93,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       
       {/* Sidebar Overlay */}
       <AnimatePresence>
-        {!isSidebarOpen && (
+        {isSidebarOpen && isMobile && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={() => setIsSidebarOpen(false)}
           />
         )}
       </AnimatePresence>
@@ -122,6 +133,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={() => isMobile && setIsSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 group relative",
                     isActive 

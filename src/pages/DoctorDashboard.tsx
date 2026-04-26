@@ -31,6 +31,7 @@ import {
 import { cn } from '../utils/cn';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import DataTable, { type Column } from '../components/DataTable';
 
 const container = {
   hidden: { opacity: 0 },
@@ -62,7 +63,7 @@ const DoctorDashboard: React.FC = () => {
   const [showPrescriptionSuccess, setShowPrescriptionSuccess] = useState(false);
 
   // Appointment actions
-  const [selectedAppointment, setSelectedAppointment] = useState<{ name: string; time: string; type: string; status: string; avatar: string } | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<{ id: string; name: string; time: string; type: string; status: string; avatar: string } | null>(null);
   const [isViewAppointmentModalOpen, setIsViewAppointmentModalOpen] = useState(false);
   const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false);
   const [isDeleteAppointmentModalOpen, setIsDeleteAppointmentModalOpen] = useState(false);
@@ -257,73 +258,54 @@ const DoctorDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Appointments Queue */}
         <div className="lg:col-span-2 space-y-8">
-          <motion.div variants={item} className="glass-card rounded-[2rem] overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm">Today's Appointments</h3>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold">Morning</button>
-                <button className="px-3 py-1 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-400">Afternoon</button>
-              </div>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {appointments.map((apt, i) => (
-                <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 font-bold">
-                      {apt.avatar}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{apt.name}</h4>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Clock className="w-3 h-3" />
-                        {apt.time} • {apt.type}
+          {/* Appointments Queue with Pagination */}
+          <motion.div variants={item}>
+            <DataTable
+              data={appointments}
+              columns={[
+                {
+                  key: 'patient',
+                  header: 'Patient',
+                  render: (apt) => (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm">
+                        {apt.avatar}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{apt.name}</h4>
+                        <p className="text-xs text-slate-500">{apt.time} • {apt.type}</p>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
+                  )
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (apt) => (
                     <span className={cn(
-                      "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+                      "px-3 py-1 rounded-full text-[10px] font-black uppercase",
                       apt.status === 'Completed' && "bg-emerald-50 text-emerald-600",
                       apt.status === 'In Progress' && "bg-blue-50 text-blue-600",
                       apt.status === 'Waiting' && "bg-amber-50 text-amber-600",
                     )}>
                       {apt.status}
                     </span>
-                    <div className="flex items-center gap-1">
-                      <button 
-                        onClick={() => handleViewAppointment(apt)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm text-slate-400 hover:text-blue-600"
-                        title="View"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleEditAppointment(apt)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm text-slate-400 hover:text-slate-600"
-                        title="Edit"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteAppointment(apt)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm text-slate-400 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-4 bg-slate-50/50 dark:bg-slate-800/50 text-center">
-              <button className="text-xs font-bold text-blue-600 uppercase tracking-widest">View Full Schedule</button>
-            </div>
+                  )
+                },
+                {
+                  key: 'actions',
+                  header: '',
+                  className: 'text-right'
+                }
+              ]}
+              keyField="id"
+              itemsPerPage={5}
+              searchPlaceholder="Search appointments..."
+              emptyMessage="No appointments for today"
+            />
           </motion.div>
 
-          {/* Activity Chart */}
           <motion.div variants={item} className="glass-card p-6 rounded-[2rem]">
             <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-8">Weekly Patient Flow</h3>
             <div className="h-[250px] w-full">

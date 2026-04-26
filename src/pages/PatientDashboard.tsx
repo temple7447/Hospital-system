@@ -25,6 +25,8 @@ import {
 import { cn } from '../utils/cn';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import DataTable, { type Column } from '../components/DataTable';
+
 
 const container = {
   hidden: { opacity: 0 },
@@ -212,53 +214,45 @@ const PatientDashboard: React.FC = () => {
             ))}
           </div>
 
-          {/* Recent Reports Table */}
-          <motion.div variants={item} className="glass-card rounded-3xl overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm">Medical Reports</h3>
-              <button className="text-xs font-bold text-blue-600 hover:underline">View All</button>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {reportsList.map((report, i) => (
-                <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
-                      <FileText className="w-5 h-5" />
+          {/* Medical Reports with Pagination */}
+          <motion.div variants={item}>
+            <DataTable
+              data={reportsList}
+              columns={[
+                {
+                  key: 'name',
+                  header: 'Report',
+                  render: (report) => (
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                        <FileText className="w-4 h-4 text-slate-500" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{report.name}</h4>
+                        <p className="text-[10px] text-slate-500">{report.date} • {report.size}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{report.name}</h4>
-                      <p className="text-[10px] font-medium text-slate-500">{report.date} • {report.size}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => handleViewReport(report)}
-                      className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all text-slate-400 hover:text-blue-600"
-                      title="View"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all text-slate-400 hover:text-blue-600">
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => handleEditReport(report)}
-                      className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all text-slate-400 hover:text-slate-600"
-                      title="Edit"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteReport(report)}
-                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all text-slate-400 hover:text-red-600"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  )
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (report) => (
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase">
+                      {report.status}
+                    </span>
+                  )
+                },
+                {
+                  key: 'actions',
+                  header: '',
+                  className: 'text-right'
+                }
+              ]}
+              keyField="id"
+              itemsPerPage={5}
+              searchPlaceholder="Search reports..."
+            />
           </motion.div>
         </div>
 

@@ -1,30 +1,24 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '../utils/cn';
 import { 
-  Users, 
-  Calendar, 
-  Clock, 
-  Search, 
-  UserPlus, 
-  CheckCircle2, 
-  AlertCircle, 
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
   Phone,
   CreditCard,
-  MoreVertical,
-  ChevronRight,
-  ArrowUpRight,
+  UserPlus,
   MapPin,
   User,
   Heart,
   Stethoscope,
-  Pencil,
-  Trash2,
-  Eye,
   Loader2
 } from 'lucide-react';
-import { cn } from '../utils/cn';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import { QuickStats } from '../components/QuickStats';
+import { DoctorAvailability } from '../components/DoctorAvailability';
+import { ArrivalQueue } from '../components/ArrivalQueue';
 
 const container = {
   hidden: { opacity: 0 },
@@ -41,20 +35,18 @@ const ReceptionistDashboard: React.FC = () => {
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-  // Submission states
   const [isSavingCheckIn, setIsSavingCheckIn] = useState(false);
   const [showCheckInSuccess, setShowCheckInSuccess] = useState(false);
   const [isRegisteringPatient, setIsRegisteringPatient] = useState(false);
   const [showRegisterSuccess, setShowRegisterSuccess] = useState(false);
 
-  // Arrival queue actions
   interface Arrival {
     id: string;
     name: string;
     idP: string;
     time: string;
     dr: string;
-    status: string;
+    status: 'Arrived' | 'In Transit' | 'Delayed';
     location: string;
   }
 
@@ -64,42 +56,24 @@ const ReceptionistDashboard: React.FC = () => {
     { id: '3', name: 'Courtney Henry', idP: '#P-1026', time: '10:45 AM', dr: 'Dr. Wilson', status: 'Arrived', location: 'Waiting Area B' },
     { id: '4', name: 'Dianne Russell', idP: '#P-1027', time: '11:00 AM', dr: 'Dr. Lee', status: 'Delayed', location: '-' },
   ];
-  const [arrivals, setArrivals] = useState(initialArrivals);
-  const [selectedArrival, setSelectedArrival] = useState<Arrival | null>(null);
-  const [isViewArrivalModalOpen, setIsViewArrivalModalOpen] = useState(false);
-  const [isEditArrivalModalOpen, setIsEditArrivalModalOpen] = useState(false);
-  const [isDeleteArrivalModalOpen, setIsDeleteArrivalModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleViewArrival = (arrival: Arrival) => {
-    setSelectedArrival(arrival);
-    setIsViewArrivalModalOpen(true);
-  };
+  const statsData = [
+    { label: "Today's Appointments", value: '42', change: '+5', icon: Calendar, color: 'blue' },
+    { label: 'Checked In', value: '28', change: '65%', icon: CheckCircle2, color: 'emerald' },
+    { label: 'Pending Payment', value: '12', change: '$1.2k', icon: CreditCard, color: 'amber' },
+    { label: 'Avg. Wait Time', value: '14m', change: '-2m', icon: Loader2, color: 'purple' },
+  ];
 
-  const handleEditArrival = (arrival: Arrival) => {
-    setSelectedArrival(arrival);
-    setIsEditArrivalModalOpen(true);
-  };
-
-  const handleDeleteArrival = (arrival: Arrival) => {
-    setSelectedArrival(arrival);
-    setIsDeleteArrivalModalOpen(true);
-  };
-
-  const confirmDeleteArrival = () => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      setArrivals(arrivals.filter(a => a.id !== selectedArrival?.id));
-      setIsDeleting(false);
-      setIsDeleteArrivalModalOpen(false);
-      setSelectedArrival(null);
-    }, 1000);
-  };
+  const doctorsData = [
+    { name: 'Dr. Johnson', department: 'Cardiology', status: 'Available' as const, room: 'Rm 402' },
+    { name: 'Dr. Smith', department: 'Pediatrics', status: 'In Session' as const, room: 'Rm 201' },
+    { name: 'Dr. Wilson', department: 'Neurology', status: 'On Break' as const, room: 'Lounge' },
+    { name: 'Dr. Lee', department: 'General', status: 'Available' as const, room: 'Rm 105' },
+  ];
 
   const handleCheckInSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingCheckIn(true);
-    // Simulate API call
     setTimeout(() => {
       setIsSavingCheckIn(false);
       setShowCheckInSuccess(true);
@@ -113,7 +87,6 @@ const ReceptionistDashboard: React.FC = () => {
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsRegisteringPatient(true);
-    // Simulate API call
     setTimeout(() => {
       setIsRegisteringPatient(false);
       setShowRegisterSuccess(true);
@@ -165,7 +138,7 @@ const ReceptionistDashboard: React.FC = () => {
               <div className="space-y-2">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Patient Name/ID</label>
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
                     placeholder="Search registered patient..." 
@@ -226,22 +199,11 @@ const ReceptionistDashboard: React.FC = () => {
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Initial Vitals Taken?</label>
               <div className="flex gap-4 pt-2">
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input 
-                    type="radio" 
-                    name="vitals" 
-                    disabled={isSavingCheckIn}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 disabled:opacity-50" 
-                  />
+                  <input type="radio" name="vitals" disabled={isSavingCheckIn} className="w-4 h-4 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
                   <span className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors">Yes</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input 
-                    type="radio" 
-                    name="vitals" 
-                    disabled={isSavingCheckIn}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 disabled:opacity-50" 
-                    defaultChecked 
-                  />
+                  <input type="radio" name="vitals" disabled={isSavingCheckIn} className="w-4 h-4 text-blue-600 focus:ring-blue-500 disabled:opacity-50" defaultChecked />
                   <span className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition-colors">Pending</span>
                 </label>
               </div>
@@ -450,7 +412,7 @@ const ReceptionistDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Reception Desk 🛎️
+            Reception Desk
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Hello, {user?.name.split(' ')[0]}. Manage patient arrivals and scheduling.</p>
         </div>
@@ -466,109 +428,16 @@ const ReceptionistDashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Today\'s Appointments', value: '42', change: '+5', icon: Calendar, color: 'blue' },
-          { label: 'Checked In', value: '28', change: '65%', icon: CheckCircle2, color: 'emerald' },
-          { label: 'Pending Payment', value: '12', change: '$1.2k', icon: CreditCard, color: 'amber' },
-          { label: 'Avg. Wait Time', value: '14m', change: '-2m', icon: Clock, color: 'purple' },
-        ].map((stat, i) => (
-          <motion.div 
-            key={i}
-            variants={item}
-            className="glass-card p-6 rounded-3xl"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn(
-                "p-3 rounded-2xl",
-                stat.color === 'blue' && "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
-                stat.color === 'emerald' && "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600",
-                stat.color === 'amber' && "bg-amber-50 dark:bg-amber-900/20 text-amber-600",
-                stat.color === 'purple' && "bg-purple-50 dark:bg-purple-900/20 text-purple-600",
-              )}>
-                <stat.icon className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-black px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                {stat.change}
-              </span>
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</h3>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stat.label}</p>
-          </motion.div>
-        ))}
-      </div>
+      <QuickStats stats={statsData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Arrival Queue */}
         <div className="lg:col-span-2 space-y-8">
-          <motion.div variants={item} className="glass-card rounded-[2rem] overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm">Arrival Queue</h3>
-                <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px] font-bold">8 Waiting</span>
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input type="text" placeholder="Search arrivals..." className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 w-48 transition-all" />
-              </div>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {arrivals.map((arrival, i) => (
-                <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 font-bold">
-                      {arrival.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{arrival.name}</h4>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                        {arrival.idP} • {arrival.dr}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="hidden md:block text-right">
-                      <div className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        {arrival.location}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-medium">Expected {arrival.time}</div>
-                    </div>
-                    <span className={cn(
-                      "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                      arrival.status === 'Arrived' && "bg-emerald-50 text-emerald-600",
-                      arrival.status === 'In Transit' && "bg-blue-50 text-blue-600",
-                      arrival.status === 'Delayed' && "bg-amber-50 text-amber-600",
-                    )}>
-                      {arrival.status}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button 
-                        onClick={() => handleViewArrival(arrival)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm text-slate-400 hover:text-blue-600"
-                        title="View"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleEditArrival(arrival)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm text-slate-400 hover:text-slate-600"
-                        title="Edit"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteArrival(arrival)}
-                        className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm text-slate-400 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Arrival Queue */}
+          <motion.div variants={item}>
+            <ArrivalQueue 
+              arrivals={initialArrivals}
+              className="w-full"
+            />
           </motion.div>
 
           {/* Quick Actions */}
@@ -602,36 +471,11 @@ const ReceptionistDashboard: React.FC = () => {
 
         {/* Sidebar */}
         <div className="space-y-8">
-          {/* Doctor Availability */}
-          <motion.div variants={item} className="glass-card p-6 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-6">Doctor Availability</h3>
-            <div className="space-y-4">
-              {[
-                { name: 'Dr. Johnson', dept: 'Cardiology', status: 'Available', room: 'Rm 402' },
-                { name: 'Dr. Smith', dept: 'Pediatrics', status: 'In Session', room: 'Rm 201' },
-                { name: 'Dr. Wilson', dept: 'Neurology', status: 'On Break', room: 'Lounge' },
-                { name: 'Dr. Lee', dept: 'General', status: 'Available', room: 'Rm 105' },
-              ].map((doc, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: doc.status === 'Available' ? '#10b981' : doc.status === 'In Session' ? '#3b82f6' : '#f59e0b' }} />
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">{doc.name}</p>
-                      <p className="text-[10px] text-slate-500">{doc.dept} • {doc.room}</p>
-                    </div>
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-black uppercase tracking-wider",
-                    doc.status === 'Available' ? "text-emerald-600" : doc.status === 'In Session' ? "text-blue-600" : "text-amber-600"
-                  )}>
-                    {doc.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <motion.div variants={item}>
+            <DoctorAvailability doctors={doctorsData} className="glass-card p-6 rounded-3xl" />
           </motion.div>
 
-          {/* Room Status */}
+          {/* Facility Status */}
           <motion.div variants={item} className="glass-card p-6 rounded-3xl">
             <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-6">Facility Status</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -651,188 +495,11 @@ const ReceptionistDashboard: React.FC = () => {
               </div>
               <span className="text-xs font-black text-slate-400">4 Rooms</span>
             </div>
-</motion.div>
-      </div>
-
-      {/* View Arrival Modal */}
-      <Modal
-        isOpen={isViewArrivalModalOpen}
-        onClose={() => setIsViewArrivalModalOpen(false)}
-        title="Arrival Details"
-        maxWidth="md"
-      >
-        {selectedArrival && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xl font-black">
-                {selectedArrival.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedArrival.name}</h3>
-                <p className="text-sm font-medium text-slate-500">{selectedArrival.idP}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Expected Time</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedArrival.time}</p>
-              </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Doctor</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedArrival.dr}</p>
-              </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Location</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedArrival.location}</p>
-              </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Status</p>
-                <span className={cn(
-                  "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-block mt-1",
-                  selectedArrival.status === 'Arrived' && "bg-emerald-50 text-emerald-600",
-                  selectedArrival.status === 'In Transit' && "bg-blue-50 text-blue-600",
-                  selectedArrival.status === 'Delayed' && "bg-amber-50 text-amber-600",
-                )}>
-                  {selectedArrival.status}
-                </span>
-              </div>
-            </div>
-            <div className="flex gap-4 pt-4">
-              <button 
-                type="button" 
-                onClick={() => setIsViewArrivalModalOpen(false)} 
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
-              >
-                Close
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  setIsViewArrivalModalOpen(false);
-                  setIsEditArrivalModalOpen(true);
-                }}
-                className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all"
-              >
-                Edit
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Delete Arrival Modal */}
-      <Modal
-        isOpen={isDeleteArrivalModalOpen}
-        onClose={() => !isDeleting && setIsDeleteArrivalModalOpen(false)}
-        title="Remove from Queue"
-        maxWidth="sm"
-      >
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
-          </div>
-          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Confirm Remove</h3>
-          <p className="text-sm text-slate-500 mb-6">
-            Are you sure you want to remove <span className="font-bold text-red-500">{selectedArrival?.name}</span> from the arrival queue?
-          </p>
-          <div className="flex gap-4">
-            <button 
-              type="button" 
-              onClick={() => setIsDeleteArrivalModalOpen(false)} 
-              disabled={isDeleting}
-              className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button 
-              type="button" 
-              onClick={confirmDeleteArrival}
-              disabled={isDeleting}
-              className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Removing...</span>
-                </>
-              ) : (
-                <span>Remove</span>
-              )}
-            </button>
-          </div>
+          </motion.div>
         </div>
-      </Modal>
-
-      {/* Edit Arrival Modal */}
-      <Modal
-        isOpen={isEditArrivalModalOpen}
-        onClose={() => setIsEditArrivalModalOpen(false)}
-        title="Edit Arrival"
-        maxWidth="lg"
-      >
-        {selectedArrival && (
-          <form className="space-y-6" onSubmit={(e) => {
-            e.preventDefault();
-            setArrivals(arrivals.map(a => a.id === selectedArrival.id ? selectedArrival : a));
-            setIsEditArrivalModalOpen(false);
-          }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Patient Name</label>
-                <input 
-                  type="text" 
-                  value={selectedArrival.name}
-                  onChange={(e) => setSelectedArrival({ ...selectedArrival, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Status</label>
-                <select 
-                  value={selectedArrival.status}
-                  onChange={(e) => setSelectedArrival({ ...selectedArrival, status: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
-                >
-                  <option value="Arrived">Arrived</option>
-                  <option value="In Transit">In Transit</option>
-                  <option value="Delayed">Delayed</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Expected Time</label>
-                <input 
-                  type="time" 
-                  value={selectedArrival.time.replace(/ AM| PM/, '')}
-                  onChange={(e) => setSelectedArrival({ ...selectedArrival, time: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Location</label>
-                <input 
-                  type="text" 
-                  value={selectedArrival.location}
-                  onChange={(e) => setSelectedArrival({ ...selectedArrival, location: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-            </div>
-            <div className="flex gap-4 pt-4">
-              <button 
-                type="button" 
-                onClick={() => setIsEditArrivalModalOpen(false)} 
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all"
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
-        )}
-      </Modal>
+      </div>
     </motion.div>
+  );
+};
+
+export default ReceptionistDashboard;
