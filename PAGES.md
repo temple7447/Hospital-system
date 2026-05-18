@@ -38,7 +38,7 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 
 | # | Status | Page | File | Notes |
 |---|--------|------|------|-------|
-| 3.1 | 🟢 ❌ | Admin Dashboard | `AdminDashboard.tsx` | Stats, charts, capacity — exists, review quality |
+| 3.1 | 🟢 ✅ | Admin Dashboard | `AdminDashboard.tsx` | Stats, charts, capacity — exists, review quality |
 | 3.2 | 🟢 ✅ | Staff Management | `admin/Staff.tsx` | Search/filter table, add/edit modal, toggle active/inactive/on-leave |
 | 3.3 | — | Staff Detail | — | Merged into Staff modal (no separate page needed) |
 | 3.4 | 🟢 ✅ | Department Management | `admin/Departments.tsx` | Cards with capacity bars, overall hospital capacity chart, edit modal |
@@ -55,7 +55,7 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 
 | # | Status | Page | File | Notes |
 |---|--------|------|------|-------|
-| 4.1 | 🟢 ❌ | Doctor Dashboard | `DoctorDashboard.tsx` | Today's appointments, stats — exists, review quality |
+| 4.1 | 🟢 ✅ | Doctor Dashboard | `DoctorDashboard.tsx` | Today's appointments, stats — exists, review quality |
 | 4.2 | 🔵 ✅ | My Schedule | `doctor/Schedule.tsx` | Weekly grid calendar, appointment blocks, status updates, working hours highlight |
 | 4.3 | 🔵 ❌ | My Patients | `doctor/MyPatients.tsx` | List of all assigned/past patients with search & filter |
 | 4.4 | 🔵 ✅ | Patient Medical Record | `doctor/PatientRecord.tsx` | Tabs: Overview, Vitals (chart+table), Prescriptions, SOAP Notes; add vitals/note modals |
@@ -70,7 +70,7 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 
 | # | Status | Page | File | Notes |
 |---|--------|------|------|-------|
-| 5.1 | 🟢 ❌ | Receptionist Dashboard | `ReceptionistDashboard.tsx` | Queue, today's appointments — exists, review |
+| 5.1 | 🟢 ✅ | Receptionist Dashboard | `ReceptionistDashboard.tsx` | Queue, today's appointments — exists, review |
 | 5.2 | 🟢 ✅ | All Appointments | `Appointments.tsx` | Role-aware rebuild — book, cancel, status management, real db |
 | 5.3 | 🔵 ❌ | Patient Check-In | `receptionist/CheckIn.tsx` | Walk-in registration, assign to queue, print token |
 | 5.4 | 🔵 ❌ | Arrival Queue | `receptionist/Queue.tsx` | Live queue view — waiting, in-progress, done. Drag to reorder |
@@ -84,7 +84,7 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 
 | # | Status | Page | File | Notes |
 |---|--------|------|------|-------|
-| 6.1 | 🟢 ❌ | Patient Dashboard | `PatientDashboard.tsx` | Upcoming appointments, vitals summary — exists, review |
+| 6.1 | 🟢 ✅ | Patient Dashboard | `PatientDashboard.tsx` | Upcoming appointments, vitals summary — exists, review |
 | 6.2 | 🔵 ✅ | Book Appointment | `patient/BookAppointment.tsx` | 4-step wizard — dept → doctor → calendar + slots → details + confirm |
 | 6.3 | 🔵 ✅ | My Appointments | `patient/MyAppointments.tsx` | View upcoming & past appointments, cancel/reschedule |
 | 6.4 | 🔵 ✅ | My Medical Records | `patient/MedicalRecords.tsx` | Tabs: Overview (vitals chart, active Rx, upcoming apts), Prescriptions, Visits, Notes |
