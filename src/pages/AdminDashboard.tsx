@@ -1,840 +1,292 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Users, 
-  Calendar, 
-  Activity, 
-  TrendingUp, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Clock,
-  MoreVertical,
-  CheckCircle2,
-  AlertCircle,
-  FileText as LucideFileText,
-  Stethoscope,
-  Heart,
-  Droplets,
-  Thermometer,
-  ShieldCheck,
-  Building2,
-  DollarSign,
-  UserPlus,
-  Megaphone,
-  Mail,
-  Briefcase,
-  Pencil,
-  Trash2,
-  Eye,
-  Loader2
+import { useNavigate } from 'react-router-dom';
+import {
+  Users, Calendar, Building2, DollarSign, AlertCircle, Package,
+  ArrowUpRight, CheckCircle2, Clock, XCircle, Activity,
+  UserPlus, ShieldCheck, Stethoscope, BedDouble, Receipt,
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import { motion as m } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { useAuth } from '../context/AuthContext';
-import Modal from '../components/Modal';
+import { db } from '../lib/db';
+import type { Appointment, Staff, Patient } from '../types';
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-};
-
-const revenueData = [
-  { name: 'Mon', revenue: 4200, expenses: 2100 },
-  { name: 'Tue', revenue: 5100, expenses: 2400 },
-  { name: 'Wed', revenue: 4800, expenses: 2200 },
-  { name: 'Thu', revenue: 6200, expenses: 2800 },
-  { name: 'Fri', revenue: 5800, expenses: 2600 },
-  { name: 'Sat', revenue: 3400, expenses: 1800 },
-  { name: 'Sun', revenue: 2800, expenses: 1500 },
-];
-
-const departmentData = [
-  { name: 'Cardiology', value: 35, color: '#3b82f6' },
-  { name: 'Pediatrics', value: 25, color: '#10b981' },
-  { name: 'Neurology', value: 20, color: '#8b5cf6' },
-  { name: 'Orthopedics', value: 20, color: '#f59e0b' },
-];
-
-interface StaffMember {
-  id: string;
-  name: string;
-  role: string;
-  department: string;
-  email: string;
-  status: 'Active' | 'On Leave' | 'Inactive';
-}
+const STATUS_CFG = {
+  scheduled:   { label: 'Scheduled',   cls: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' },
+  confirmed:   { label: 'Confirmed',   cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' },
+  in_progress: { label: 'In Progress', cls: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20' },
+  completed:   { label: 'Completed',   cls: 'bg-slate-100 text-slate-500 dark:bg-slate-800' },
+  cancelled:   { label: 'Cancelled',   cls: 'bg-red-50 text-red-500 dark:bg-red-900/20' },
+  no_show:     { label: 'No Show',     cls: 'bg-slate-100 text-slate-400 dark:bg-slate-800' },
+} as const;
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
-  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-  const [isViewStaffModalOpen, setIsViewStaffModalOpen] = useState(false);
-  const [isEditStaffModalOpen, setIsEditStaffModalOpen] = useState(false);
-  const [isDeleteStaffModalOpen, setIsDeleteStaffModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  
-  const staffData: StaffMember[] = [
-    { id: '1', name: 'Dr. Sarah Johnson', role: 'Head of Cardiology', department: 'Cardiology', email: 's.johnson@hospital.com', status: 'Active' },
-    { id: '2', name: 'Michael Chen', role: 'Admin Assistant', department: 'Administration', email: 'm.chen@hospital.com', status: 'Active' },
-    { id: '3', name: 'Nurse Joy', role: 'Head Nurse', department: 'Emergency', email: 'joy.martinez@hospital.com', status: 'On Leave' },
-    { id: '4', name: 'Dr. Michael Chen', role: 'Neurologist', department: 'Neurology', email: 'm.chen2@hospital.com', status: 'Active' },
-    { id: '5', name: 'Emily Davis', role: 'Receptionist', department: 'Reception', email: 'e.davis@hospital.com', status: 'Active' },
-  ];
-  const [staffList, setStaffList] = useState(staffData);
-  
-  // Submission states
-  const [isSavingStaff, setIsSavingStaff] = useState(false);
-  const [showStaffSuccess, setShowStaffSuccess] = useState(false);
-  const [isPostingAnnouncement, setIsPostingAnnouncement] = useState(false);
-  const [showAnnouncementSuccess, setShowAnnouncementSuccess] = useState(false);
+  const navigate = useNavigate();
+  const [apts, setApts] = useState<Appointment[]>([]);
+  const [doctors, setDoctors] = useState<Staff[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
 
-  const handleViewStaff = (staff: StaffMember) => {
-    setSelectedStaff(staff);
-    setIsViewStaffModalOpen(true);
-  };
+  useEffect(() => {
+    setApts(db.appointments.getToday().sort((a, b) => a.time.localeCompare(b.time)));
+    setDoctors(db.staff.getDoctors());
+    setPatients(db.patients.getAll());
+  }, []);
 
-  const handleEditStaff = (staff: StaffMember) => {
-    setSelectedStaff(staff);
-    setIsEditStaffModalOpen(true);
-  };
+  const stats = useMemo(() => db.stats.admin(), []);
 
-  const handleDeleteStaff = (staff: StaffMember) => {
-    setSelectedStaff(staff);
-    setIsDeleteStaffModalOpen(true);
-  };
+  const revenueData = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+      return {
+        month: MONTHS[d.getMonth()],
+        revenue: db.invoices.getMonthlyRevenue(d.getFullYear(), d.getMonth() + 1),
+      };
+    });
+  }, []);
 
-  const confirmDeleteStaff = () => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      setStaffList(staffList.filter(s => s.id !== selectedStaff?.id));
-      setIsDeleting(false);
-      setIsDeleteStaffModalOpen(false);
-      setSelectedStaff(null);
-    }, 1000);
-  };
+  const occupancyPct = stats.totalBeds > 0
+    ? Math.round(((stats.totalBeds - stats.availableBeds) / stats.totalBeds) * 100)
+    : 0;
 
-  const handleAddStaff = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSavingStaff(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSavingStaff(false);
-      setShowStaffSuccess(true);
-      setTimeout(() => {
-        setShowStaffSuccess(false);
-        setIsAddStaffModalOpen(false);
-      }, 2000);
-    }, 1500);
-  };
-
-  const handlePostAnnouncement = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsPostingAnnouncement(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsPostingAnnouncement(false);
-      setShowAnnouncementSuccess(true);
-      setTimeout(() => {
-        setShowAnnouncementSuccess(false);
-        setIsAnnouncementModalOpen(false);
-      }, 2000);
-    }, 1500);
-  };
+  const getPatient = (id: string) => patients.find(p => p.id === id);
+  const getDoctor  = (id: string) => doctors.find(d => d.id === id);
 
   return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="p-4 lg:p-8 space-y-8"
-    >
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Hospital Administration 🏛️
+            Hospital Administration
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Global overview and facility management</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
+            Welcome back, {user?.name.split(' ')[0]}. Here's today's overview.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsAnnouncementModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95 border border-slate-200 dark:border-slate-700"
-          >
-            <Megaphone className="w-5 h-5 text-amber-500" />
-            <span>Post Announcement</span>
+        <div className="flex gap-3 flex-wrap">
+          <button onClick={() => navigate('/receptionist/register')}
+            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95">
+            <UserPlus className="w-4 h-4" /> Register Patient
           </button>
-          <button 
-            onClick={() => setIsAddStaffModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg active:scale-95"
-          >
-            <UserPlus className="w-5 h-5" />
-            <span>Add Staff</span>
-          </button>
-          <button className="flex items-center justify-center p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-bold transition-all hover:bg-slate-200 active:scale-95">
-            <ShieldCheck className="w-5 h-5" />
+          <button onClick={() => navigate('/admin/audit-logs')}
+            className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-5 py-3 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+            <ShieldCheck className="w-4 h-4" /> Audit Logs
           </button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Global Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Revenue', value: '$124,500', change: '+12.5%', icon: DollarSign, color: 'emerald' },
-          { label: 'Active Staff', value: '156', change: '+4', icon: Users, color: 'blue' },
-          { label: 'Bed Occupancy', value: '84%', change: '+2.1%', icon: Building2, color: 'purple' },
-          { label: 'Critical Alerts', value: '3', change: '-1', icon: AlertCircle, color: 'red' },
-        ].map((stat, i) => (
-          <motion.div 
-            key={i}
-            variants={item}
-            className="glass-card p-6 rounded-3xl"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn(
-                "p-3 rounded-2xl",
-                stat.color === 'emerald' && "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600",
-                stat.color === 'blue' && "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
-                stat.color === 'purple' && "bg-purple-50 dark:bg-purple-900/20 text-purple-600",
-                stat.color === 'red' && "bg-red-50 dark:bg-red-900/20 text-red-600",
+          { label: 'Active Patients',   value: stats.totalPatients,     icon: Users,      color: 'blue',   action: '/patients' },
+          { label: 'Active Staff',      value: stats.totalStaff,        icon: Stethoscope, color: 'purple', action: '/admin/staff' },
+          { label: 'Today\'s Appts',   value: stats.todayAppointments, icon: Calendar,    color: 'emerald',action: '/appointments' },
+          { label: 'Bed Occupancy',     value: `${occupancyPct}%`,      icon: BedDouble,  color: 'amber',  action: '/admin/rooms' },
+        ].map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 + i * 0.04 }}
+            onClick={() => navigate(s.action)}
+            className="glass-card p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all group">
+            <div className="flex items-center justify-between mb-3">
+              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center',
+                s.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20',
+                s.color === 'purple' && 'bg-purple-50 dark:bg-purple-900/20',
+                s.color === 'emerald'&& 'bg-emerald-50 dark:bg-emerald-900/20',
+                s.color === 'amber'  && 'bg-amber-50 dark:bg-amber-900/20',
               )}>
-                <stat.icon className="w-6 h-6" />
+                <s.icon className={cn('w-5 h-5',
+                  s.color === 'blue'   && 'text-blue-600',
+                  s.color === 'purple' && 'text-purple-600',
+                  s.color === 'emerald'&& 'text-emerald-600',
+                  s.color === 'amber'  && 'text-amber-600',
+                )} />
               </div>
-              <span className={cn(
-                "text-[10px] font-black px-2 py-1 rounded-lg",
-                stat.change.startsWith('+') ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-              )}>
-                {stat.change}
-              </span>
+              <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</h3>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stat.label}</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{s.label}</p>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Revenue Analytics */}
-        <div className="lg:col-span-2 space-y-8">
-          <motion.div variants={item} className="glass-card p-6 rounded-[2rem]">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm">Financial Performance</h3>
-              <div className="flex gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-600" />
-                  <span className="text-[10px] font-bold text-slate-500">Revenue</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-slate-300" />
-                  <span className="text-[10px] font-bold text-slate-500">Expenses</span>
-                </div>
-              </div>
-            </div>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData}>
-                  <defs>
-                    <linearGradient id="adminRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-800" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(8px)' }}
-                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                  />
-                  <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#adminRevenue)" />
-                  <Area type="monotone" dataKey="expenses" stroke="#cbd5e1" strokeWidth={2} fillOpacity={0} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-
-          {/* Department Distribution */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <motion.div variants={item} className="glass-card p-6 rounded-[2rem]">
-              <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-6">Patient Load</h3>
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={departmentData}
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {departmentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                {departmentData.map((dept, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: dept.color }} />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">{dept.name}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div variants={item} className="glass-card p-6 rounded-[2rem] flex flex-col justify-between">
-              <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-4">Resource Status</h3>
-              <div className="space-y-4">
-                {[
-                  { label: 'Oxygen Supply', value: 92, color: 'blue' },
-                  { label: 'Blood Bank', value: 45, color: 'amber' },
-                  { label: 'Medical Supplies', value: 78, color: 'emerald' },
-                ].map((resource, i) => (
-                  <div key={i} className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{resource.label}</span>
-                      <span className="text-[10px] font-black text-slate-900 dark:text-white">{resource.value}%</span>
-                    </div>
-                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${resource.value}%` }}
-                        transition={{ duration: 1, delay: 0.5 }}
-                        className={cn(
-                          "h-full rounded-full",
-                          resource.color === 'blue' && "bg-blue-600",
-                          resource.color === 'amber' && "bg-amber-500",
-                          resource.color === 'emerald' && "bg-emerald-500",
-                        )}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full mt-6 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-200 transition-all">
-                Inventory Report
-              </button>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-8">
-          {/* Critical Alerts */}
-          <motion.div variants={item} className="glass-card p-6 rounded-3xl bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
-            <h3 className="font-black text-red-600 uppercase tracking-wider text-sm mb-6 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              Critical Alerts
-            </h3>
-            <div className="space-y-4">
-              {[
-                { title: 'Server Latency', desc: 'High load on primary database.', time: '2m ago' },
-                { title: 'ER Overload', desc: 'Waiting time exceeding 2 hours.', time: '15m ago' },
-                { title: 'Blood Bank', desc: 'Type O- levels below threshold.', time: '1h ago' },
-              ].map((alert, i) => (
-                <div key={i} className="relative pl-4 border-l-4 border-red-500 py-1">
-                  <h4 className="text-xs font-black text-slate-900 dark:text-white">{alert.title}</h4>
-                  <p className="text-[10px] text-slate-500 font-medium mt-0.5">{alert.desc}</p>
-                  <p className="text-[8px] text-red-400 mt-1 font-bold uppercase">{alert.time}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* User Management Quick View */}
-          <motion.div variants={item} className="glass-card p-6 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-6">Staff Management</h3>
-            <div className="space-y-4">
-              {staffList.slice(0, 3).map((staff, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-[10px] font-bold text-blue-600">
-                      {staff.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">{staff.name}</p>
-                      <p className="text-[10px] text-slate-500">{staff.role}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className={cn(
-                      "text-[8px] font-black uppercase px-2 py-0.5 rounded mr-2",
-                      staff.status === 'Active' ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"
-                    )}>
-                      {staff.status}
-                    </span>
-                    <button 
-                      onClick={() => handleViewStaff(staff)}
-                      className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all text-slate-400 hover:text-blue-600"
-                      title="View"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={() => handleEditStaff(staff)}
-                      className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-slate-600"
-                      title="Edit"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteStaff(staff)}
-                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all text-slate-400 hover:text-red-600"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="w-full mt-6 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95">
-              Manage All Staff
+      {/* Alerts row */}
+      {(stats.pendingInvoices > 0 || stats.lowStockItems > 0) && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+          className="flex flex-wrap gap-3">
+          {stats.pendingInvoices > 0 && (
+            <button onClick={() => navigate('/admin/billing')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 rounded-2xl text-xs font-bold hover:bg-amber-100 transition-all">
+              <Receipt className="w-4 h-4" /> {stats.pendingInvoices} pending invoice{stats.pendingInvoices !== 1 ? 's' : ''}
             </button>
-          </motion.div>
-
-          {/* System Status */}
-          <motion.div variants={item} className="p-6 rounded-3xl bg-slate-900 text-white relative overflow-hidden">
-            <div className="relative z-10">
-              <h3 className="font-black uppercase tracking-wider text-xs mb-4">System Status</h3>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-bold">All services operational</span>
-              </div>
-              <div className="space-y-2 text-[10px] font-medium text-slate-400">
-                <div className="flex justify-between">
-                  <span>Uptime</span>
-                  <span className="text-white">99.98%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Last Backup</span>
-                  <span className="text-white">14m ago</span>
-                </div>
-              </div>
-            </div>
-            <Activity className="absolute -bottom-6 -right-6 w-24 h-24 text-white/5 rotate-12" />
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Add Staff Modal */}
-      <Modal
-        isOpen={isAddStaffModalOpen}
-        onClose={() => !isSavingStaff && setIsAddStaffModalOpen(false)}
-        title="Register New Staff Member"
-        maxWidth="2xl"
-      >
-        <div className="relative">
-          {showStaffSuccess && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-2xl"
-            >
-              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Staff Registered!</h3>
-              <p className="text-slate-500 dark:text-slate-400 font-bold mt-2">Invitation email has been sent.</p>
-            </motion.div>
           )}
+          {stats.lowStockItems > 0 && (
+            <button onClick={() => navigate('/admin/inventory')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-2xl text-xs font-bold hover:bg-red-100 transition-all">
+              <Package className="w-4 h-4" /> {stats.lowStockItems} low-stock item{stats.lowStockItems !== 1 ? 's' : ''}
+            </button>
+          )}
+        </motion.div>
+      )}
 
-          <form className="space-y-6" onSubmit={handleAddStaff}>
-            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-start gap-3 mb-6 border border-slate-100 dark:border-slate-700">
-              <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                Staff members will receive an email to set up their password and complete their profile registration.
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Chart */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="lg:col-span-2 glass-card p-6 rounded-3xl">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="font-black text-slate-900 dark:text-white">Revenue (Last 6 Months)</h3>
+              <p className="text-xs text-slate-400 font-bold mt-0.5">
+                This month: ${stats.monthlyRevenue.toLocaleString()}
               </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Full Name</label>
-                <div className="relative">
-                  <UserPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Dr. Emily Smith" 
-                    disabled={isSavingStaff}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
-                    required 
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Role</label>
-                <div className="relative">
-                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <select 
-                    disabled={isSavingStaff}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
-                    required
-                  >
-                    <option value="">Select Role...</option>
-                    <option value="doctor">Doctor</option>
-                    <option value="nurse">Nurse</option>
-                    <option value="receptionist">Receptionist</option>
-                    <option value="admin">Administrator</option>
-                    <option value="pharmacist">Pharmacist</option>
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="email" 
-                    placeholder="staff@hospital.com" 
-                    disabled={isSavingStaff}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
-                    required 
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Department</label>
-                <div className="relative">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <select 
-                    disabled={isSavingStaff}
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
-                    required
-                  >
-                    <option value="">Select Department...</option>
-                    <option value="cardiology">Cardiology</option>
-                    <option value="neurology">Neurology</option>
-                    <option value="pediatrics">Pediatrics</option>
-                    <option value="emergency">Emergency</option>
-                    <option value="pharmacy">Pharmacy</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <button 
-                type="button" 
-                onClick={() => setIsAddStaffModalOpen(false)}
-                disabled={isSavingStaff}
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                disabled={isSavingStaff}
-                className="flex-2 px-12 py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:opacity-90 transition-all active:scale-95 disabled:opacity-70"
-              >
-                {isSavingStaff ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-slate-900/30 dark:border-t-slate-900 rounded-full animate-spin" />
-                    <span>Processing...</span>
-                  </div>
-                ) : 'Create Account'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </Modal>
-
-      {/* Announcement Modal */}
-      <Modal
-        isOpen={isAnnouncementModalOpen}
-        onClose={() => !isPostingAnnouncement && setIsAnnouncementModalOpen(false)}
-        title="Post System Announcement"
-        maxWidth="lg"
-      >
-        <div className="relative">
-          {showAnnouncementSuccess && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-2xl"
-            >
-              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-8 h-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Announcement Posted!</h3>
-              <p className="text-slate-500 dark:text-slate-400 font-bold mt-2">Notification sent to selected audience.</p>
-            </motion.div>
-          )}
-
-          <form className="space-y-6" onSubmit={handlePostAnnouncement}>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Announcement Title</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Scheduled System Maintenance" 
-                disabled={isPostingAnnouncement}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-amber-500 transition-all outline-none disabled:opacity-50" 
-                required 
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Target Audience</label>
-              <div className="grid grid-cols-2 gap-3">
-                {['All Staff', 'Doctors Only', 'Patients Only', 'Admins Only'].map((target) => (
-                  <label key={target} className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                    <input 
-                      type="checkbox" 
-                      disabled={isPostingAnnouncement}
-                      className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 disabled:opacity-50" 
-                    />
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">{target}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Announcement Content</label>
-              <textarea 
-                rows={4} 
-                placeholder="Enter details here..." 
-                disabled={isPostingAnnouncement}
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-amber-500 transition-all outline-none resize-none disabled:opacity-50" 
-                required 
-              />
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <button 
-                type="button" 
-                onClick={() => setIsAnnouncementModalOpen(false)}
-                disabled={isPostingAnnouncement}
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
-              >
-                Discard
-              </button>
-              <button 
-                type="submit"
-                disabled={isPostingAnnouncement}
-                className="flex-2 px-12 py-4 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-amber-500/25 hover:bg-amber-600 transition-all active:scale-95 disabled:opacity-70"
-              >
-                {isPostingAnnouncement ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Posting...</span>
-                  </div>
-                ) : 'Post Now'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </Modal>
-
-      {/* View Staff Modal */}
-      <Modal
-        isOpen={isViewStaffModalOpen}
-        onClose={() => setIsViewStaffModalOpen(false)}
-        title="Staff Details"
-        maxWidth="md"
-      >
-        {selectedStaff && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xl font-black">
-                {selectedStaff.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedStaff.name}</h3>
-                <p className="text-sm font-medium text-slate-500">ID: #{selectedStaff.id.padStart(4, '0')}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Role</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedStaff.role}</p>
-              </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Department</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedStaff.department}</p>
-              </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl col-span-2">
-                <p className="text-xs font-bold text-slate-400 uppercase">Email</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedStaff.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-2">
-              <span className={cn(
-                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                selectedStaff.status === 'Active' ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"
-              )}>
-                {selectedStaff.status}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-xs font-black text-emerald-600">
+                ${db.invoices.getTotalRevenue().toLocaleString()} total
               </span>
-              <div className="flex gap-4">
-                <button 
-                  type="button" 
-                  onClick={() => setIsViewStaffModalOpen(false)} 
-                  className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
-                >
-                  Close
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setIsViewStaffModalOpen(false);
-                    setIsEditStaffModalOpen(true);
-                  }}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all"
-                >
-                  Edit Staff
-                </button>
-              </div>
             </div>
           </div>
-        )}
-      </Modal>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="adminRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-800" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }}
+                  tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip
+                  formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']}
+                  contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 16, border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#adminRev)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
 
-      {/* Delete Staff Modal */}
-      <Modal
-        isOpen={isDeleteStaffModalOpen}
-        onClose={() => !isDeleting && setIsDeleteStaffModalOpen(false)}
-        title="Delete Staff Member"
-        maxWidth="sm"
-      >
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+        {/* Quick Actions */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="glass-card p-6 rounded-3xl">
+          <h3 className="font-black text-slate-900 dark:text-white mb-5">Quick Actions</h3>
+          <div className="space-y-2">
+            {[
+              { label: 'Manage Staff',     icon: Users,     path: '/admin/staff',        color: 'blue' },
+              { label: 'Departments',      icon: Building2, path: '/admin/departments',  color: 'purple' },
+              { label: 'Rooms & Beds',     icon: BedDouble, path: '/admin/rooms',        color: 'emerald' },
+              { label: 'Billing',          icon: Receipt,   path: '/admin/billing',      color: 'amber' },
+              { label: 'Inventory',        icon: Package,   path: '/admin/inventory',    color: 'red' },
+              { label: 'Audit Logs',       icon: ShieldCheck,path: '/admin/audit-logs',  color: 'slate' },
+            ].map(a => (
+              <button key={a.path} onClick={() => navigate(a.path)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group text-left">
+                <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center shrink-0',
+                  a.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20',
+                  a.color === 'purple' && 'bg-purple-50 dark:bg-purple-900/20',
+                  a.color === 'emerald'&& 'bg-emerald-50 dark:bg-emerald-900/20',
+                  a.color === 'amber'  && 'bg-amber-50 dark:bg-amber-900/20',
+                  a.color === 'red'    && 'bg-red-50 dark:bg-red-900/20',
+                  a.color === 'slate'  && 'bg-slate-100 dark:bg-slate-800',
+                )}>
+                  <a.icon className={cn('w-4 h-4',
+                    a.color === 'blue'   && 'text-blue-600',
+                    a.color === 'purple' && 'text-purple-600',
+                    a.color === 'emerald'&& 'text-emerald-600',
+                    a.color === 'amber'  && 'text-amber-600',
+                    a.color === 'red'    && 'text-red-500',
+                    a.color === 'slate'  && 'text-slate-500',
+                  )} />
+                </div>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 transition-colors">{a.label}</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-500 ml-auto transition-colors" />
+              </button>
+            ))}
           </div>
-          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Confirm Delete</h3>
-          <p className="text-sm text-slate-500 mb-6">
-            Are you sure you want to remove <span className="font-bold text-red-500">{selectedStaff?.name}</span> from the system?
-          </p>
-          <div className="flex gap-4">
-            <button 
-              type="button" 
-              onClick={() => setIsDeleteStaffModalOpen(false)} 
-              disabled={isDeleting}
-              className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button 
-              type="button" 
-              onClick={confirmDeleteStaff}
-              disabled={isDeleting}
-              className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Deleting...</span>
-                </>
-              ) : (
-                <span>Delete</span>
-              )}
-            </button>
+        </motion.div>
+      </div>
+
+      {/* Today's appointments */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+        className="glass-card rounded-3xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 className="font-black text-slate-900 dark:text-white">Today's Appointments</h3>
+            <p className="text-xs text-slate-400 font-bold mt-0.5">{apts.length} total</p>
           </div>
+          <button onClick={() => navigate('/appointments')}
+            className="text-xs font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest">
+            View All
+          </button>
         </div>
-      </Modal>
-
-      {/* Edit Staff Modal */}
-      <Modal
-        isOpen={isEditStaffModalOpen}
-        onClose={() => setIsEditStaffModalOpen(false)}
-        title="Edit Staff Member"
-        maxWidth="lg"
-      >
-        {selectedStaff && (
-          <form className="space-y-6" onSubmit={(e) => {
-            e.preventDefault();
-            setStaffList(staffList.map(s => s.id === selectedStaff.id ? selectedStaff : s));
-            setIsEditStaffModalOpen(false);
-          }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Full Name</label>
-                <input 
-                  type="text" 
-                  value={selectedStaff.name}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Role</label>
-                <input 
-                  type="text" 
-                  value={selectedStaff.role}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, role: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Department</label>
-                <input 
-                  type="text" 
-                  value={selectedStaff.department}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, department: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Email</label>
-                <input 
-                  type="email" 
-                  value={selectedStaff.email}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Status</label>
-                <select 
-                  value={selectedStaff.status}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, status: e.target.value as StaffMember['status'] })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
-                >
-                  <option value="Active">Active</option>
-                  <option value="On Leave">On Leave</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-4 pt-4">
-              <button 
-                type="button" 
-                onClick={() => setIsEditStaffModalOpen(false)} 
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all"
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
+        {apts.length === 0 ? (
+          <div className="p-12 text-center">
+            <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <p className="text-slate-400 font-bold text-sm">No appointments today</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-slate-50/50 dark:bg-slate-800/30">
+                  {['Patient', 'Doctor', 'Time', 'Type', 'Status'].map(h => (
+                    <th key={h} className="px-6 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {apts.slice(0, 10).map(a => {
+                  const patient = getPatient(a.patientId);
+                  const doctor  = getDoctor(a.doctorId);
+                  const cfg     = STATUS_CFG[a.status] ?? STATUS_CFG.scheduled;
+                  return (
+                    <tr key={a.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[10px] font-black text-blue-600 shrink-0">
+                            {patient ? `${patient.firstName[0]}${patient.lastName[0]}` : '?'}
+                          </div>
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
+                            {patient ? `${patient.firstName} ${patient.lastName}` : a.patientId}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-500 font-medium">
+                        {doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
+                          <Clock className="w-3.5 h-3.5" /> {a.time}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-500 font-medium capitalize">{a.type.replace('_', ' ')}</td>
+                      <td className="px-6 py-4">
+                        <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-black uppercase', cfg.cls)}>
+                          {cfg.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
-      </Modal>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { User, AuthState, Role } from '../types/auth';
+import type { Role } from '../types/auth';
+import type { User, AuthState } from '../types/auth';
+import { KEYS, getAll } from '../lib/storage';
+import type { Staff, Patient } from '../types';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, role: Role) => Promise<void>;
+  login: (email: string) => Promise<void>;
   logout: () => void;
   hasRole: (roles: Role[]) => boolean;
 }
@@ -17,52 +20,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    // Simulate checking for stored session
-    const storedUser = localStorage.getItem('hospital_user');
+    const storedUser = localStorage.getItem(KEYS.USER);
     if (storedUser) {
-      setState({
-        user: JSON.parse(storedUser),
-        isAuthenticated: true,
-        isLoading: false,
-      });
+      setState({ user: JSON.parse(storedUser), isAuthenticated: true, isLoading: false });
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }
   }, []);
 
-  const login = async (email: string, role: Role) => {
+  const login = async (email: string) => {
     setState(prev => ({ ...prev, isLoading: true }));
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: email.split('@')[0],
-      email,
-      role,
-    };
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-    localStorage.setItem('hospital_user', JSON.stringify(user));
-    setState({
-      user,
-      isAuthenticated: true,
-      isLoading: false,
-    });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Look up staff first
+    const staffList = getAll<Staff>(KEYS.STAFF);
+    const staffMatch = staffList.find(s => s.email.toLowerCase() === normalizedEmail);
+
+    if (staffMatch) {
+      const user: User = {
+        id: staffMatch.id,
+        name: `${staffMatch.firstName} ${staffMatch.lastName}`,
+        email: staffMatch.email,
+        role: staffMatch.role as Role,
+      };
+      localStorage.setItem(KEYS.USER, JSON.stringify(user));
+      setState({ user, isAuthenticated: true, isLoading: false });
+      return;
+    }
+
+    // Look up patients
+    const patientList = getAll<Patient>(KEYS.PATIENTS);
+    const patientMatch = patientList.find(p => p.email.toLowerCase() === normalizedEmail);
+
+    if (patientMatch) {
+      const user: User = {
+        id: patientMatch.id,
+        name: `${patientMatch.firstName} ${patientMatch.lastName}`,
+        email: patientMatch.email,
+        role: 'PATIENT',
+      };
+      localStorage.setItem(KEYS.USER, JSON.stringify(user));
+      setState({ user, isAuthenticated: true, isLoading: false });
+      return;
+    }
+
+    setState(prev => ({ ...prev, isLoading: false }));
+    throw new Error('No account found with this email address.');
   };
 
   const logout = () => {
-    localStorage.removeItem('hospital_user');
-    setState({
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-    });
+    localStorage.removeItem(KEYS.USER);
+    setState({ user: null, isAuthenticated: false, isLoading: false });
   };
 
-  const hasRole = (roles: Role[]) => {
-    return state.user ? roles.includes(state.user.role) : false;
-  };
+  const hasRole = (roles: Role[]) =>
+    state.user ? roles.includes(state.user.role) : false;
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>
@@ -73,8 +87,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

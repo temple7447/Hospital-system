@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Hospital, 
-  LayoutDashboard, 
-  UserRound, 
-  Calendar, 
-  FileText, 
-  Settings, 
+import {
+  Hospital,
+  LayoutDashboard,
+  UserRound,
+  Calendar,
+  FileText,
+  Settings,
   LogOut,
   Menu,
   Bell,
@@ -19,7 +19,21 @@ import {
   Sun,
   Moon,
   Command,
-  X
+  X,
+  Users,
+  Building2,
+  BedDouble,
+  UserPlus,
+  CalendarDays,
+  PlusCircle,
+  FolderHeart,
+  ClipboardList,
+  Receipt,
+  FlaskConical,
+  TestTube,
+  Package,
+  ShieldCheck,
+  Pill,
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -76,11 +90,29 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
-    { icon: UserRound, label: 'Patients', path: '/patients', roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
-    { icon: Calendar, label: 'Appointments', path: '/appointments', roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
-    { icon: FileText, label: 'Medical Reports', path: '/reports', roles: ['ADMIN', 'DOCTOR'] },
-    { icon: Settings, label: 'Settings', path: '/settings', roles: ['ADMIN'] },
+    { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard',          roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
+    { icon: UserRound,       label: 'Patients',        path: '/patients',               roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+    { icon: Calendar,        label: 'Appointments',    path: '/appointments',           roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
+    { icon: PlusCircle,      label: 'Book Appointment',path: '/patient/book',           roles: ['PATIENT'] },
+    { icon: FolderHeart,     label: 'My Records',      path: '/patient/records',        roles: ['PATIENT'] },
+    { icon: CalendarDays,    label: 'My Schedule',     path: '/doctor/schedule',        roles: ['DOCTOR'] },
+    { icon: ClipboardList,   label: 'Write Rx',        path: '/doctor/prescription/new',roles: ['DOCTOR'] },
+    { icon: FlaskConical,    label: 'Lab Orders',      path: '/doctor/lab-orders',      roles: ['DOCTOR'] },
+    { icon: TestTube,        label: 'Lab Results',     path: '/patient/lab-results',    roles: ['PATIENT'] },
+    { icon: CalendarDays,    label: 'My Appointments', path: '/patient/appointments',   roles: ['PATIENT'] },
+    { icon: Pill,            label: 'My Prescriptions',path: '/patient/prescriptions',  roles: ['PATIENT'] },
+    { icon: Bell,            label: 'Notifications',   path: '/notifications',          roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
+    { icon: FileText,        label: 'Medical Reports', path: '/reports',                roles: ['ADMIN', 'DOCTOR'] },
+    { icon: UserPlus,        label: 'Register Patient',path: '/receptionist/register',  roles: ['ADMIN', 'RECEPTIONIST'] },
+    { icon: Receipt,         label: 'Billing',         path: '/receptionist/billing',   roles: ['RECEPTIONIST'] },
+    { icon: Receipt,         label: 'My Bills',        path: '/patient/bills',          roles: ['PATIENT'] },
+    { icon: Users,           label: 'Staff',           path: '/admin/staff',            roles: ['ADMIN'] },
+    { icon: Receipt,         label: 'Billing',         path: '/admin/billing',          roles: ['ADMIN'] },
+    { icon: Package,         label: 'Inventory',       path: '/admin/inventory',        roles: ['ADMIN'] },
+    { icon: ShieldCheck,     label: 'Audit Logs',      path: '/admin/audit-logs',       roles: ['ADMIN'] },
+    { icon: Building2,       label: 'Departments',    path: '/admin/departments',  roles: ['ADMIN'] },
+    { icon: BedDouble,       label: 'Rooms & Beds',   path: '/admin/rooms',        roles: ['ADMIN'] },
+    { icon: Settings,        label: 'Settings',       path: '/settings',           roles: ['ADMIN'] },
   ];
 
   const filteredMenuItems = menuItems.filter(item => 
@@ -227,7 +259,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 relative text-slate-500 dark:text-slate-400 transition-all group active:scale-90">
+            <button onClick={() => navigate('/notifications')} className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 relative text-slate-500 dark:text-slate-400 transition-all group active:scale-90">
               <Bell className="w-6 h-6 group-hover:rotate-12 transition-transform" />
               <span className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm"></span>
             </button>
@@ -265,7 +297,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                       </div>
                       
                       <div className="p-2">
-                        <button className="flex items-center gap-4 w-full px-4 py-3 rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                        <button onClick={() => { navigate('/profile'); setIsProfileOpen(false); }} className="flex items-center gap-4 w-full px-4 py-3 rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
                           <User className="w-5 h-5 text-blue-500" />
                           My Profile
                         </button>

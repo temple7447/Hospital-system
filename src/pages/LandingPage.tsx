@@ -1,18 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Activity, 
-  Shield, 
-  Users, 
-  Clock, 
-  ArrowRight, 
-  Heart, 
-  Stethoscope, 
-  Calendar, 
+import {
+  Activity,
+  Shield,
+  Users,
+  Clock,
+  ArrowRight,
+  Heart,
+  Stethoscope,
+  Calendar,
   MessageSquare,
   ChevronRight,
   Globe,
-  Star
+  Star,
+  FileText,
+  Hospital,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -42,20 +44,25 @@ const LandingPage: React.FC = () => {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <Activity className="w-6 h-6 text-white" />
+                <Hospital className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Medi<span className="text-blue-600">Flow</span></span>
+              <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">CareFlow</span>
             </div>
             
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
               <a href="#solutions" className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Solutions</a>
               <a href="#about" className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">About</a>
-              <Link 
-                to={isAuthenticated ? "/dashboard" : "/login"} 
+              {!isAuthenticated && (
+                <Link to="/register" className="px-5 py-2.5 text-slate-600 dark:text-slate-300 font-bold text-sm hover:text-blue-600 transition-colors">
+                  Register
+                </Link>
+              )}
+              <Link
+                to={isAuthenticated ? "/dashboard" : "/login"}
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 active:scale-95"
               >
-                {isAuthenticated ? "Dashboard" : "Login"}
+                {isAuthenticated ? "Dashboard" : "Sign In"}
               </Link>
             </div>
 
@@ -162,7 +169,7 @@ const LandingPage: React.FC = () => {
               {
                 title: 'Electronic Health Records',
                 desc: 'Secure, encrypted, and instantly accessible patient history and medical reports.',
-                icon: FileTextIcon,
+                icon: FileText,
                 color: 'emerald'
               },
               {
@@ -216,7 +223,7 @@ const LandingPage: React.FC = () => {
             <div>
               <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-4">Tailored Solutions</h2>
               <h3 className="text-4xl lg:text-6xl font-black tracking-tight mb-8">Unified experience for <span className="text-blue-500">every stakeholder</span></h3>
-              <p className="text-slate-400 text-lg mb-12 font-medium">MediFlow provides specialized portals optimized for every role in your ecosystem, ensuring maximum efficiency and data integrity.</p>
+              <p className="text-slate-400 text-lg mb-12 font-medium">CareFlow provides specialized portals optimized for every role in your ecosystem, ensuring maximum efficiency and data integrity.</p>
               
               <div className="space-y-6">
                 {[
@@ -284,7 +291,7 @@ const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                quote: "MediFlow has completely transformed how we manage our patient records. The interface is intuitive and the real-time analytics are game-changing.",
+                quote: "CareFlow has completely transformed how we manage our patient records. The interface is intuitive and the real-time analytics are game-changing.",
                 author: "Dr. Sarah Chen",
                 role: "Chief of Medicine, City General",
                 avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
@@ -338,8 +345,8 @@ const LandingPage: React.FC = () => {
           <div className="space-y-4">
             {[
               {
-                q: "Is MediFlow HIPAA compliant?",
-                a: "Yes, MediFlow is fully HIPAA compliant. We use enterprise-grade encryption and strict access controls to ensure all patient data is handled with the highest security standards."
+                q: "Is CareFlow HIPAA compliant?",
+                a: "Yes, CareFlow is fully HIPAA compliant. We use enterprise-grade encryption and strict access controls to ensure all patient data is handled with the highest security standards."
               },
               {
                 q: "Can we migrate our existing data?",
@@ -351,7 +358,7 @@ const LandingPage: React.FC = () => {
               },
               {
                 q: "Does it work on mobile devices?",
-                a: "Yes, MediFlow is a fully responsive platform that works seamlessly on desktops, tablets, and smartphones, allowing doctors to access records on the go."
+                a: "Yes, CareFlow is a fully responsive platform that works seamlessly on desktops, tablets, and smartphones, allowing doctors to access records on the go."
               }
             ].map((faq, i) => (
               <details key={i} className="group p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 transition-all [&_summary::-webkit-details-marker]:hidden">
@@ -401,7 +408,7 @@ const LandingPage: React.FC = () => {
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Medi<span className="text-blue-600">Flow</span></span>
+                <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">CareFlow</span>
               </div>
               <p className="text-slate-500 dark:text-slate-400 font-medium max-w-sm leading-relaxed">
                 The future of healthcare management is here. Empowering medical institutions worldwide with cutting-edge technology and human-centric design.
@@ -430,7 +437,7 @@ const LandingPage: React.FC = () => {
           </div>
           
           <div className="pt-8 border-t border-slate-100 dark:border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs font-bold text-slate-400">© 2026 MediFlow Systems Inc. All rights reserved.</p>
+            <p className="text-xs font-bold text-slate-400">© 2026 CareFlow Systems Inc. All rights reserved.</p>
             <div className="flex gap-6">
               <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors font-black text-[10px] uppercase tracking-widest">Twitter</a>
               <a href="#" className="text-slate-400 hover:text-blue-600 transition-colors font-black text-[10px] uppercase tracking-widest">LinkedIn</a>
@@ -442,27 +449,5 @@ const LandingPage: React.FC = () => {
     </div>
   );
 };
-
-// Simple icon wrapper to fix potential missing Lucide icons in build
-const FileTextIcon = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="16" y1="13" x2="8" y2="13" />
-    <line x1="16" y1="17" x2="8" y2="17" />
-    <line x1="10" y1="9" x2="8" y2="9" />
-  </svg>
-);
 
 export default LandingPage;
