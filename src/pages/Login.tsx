@@ -8,10 +8,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DEMO_ACCOUNTS = [
-  { label: 'Admin',        name: 'James Carter',       email: 'admin@careflow.com',          role: 'ADMIN',        color: 'from-violet-500 to-purple-600' },
-  { label: 'Doctor',       name: 'Dr. Sarah Mitchell', email: 'dr.mitchell@careflow.com',    role: 'DOCTOR',       color: 'from-blue-500 to-blue-700' },
-  { label: 'Receptionist', name: 'Anna Martinez',      email: 'anna@careflow.com',            role: 'RECEPTIONIST', color: 'from-emerald-500 to-teal-600' },
-  { label: 'Patient',      name: 'John Anderson',      email: 'john.anderson@email.com',      role: 'PATIENT',      color: 'from-amber-500 to-orange-600' },
+  { label: 'Admin',        name: 'James Carter',       email: 'admin@careflow.com',           role: 'ADMIN',          color: 'from-violet-500 to-purple-600' },
+  { label: 'Doctor',       name: 'Dr. Sarah Mitchell', email: 'dr.mitchell@careflow.com',     role: 'DOCTOR',         color: 'from-blue-500 to-blue-700' },
+  { label: 'Receptionist', name: 'Anna Martinez',      email: 'anna@careflow.com',             role: 'RECEPTIONIST',   color: 'from-emerald-500 to-teal-600' },
+  { label: 'Patient',      name: 'John Anderson',      email: 'john.anderson@email.com',       role: 'PATIENT',        color: 'from-amber-500 to-orange-600' },
+  { label: 'Nurse',        name: 'Maria Santos',       email: 'maria@careflow.com',            role: 'NURSE',          color: 'from-pink-500 to-rose-600' },
+  { label: 'Pharmacist',   name: 'Daniel Patel',       email: 'daniel.pharma@careflow.com',   role: 'PHARMACIST',     color: 'from-cyan-500 to-sky-600' },
+  { label: 'Lab Tech',     name: 'Aaron Foster',       email: 'aaron.lab@careflow.com',       role: 'LAB_TECHNICIAN', color: 'from-lime-500 to-green-600' },
+  { label: 'Radiologist',  name: 'Marcus Bennett',     email: 'marcus.rad@careflow.com',      role: 'RADIOLOGIST',    color: 'from-indigo-500 to-violet-600' },
 ];
 
 const features = [

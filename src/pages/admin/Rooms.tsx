@@ -150,8 +150,8 @@ const EditModal: React.FC<{
 // ─── Room Card ─────────────────────────────────────────────────────────────────
 const RoomCard: React.FC<{ room: Room; onEdit: (r: Room) => void }> = ({ room, onEdit }) => {
   const dept   = db.departments.getById(room.departmentId);
-  const type   = typeMeta[room.type];
-  const status = statusMeta[room.status];
+  const type   = typeMeta[room.type] ?? typeMeta['general'];
+  const status = statusMeta[room.status] ?? statusMeta['available'];
   const StatusIcon = status.icon;
   const occupancy = room.capacity > 0 ? (room.occupiedBeds / room.capacity) * 100 : 0;
 

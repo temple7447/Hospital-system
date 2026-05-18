@@ -14,6 +14,7 @@ export const KEYS = {
   QUEUE:              'hospital_queue',
   CONSULTATION_NOTES: 'hospital_consultation_notes',
   VITALS:             'hospital_vitals',
+  NURSING_TASKS:      'hospital_nursing_tasks',
   SEEDED:             'hospital_seeded',
 } as const;
 

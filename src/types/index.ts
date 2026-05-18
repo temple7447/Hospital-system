@@ -1,5 +1,5 @@
 // ─── Auth ────────────────────────────────────────────────────────────────────
-export type Role = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'PATIENT' | 'NURSE';
+export type Role = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'PATIENT' | 'NURSE' | 'PHARMACIST' | 'LAB_TECHNICIAN' | 'RADIOLOGIST';
 
 export interface AuthUser {
   id: string;         // matches staff.id or patient.id
@@ -23,7 +23,7 @@ export interface Department {
 }
 
 // ─── Staff ────────────────────────────────────────────────────────────────────
-export type StaffRole = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'NURSE';
+export type StaffRole = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'NURSE' | 'PHARMACIST' | 'LAB_TECHNICIAN' | 'RADIOLOGIST';
 export type StaffStatus = 'active' | 'inactive' | 'on_leave';
 export type WeekDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -122,7 +122,7 @@ export interface PrescriptionItem {
   instructions?: string;
 }
 
-export type PrescriptionStatus = 'active' | 'completed' | 'cancelled';
+export type PrescriptionStatus = 'active' | 'completed' | 'cancelled' | 'dispensed';
 
 export interface Prescription {
   id: string;
@@ -136,6 +136,8 @@ export interface Prescription {
   status: PrescriptionStatus;
   createdAt: string;
   expiresAt: string;
+  dispensedAt?: string;
+  dispensedBy?: string;
 }
 
 // ─── Lab Order ────────────────────────────────────────────────────────────────
@@ -160,9 +162,11 @@ export interface LabOrder {
   results?: LabResult[];
   status: LabTestStatus;
   priority: 'routine' | 'urgent' | 'stat';
+  category?: 'lab' | 'radiology';
   notes?: string;
   orderedAt: string;
   completedAt?: string;
+  processedBy?: string;
 }
 
 // ─── Invoice ──────────────────────────────────────────────────────────────────
@@ -285,6 +289,22 @@ export interface VitalRecord {
   recordedAt: string;
 }
 
+// ─── Nursing Task ─────────────────────────────────────────────────────────────
+export type NursingTaskType = 'medication' | 'vitals' | 'wound_care' | 'assessment' | 'other';
+export type NursingTaskStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
+
+export interface NursingTask {
+  id: string;
+  patientId: string;
+  nurseId: string;
+  type: NursingTaskType;
+  description: string;
+  scheduledAt: string;
+  completedAt?: string;
+  status: NursingTaskStatus;
+  notes?: string;
+}
+
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
 export interface AdminStats {
   totalPatients: number;
@@ -316,4 +336,32 @@ export interface PatientStats {
   activePrescriptions: number;
   pendingBills: number;
   totalVisits: number;
+}
+
+export interface NurseStats {
+  myPatients: number;
+  tasksToday: number;
+  tasksCompleted: number;
+  vitalsRecordedToday: number;
+}
+
+export interface PharmacistStats {
+  pendingPrescriptions: number;
+  dispensedToday: number;
+  lowStockMedicines: number;
+  totalActive: number;
+}
+
+export interface LabTechStatsType {
+  pendingOrders: number;
+  inProgress: number;
+  completedToday: number;
+  urgentOrders: number;
+}
+
+export interface RadiologistStats {
+  pendingImaging: number;
+  inProgress: number;
+  completedToday: number;
+  urgentImaging: number;
 }

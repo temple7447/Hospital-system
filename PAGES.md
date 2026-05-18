@@ -17,7 +17,7 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 | # | Status | Page | File | Roles | Notes |
 |---|--------|------|------|-------|-------|
 | 1.1 | 🟢 ✅ | Landing Page | `LandingPage.tsx` | Public | Not wired to router yet. Hero, features, CTA |
-| 1.2 | 🟢 ❌ | Login | `Login.tsx` | Public | Exists, needs role selector + validation |
+| 1.2 | 🟢 ✅ | Login | `Login.tsx` | Public | Role selector + validation + real auth against localStorage |
 | 1.3 | 🔵 ✅ | Patient Register | `Register.tsx` | Public | Self-registration for patients |
 | 1.4 | 🔵 ✅ | Forgot Password | `ForgotPassword.tsx` | Public | Mock reset flow using localStorage |
 
@@ -80,6 +80,50 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 
 ---
 
+## 6. NURSE PAGES [N]
+
+| # | Status | Page | File | Notes |
+|---|--------|------|------|-------|
+| N.1 | 🔵 ✅ | Nurse Dashboard | `NurseDashboard.tsx` | Tasks, vitals stats, pending list |
+| N.2 | 🔵 ✅ | My Patients | `nurse/MyPatients.tsx` | Patients in nurse's dept with allergy/vitals quick view |
+| N.3 | 🔵 ✅ | Record Vitals | `nurse/VitalEntry.tsx` | Patient search + 8-field vital entry form |
+| N.4 | 🔵 ✅ | Nursing Tasks | `nurse/Tasks.tsx` | Medication/vitals/wound care tasks with start/complete flow |
+
+---
+
+## 7. PHARMACIST PAGES [PH]
+
+| # | Status | Page | File | Notes |
+|---|--------|------|------|-------|
+| PH.1 | 🔵 ✅ | Pharmacist Dashboard | `PharmacistDashboard.tsx` | Pending Rx, dispensed today, low stock |
+| PH.2 | 🔵 ✅ | Prescription Queue | `pharmacist/PrescriptionQueue.tsx` | Active Rx list with allergy warnings, mark as dispensed |
+| PH.3 | 🔵 ✅ | Drug Inventory | `pharmacist/DrugInventory.tsx` | Medicine stock with restock action |
+| PH.4 | 🔵 ✅ | Dispense History | `pharmacist/DispenseHistory.tsx` | All dispensed Rx with my/all filter |
+
+---
+
+## 8. LAB TECHNICIAN PAGES [LT]
+
+| # | Status | Page | File | Notes |
+|---|--------|------|------|-------|
+| LT.1 | 🔵 ✅ | Lab Tech Dashboard | `LabTechDashboard.tsx` | Pending/processing/completed stats, priority sorted queue |
+| LT.2 | 🔵 ✅ | Order Queue | `lab_tech/OrderQueue.tsx` | Pathology orders, advance through ordered → collected → processing |
+| LT.3 | 🔵 ✅ | Enter Results | `lab_tech/EnterResults.tsx` | Per-test value/unit/range entry with normal/abnormal/critical flag |
+| LT.4 | 🔵 ✅ | Completed Orders | `lab_tech/CompletedOrders.tsx` | History with expandable result rows |
+
+---
+
+## 9. RADIOLOGIST PAGES [RD]
+
+| # | Status | Page | File | Notes |
+|---|--------|------|------|-------|
+| RD.1 | 🔵 ✅ | Radiologist Dashboard | `RadiologistDashboard.tsx` | Pending imaging, in-progress, urgent stats |
+| RD.2 | 🔵 ✅ | Imaging Queue | `radiologist/ImagingQueue.tsx` | MRI/CT/X-Ray/Ultrasound queue with status advancement |
+| RD.3 | 🔵 ✅ | Enter Report | `radiologist/EnterReport.tsx` | Findings textarea per study + impression + flag |
+| RD.4 | 🔵 ✅ | Report History | `radiologist/ReportHistory.tsx` | Past reports with expandable findings |
+
+---
+
 ## 6. PATIENT PAGES [P]
 
 | # | Status | Page | File | Notes |
@@ -99,13 +143,13 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 
 | Section | Total Pages | Built | Remaining |
 |---------|------------|-------|-----------|
-| Auth & Public | 4 | 2 | 2 |
-| Shared | 4 | 0 | 4 |
-| Admin | 10 | 3 | 7 |
-| Doctor | 8 | 1 | 7 |
-| Receptionist | 7 | 3 | 4 |
-| Patient | 8 | 1 | 7 |
-| **Total** | **41** | **10** | **31** |
+| Auth & Public | 4 | 4 | 0 |
+| Shared | 4 | 4 | 0 |
+| Admin | 10 | 10 | 0 |
+| Doctor | 8 | 8 | 0 |
+| Receptionist | 7 | 7 | 0 |
+| Patient | 8 | 8 | 0 |
+| **Total** | **41** | **41** | **0** |
 
 ---
 

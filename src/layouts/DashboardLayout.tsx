@@ -34,6 +34,16 @@ import {
   Package,
   ShieldCheck,
   Pill,
+  UsersRound,
+  StickyNote,
+  CalendarClock,
+  UserCheck,
+  ListOrdered,
+  HeartPulse,
+  ClipboardCheck,
+  History,
+  ScanLine,
+  Stethoscope,
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -90,20 +100,40 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard',          roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
+    { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard',          roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
     { icon: UserRound,       label: 'Patients',        path: '/patients',               roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
     { icon: Calendar,        label: 'Appointments',    path: '/appointments',           roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
     { icon: PlusCircle,      label: 'Book Appointment',path: '/patient/book',           roles: ['PATIENT'] },
     { icon: FolderHeart,     label: 'My Records',      path: '/patient/records',        roles: ['PATIENT'] },
-    { icon: CalendarDays,    label: 'My Schedule',     path: '/doctor/schedule',        roles: ['DOCTOR'] },
-    { icon: ClipboardList,   label: 'Write Rx',        path: '/doctor/prescription/new',roles: ['DOCTOR'] },
-    { icon: FlaskConical,    label: 'Lab Orders',      path: '/doctor/lab-orders',      roles: ['DOCTOR'] },
+    { icon: CalendarDays,    label: 'My Schedule',     path: '/doctor/schedule',           roles: ['DOCTOR'] },
+    { icon: UsersRound,      label: 'My Patients',     path: '/doctor/patients',           roles: ['DOCTOR'] },
+    { icon: StickyNote,      label: 'SOAP Notes',      path: '/doctor/consultation-notes', roles: ['DOCTOR'] },
+    { icon: ClipboardList,   label: 'Write Rx',        path: '/doctor/prescription/new',   roles: ['DOCTOR'] },
+    { icon: FlaskConical,    label: 'Lab Orders',      path: '/doctor/lab-orders',         roles: ['DOCTOR'] },
+    { icon: CalendarClock,   label: 'My Availability', path: '/doctor/availability',       roles: ['DOCTOR'] },
     { icon: TestTube,        label: 'Lab Results',     path: '/patient/lab-results',    roles: ['PATIENT'] },
     { icon: CalendarDays,    label: 'My Appointments', path: '/patient/appointments',   roles: ['PATIENT'] },
     { icon: Pill,            label: 'My Prescriptions',path: '/patient/prescriptions',  roles: ['PATIENT'] },
-    { icon: Bell,            label: 'Notifications',   path: '/notifications',          roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
+    { icon: HeartPulse,      label: 'Health Summary',  path: '/patient/health-summary', roles: ['PATIENT'] },
+    // Nurse
+    { icon: Stethoscope,     label: 'My Patients',     path: '/nurse/patients',         roles: ['NURSE'] },
+    { icon: HeartPulse,      label: 'Record Vitals',   path: '/nurse/vitals',           roles: ['NURSE'] },
+    { icon: ClipboardCheck,  label: 'Nursing Tasks',   path: '/nurse/tasks',            roles: ['NURSE'] },
+    // Pharmacist
+    { icon: Pill,            label: 'Rx Queue',        path: '/pharmacist/queue',       roles: ['PHARMACIST'] },
+    { icon: Package,         label: 'Drug Inventory',  path: '/pharmacist/inventory',   roles: ['PHARMACIST'] },
+    { icon: History,         label: 'Dispense History',path: '/pharmacist/history',     roles: ['PHARMACIST'] },
+    // Lab Technician
+    { icon: FlaskConical,    label: 'Order Queue',     path: '/lab/queue',              roles: ['LAB_TECHNICIAN'] },
+    { icon: TestTube,        label: 'Completed Orders',path: '/lab/completed',          roles: ['LAB_TECHNICIAN'] },
+    // Radiologist
+    { icon: ScanLine,        label: 'Imaging Queue',   path: '/radiology/queue',        roles: ['RADIOLOGIST'] },
+    { icon: History,         label: 'Report History',  path: '/radiology/history',      roles: ['RADIOLOGIST'] },
+    { icon: Bell,            label: 'Notifications',   path: '/notifications',          roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
     { icon: FileText,        label: 'Medical Reports', path: '/reports',                roles: ['ADMIN', 'DOCTOR'] },
     { icon: UserPlus,        label: 'Register Patient',path: '/receptionist/register',  roles: ['ADMIN', 'RECEPTIONIST'] },
+    { icon: UserCheck,       label: 'Check In Patient',path: '/receptionist/checkin',   roles: ['ADMIN', 'RECEPTIONIST'] },
+    { icon: ListOrdered,     label: 'Arrival Queue',   path: '/receptionist/queue',     roles: ['ADMIN', 'RECEPTIONIST'] },
     { icon: Receipt,         label: 'Billing',         path: '/receptionist/billing',   roles: ['RECEPTIONIST'] },
     { icon: Receipt,         label: 'My Bills',        path: '/patient/bills',          roles: ['PATIENT'] },
     { icon: Users,           label: 'Staff',           path: '/admin/staff',            roles: ['ADMIN'] },

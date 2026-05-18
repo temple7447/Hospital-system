@@ -37,6 +37,22 @@ import AvailabilityPage from './pages/doctor/Availability';
 import CheckInPage from './pages/receptionist/CheckIn';
 import QueuePage from './pages/receptionist/Queue';
 import HealthSummaryPage from './pages/patient/HealthSummary';
+// Nurse pages
+import NurseMyPatients from './pages/nurse/MyPatients';
+import NurseVitalEntry from './pages/nurse/VitalEntry';
+import NurseTasks from './pages/nurse/Tasks';
+// Pharmacist pages
+import PrescriptionQueue from './pages/pharmacist/PrescriptionQueue';
+import DrugInventory from './pages/pharmacist/DrugInventory';
+import DispenseHistory from './pages/pharmacist/DispenseHistory';
+// Lab tech pages
+import LabOrderQueue from './pages/lab_tech/OrderQueue';
+import LabEnterResults from './pages/lab_tech/EnterResults';
+import LabCompletedOrders from './pages/lab_tech/CompletedOrders';
+// Radiologist pages
+import ImagingQueue from './pages/radiologist/ImagingQueue';
+import RadiologyEnterReport from './pages/radiologist/EnterReport';
+import RadiologyReportHistory from './pages/radiologist/ReportHistory';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -237,6 +253,74 @@ function App() {
             <Route path="/patient/health-summary" element={
               <ProtectedRoute allowedRoles={['PATIENT']}>
                 <DashboardLayout><HealthSummaryPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Nurse routes */}
+            <Route path="/nurse/patients" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'NURSE']}>
+                <DashboardLayout><NurseMyPatients /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/nurse/vitals" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'NURSE']}>
+                <DashboardLayout><NurseVitalEntry /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/nurse/tasks" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'NURSE']}>
+                <DashboardLayout><NurseTasks /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Pharmacist routes */}
+            <Route path="/pharmacist/queue" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'PHARMACIST']}>
+                <DashboardLayout><PrescriptionQueue /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/pharmacist/inventory" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'PHARMACIST']}>
+                <DashboardLayout><DrugInventory /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/pharmacist/history" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'PHARMACIST']}>
+                <DashboardLayout><DispenseHistory /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Lab Technician routes */}
+            <Route path="/lab/queue" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN']}>
+                <DashboardLayout><LabOrderQueue /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/lab/results" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN']}>
+                <DashboardLayout><LabEnterResults /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/lab/completed" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN']}>
+                <DashboardLayout><LabCompletedOrders /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Radiologist routes */}
+            <Route path="/radiology/queue" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'RADIOLOGIST']}>
+                <DashboardLayout><ImagingQueue /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/radiology/report" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'RADIOLOGIST']}>
+                <DashboardLayout><RadiologyEnterReport /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/radiology/history" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'RADIOLOGIST']}>
+                <DashboardLayout><RadiologyReportHistory /></DashboardLayout>
               </ProtectedRoute>
             } />
 

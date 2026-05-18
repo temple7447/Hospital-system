@@ -2,7 +2,7 @@ import { KEYS, setAll } from './storage';
 import type {
   Department, Staff, Patient, Room, Appointment,
   Prescription, LabOrder, Invoice, InventoryItem,
-  Notification, AuditLog, QueueEntry, ConsultationNote, VitalRecord,
+  Notification, AuditLog, QueueEntry, ConsultationNote, VitalRecord, NursingTask,
 } from '@/types';
 
 // ─── Departments ──────────────────────────────────────────────────────────────
@@ -15,6 +15,9 @@ const departments: Department[] = [
   { id: 'dept-6', name: 'General Medicine',description: 'Primary and general healthcare',      headDoctorId: 'staff-7', floor: '2nd', totalBeds: 50, availableBeds: 20, color: '#3b82f6', icon: 'stethoscope' },
   { id: 'dept-7', name: 'Gynecology',      description: 'Women\'s reproductive health',        headDoctorId: 'staff-8', floor: '4th', totalBeds: 28, availableBeds: 9,  color: '#ec4899', icon: 'heart' },
   { id: 'dept-8', name: 'Dermatology',     description: 'Skin, hair and nail conditions',      headDoctorId: 'staff-9', floor: '2nd', totalBeds: 15, availableBeds: 7,  color: '#14b8a6', icon: 'sparkles' },
+  { id: 'dept-9', name: 'Pharmacy',        description: 'Medication dispensing and management', headDoctorId: undefined, floor: '1st', totalBeds: 0,  availableBeds: 0,  color: '#0891b2', icon: 'pill' },
+  { id: 'dept-10', name: 'Laboratory',     description: 'Pathology, blood work and diagnostics', headDoctorId: undefined, floor: '1st', totalBeds: 0, availableBeds: 0,  color: '#84cc16', icon: 'flask' },
+  { id: 'dept-11', name: 'Radiology',      description: 'Imaging services — X-ray, MRI, CT, ultrasound', headDoctorId: undefined, floor: '1st', totalBeds: 0, availableBeds: 0, color: '#6366f1', icon: 'scan' },
 ];
 
 // ─── Staff ────────────────────────────────────────────────────────────────────
@@ -38,6 +41,15 @@ const staff: Staff[] = [
   { id: 'staff-13', staffNumber: 'NR-001', firstName: 'Maria',   lastName: 'Santos',    email: 'maria@careflow.com',       phone: '+1-555-0113', role: 'NURSE',        departmentId: 'dept-6',   specialization: undefined,           licenseNumber: undefined,      dateJoined: '2020-08-20', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday'], workingHours: { start: '07:00', end: '15:00' } },
   { id: 'staff-14', staffNumber: 'NR-002', firstName: 'Tom',     lastName: 'Williams',  email: 'tom@careflow.com',         phone: '+1-555-0114', role: 'NURSE',        departmentId: 'dept-5',   specialization: undefined,           licenseNumber: undefined,      dateJoined: '2021-11-05', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday','saturday'], workingHours: { start: '15:00', end: '23:00' } },
   { id: 'staff-15', staffNumber: 'NR-003', firstName: 'Grace',   lastName: 'Lee',       email: 'grace@careflow.com',       phone: '+1-555-0115', role: 'NURSE',        departmentId: 'dept-1',   specialization: undefined,           licenseNumber: undefined,      dateJoined: '2022-03-01', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday'], workingHours: { start: '08:00', end: '16:00' } },
+  // Pharmacists
+  { id: 'staff-16', staffNumber: 'PH-001', firstName: 'Daniel',  lastName: 'Patel',     email: 'daniel.pharma@careflow.com', phone: '+1-555-0116', role: 'PHARMACIST',     departmentId: 'dept-9',   specialization: 'Clinical Pharmacy', licenseNumber: 'PH-22341', dateJoined: '2020-04-15', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday'], workingHours: { start: '08:00', end: '16:00' } },
+  { id: 'staff-17', staffNumber: 'PH-002', firstName: 'Rachel',  lastName: 'Kim',       email: 'rachel.pharma@careflow.com', phone: '+1-555-0117', role: 'PHARMACIST',     departmentId: 'dept-9',   specialization: 'Oncology Pharmacy', licenseNumber: 'PH-22342', dateJoined: '2022-01-10', status: 'active',    workingDays: ['tuesday','wednesday','thursday','friday','saturday'], workingHours: { start: '10:00', end: '18:00' } },
+  // Lab Technicians
+  { id: 'staff-18', staffNumber: 'LT-001', firstName: 'Aaron',   lastName: 'Foster',    email: 'aaron.lab@careflow.com',     phone: '+1-555-0118', role: 'LAB_TECHNICIAN', departmentId: 'dept-10',  specialization: 'Hematology',        licenseNumber: 'LT-33401', dateJoined: '2019-09-20', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday'], workingHours: { start: '07:00', end: '15:00' } },
+  { id: 'staff-19', staffNumber: 'LT-002', firstName: 'Nina',    lastName: 'Volkov',    email: 'nina.lab@careflow.com',      phone: '+1-555-0119', role: 'LAB_TECHNICIAN', departmentId: 'dept-10',  specialization: 'Biochemistry',      licenseNumber: 'LT-33402', dateJoined: '2021-05-12', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday','saturday'], workingHours: { start: '15:00', end: '23:00' } },
+  // Radiologists
+  { id: 'staff-20', staffNumber: 'RD-001', firstName: 'Marcus',  lastName: 'Bennett',   email: 'marcus.rad@careflow.com',    phone: '+1-555-0120', role: 'RADIOLOGIST',    departmentId: 'dept-11',  specialization: 'Diagnostic Radiology', licenseNumber: 'RD-44501', dateJoined: '2018-08-01', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday'], workingHours: { start: '08:00', end: '17:00' } },
+  { id: 'staff-21', staffNumber: 'RD-002', firstName: 'Yuki',    lastName: 'Tanaka',    email: 'yuki.rad@careflow.com',      phone: '+1-555-0121', role: 'RADIOLOGIST',    departmentId: 'dept-11',  specialization: 'Interventional Radiology', licenseNumber: 'RD-44502', dateJoined: '2020-11-15', status: 'active',    workingDays: ['monday','tuesday','wednesday','thursday','friday'], workingHours: { start: '09:00', end: '17:00' } },
 ];
 
 // ─── Patients ─────────────────────────────────────────────────────────────────
@@ -81,7 +93,7 @@ const rooms: Room[] = [
   { id: 'room-13', roomNumber: '401', type: 'general',      floor: 4, departmentId: 'dept-2', capacity: 4,  occupiedBeds: 3,  status: 'available' },
   { id: 'room-14', roomNumber: '402', type: 'private',      floor: 4, departmentId: 'dept-7', capacity: 1,  occupiedBeds: 1,  status: 'full' },
   { id: 'room-15', roomNumber: '403', type: 'general',      floor: 4, departmentId: 'dept-7', capacity: 4,  occupiedBeds: 1,  status: 'available' },
-  { id: 'room-16', roomNumber: '106', type: 'maintenance',  floor: 1, departmentId: 'dept-5', capacity: 4,  occupiedBeds: 0,  status: 'maintenance' },
+  { id: 'room-16', roomNumber: '106', type: 'general',      floor: 1, departmentId: 'dept-5', capacity: 4,  occupiedBeds: 0,  status: 'maintenance' },
 ];
 
 // ─── Appointments ─────────────────────────────────────────────────────────────
@@ -136,7 +148,33 @@ const labOrders: LabOrder[] = [
   { id: 'lab-4', labNumber: 'LAB-0004', patientId: 'pat-5',  doctorId: 'staff-6', appointmentId: 'apt-12', tests: ['CBC', 'CMP', 'Lipase', 'Amylase', 'Urinalysis'], status: 'completed', priority: 'stat', orderedAt: '2026-05-18T07:30:00Z', completedAt: '2026-05-18T09:00:00Z', results: [{ testName: 'WBC', value: '11.8', unit: 'K/uL', referenceRange: '4.5-11.0', flag: 'abnormal' }, { testName: 'Lipase', value: '45', unit: 'U/L', referenceRange: '10-140', flag: 'normal' }, { testName: 'Amylase', value: '88', unit: 'U/L', referenceRange: '30-110', flag: 'normal' }] },
   { id: 'lab-5', labNumber: 'LAB-0005', patientId: 'pat-10', doctorId: 'staff-3', appointmentId: 'apt-5',  tests: ['Serum Valproate Level', 'CBC', 'LFT'], status: 'ordered', priority: 'routine', orderedAt: '2026-05-18T11:10:00Z', completedAt: undefined },
   { id: 'lab-6', labNumber: 'LAB-0006', patientId: 'pat-13', doctorId: 'staff-2', appointmentId: 'apt-3',  tests: ['BNP', 'Creatinine', 'Electrolytes', 'Chest X-Ray'], status: 'processing', priority: 'urgent', orderedAt: '2026-05-18T10:20:00Z', completedAt: undefined },
-  { id: 'lab-7', labNumber: 'LAB-0007', patientId: 'pat-6',  doctorId: 'staff-7', appointmentId: 'apt-9',  tests: ['TSH', 'Free T4', 'Free T3'], status: 'completed', priority: 'routine', orderedAt: '2026-05-18T09:30:00Z', completedAt: '2026-05-18T13:00:00Z', results: [{ testName: 'TSH', value: '6.8', unit: 'mIU/L', referenceRange: '0.4-4.0', flag: 'abnormal' }, { testName: 'Free T4', value: '0.9', unit: 'ng/dL', referenceRange: '0.8-1.8', flag: 'normal' }] },
+  { id: 'lab-7', labNumber: 'LAB-0007', patientId: 'pat-6',  doctorId: 'staff-7', appointmentId: 'apt-9',  tests: ['TSH', 'Free T4', 'Free T3'], status: 'completed', priority: 'routine', category: 'lab', orderedAt: '2026-05-18T09:30:00Z', completedAt: '2026-05-18T13:00:00Z', results: [{ testName: 'TSH', value: '6.8', unit: 'mIU/L', referenceRange: '0.4-4.0', flag: 'abnormal' }, { testName: 'Free T4', value: '0.9', unit: 'ng/dL', referenceRange: '0.8-1.8', flag: 'normal' }] },
+  // Imaging / Radiology orders
+  { id: 'lab-8',  labNumber: 'LAB-0008', patientId: 'pat-9',  doctorId: 'staff-2', appointmentId: 'apt-2',  tests: ['Chest X-Ray', 'Echocardiogram'], status: 'processing', priority: 'urgent', category: 'radiology', orderedAt: '2026-05-18T09:15:00Z' },
+  { id: 'lab-9',  labNumber: 'LAB-0009', patientId: 'pat-2',  doctorId: 'staff-3', appointmentId: 'apt-22', tests: ['MRI Brain'], status: 'completed', priority: 'routine', category: 'radiology', orderedAt: '2026-04-20T11:05:00Z', completedAt: '2026-04-22T16:00:00Z', processedBy: 'staff-20', results: [{ testName: 'MRI Brain', value: 'No acute intracranial abnormality. Mild age-related white matter changes.', unit: '', referenceRange: 'Normal', flag: 'normal' }] },
+  { id: 'lab-10', labNumber: 'LAB-0010', patientId: 'pat-4',  doctorId: 'staff-5', appointmentId: 'apt-14', tests: ['X-Ray Knee'], status: 'ordered', priority: 'routine', category: 'radiology', orderedAt: '2026-05-18T11:00:00Z' },
+  { id: 'lab-11', labNumber: 'LAB-0011', patientId: 'pat-17', doctorId: 'staff-3', appointmentId: 'apt-6',  tests: ['MRI Spine'], status: 'ordered', priority: 'routine', category: 'radiology', orderedAt: '2026-05-18T14:05:00Z' },
+  { id: 'lab-12', labNumber: 'LAB-0012', patientId: 'pat-7',  doctorId: 'staff-8', appointmentId: 'apt-16', tests: ['Ultrasound Pelvis'], status: 'processing', priority: 'routine', category: 'radiology', orderedAt: '2026-05-18T10:30:00Z' },
+  { id: 'lab-13', labNumber: 'LAB-0013', patientId: 'pat-13', doctorId: 'staff-2', appointmentId: 'apt-3',  tests: ['CT Scan Abdomen'], status: 'ordered', priority: 'urgent', category: 'radiology', orderedAt: '2026-05-18T10:25:00Z' },
+];
+
+// ─── Nursing Tasks ────────────────────────────────────────────────────────────
+const nursingTasks: NursingTask[] = [
+  { id: 'nt-1',  patientId: 'pat-1',  nurseId: 'staff-15', type: 'vitals',      description: 'Record morning vitals', scheduledAt: '2026-05-18T08:00:00Z', completedAt: '2026-05-18T08:25:00Z', status: 'completed' },
+  { id: 'nt-2',  patientId: 'pat-1',  nurseId: 'staff-15', type: 'medication',  description: 'Administer Amlodipine 5mg', scheduledAt: '2026-05-18T09:00:00Z', completedAt: '2026-05-18T09:05:00Z', status: 'completed' },
+  { id: 'nt-3',  patientId: 'pat-9',  nurseId: 'staff-15', type: 'vitals',      description: 'Pre-consultation vitals', scheduledAt: '2026-05-18T08:30:00Z', completedAt: '2026-05-18T08:55:00Z', status: 'completed' },
+  { id: 'nt-4',  patientId: 'pat-13', nurseId: 'staff-15', type: 'vitals',      description: 'Cardiac monitoring vitals', scheduledAt: '2026-05-18T09:30:00Z', completedAt: '2026-05-18T09:52:00Z', status: 'completed' },
+  { id: 'nt-5',  patientId: 'pat-13', nurseId: 'staff-15', type: 'medication',  description: 'Administer Furosemide 40mg', scheduledAt: '2026-05-18T11:00:00Z', status: 'pending' },
+  { id: 'nt-6',  patientId: 'pat-13', nurseId: 'staff-15', type: 'assessment',  description: 'Heart failure assessment & weight check', scheduledAt: '2026-05-18T14:00:00Z', status: 'pending' },
+  { id: 'nt-7',  patientId: 'pat-5',  nurseId: 'staff-14', type: 'vitals',      description: 'Emergency vitals', scheduledAt: '2026-05-18T07:20:00Z', completedAt: '2026-05-18T07:25:00Z', status: 'completed' },
+  { id: 'nt-8',  patientId: 'pat-5',  nurseId: 'staff-14', type: 'wound_care',  description: 'IV line site check', scheduledAt: '2026-05-18T15:00:00Z', status: 'pending' },
+  { id: 'nt-9',  patientId: 'pat-18', nurseId: 'staff-14', type: 'wound_care',  description: 'Laceration dressing change', scheduledAt: '2026-05-18T13:30:00Z', status: 'pending' },
+  { id: 'nt-10', patientId: 'pat-2',  nurseId: 'staff-13', type: 'vitals',      description: 'Pre-neurology consult vitals', scheduledAt: '2026-05-18T09:00:00Z', completedAt: '2026-05-18T09:25:00Z', status: 'completed' },
+  { id: 'nt-11', patientId: 'pat-3',  nurseId: 'staff-13', type: 'vitals',      description: 'Pediatric check-up vitals', scheduledAt: '2026-05-18T07:30:00Z', completedAt: '2026-05-18T07:55:00Z', status: 'completed' },
+  { id: 'nt-12', patientId: 'pat-10', nurseId: 'staff-13', type: 'vitals',      description: 'Pre-consultation vitals', scheduledAt: '2026-05-18T10:30:00Z', completedAt: '2026-05-18T10:42:00Z', status: 'completed' },
+  { id: 'nt-13', patientId: 'pat-17', nurseId: 'staff-13', type: 'vitals',      description: 'Neurology check vitals', scheduledAt: '2026-05-18T13:30:00Z', completedAt: '2026-05-18T13:55:00Z', status: 'completed' },
+  { id: 'nt-14', patientId: 'pat-6',  nurseId: 'staff-13', type: 'medication',  description: 'Administer Levothyroxine 75mcg', scheduledAt: '2026-05-18T08:30:00Z', completedAt: '2026-05-18T08:55:00Z', status: 'completed' },
+  { id: 'nt-15', patientId: 'pat-11', nurseId: 'staff-13', type: 'assessment',  description: 'Pre-consult intake', scheduledAt: '2026-05-18T11:00:00Z', status: 'pending' },
 ];
 
 // ─── Invoices ─────────────────────────────────────────────────────────────────
@@ -235,8 +273,10 @@ const vitals: VitalRecord[] = [
 ];
 
 // ─── Seed Function ────────────────────────────────────────────────────────────
+const SEED_VERSION = 'v2';
+
 export function initSeedData(): void {
-  if (localStorage.getItem(KEYS.SEEDED) === 'true') return;
+  if (localStorage.getItem(KEYS.SEEDED) === SEED_VERSION) return;
 
   setAll(KEYS.DEPARTMENTS,        departments);
   setAll(KEYS.STAFF,              staff);
@@ -252,8 +292,9 @@ export function initSeedData(): void {
   setAll(KEYS.QUEUE,              queue);
   setAll(KEYS.CONSULTATION_NOTES, consultationNotes);
   setAll(KEYS.VITALS,             vitals);
+  setAll(KEYS.NURSING_TASKS,      nursingTasks);
 
-  localStorage.setItem(KEYS.SEEDED, 'true');
+  localStorage.setItem(KEYS.SEEDED, SEED_VERSION);
 }
 
 export function resetSeedData(): void {

@@ -2,13 +2,21 @@ import { KEYS, getAll, setAll, getById, insert, update, remove, query } from './
 import type {
   Patient, Staff, Department, Room, Appointment, Prescription,
   LabOrder, LabResult, Invoice, InventoryItem, Notification,
-  AuditLog, QueueEntry, ConsultationNote, VitalRecord,
+  AuditLog, QueueEntry, ConsultationNote, VitalRecord, NursingTask,
   AppointmentStatus, InvoiceStatus, PaymentMethod,
   AdminStats, DoctorStats, ReceptionistStats, PatientStats,
+  NurseStats, PharmacistStats, LabTechStatsType, RadiologistStats,
 } from '@/types';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const now = () => new Date().toISOString();
+
+const IMAGING_KEYWORDS = ['mri', 'x-ray', 'xray', 'ct ', 'ct scan', 'ultrasound', 'echo', 'scan', 'mammogram', 'fluoroscopy'];
+export const isImagingOrder = (order: LabOrder): boolean => {
+  if (order.category === 'radiology') return true;
+  if (order.category === 'lab') return false;
+  return order.tests.some(t => IMAGING_KEYWORDS.some(k => t.toLowerCase().includes(k)));
+};
 
 // ─── Patients ──────────────────────────────────────────────────────────────────
 export const db = {
@@ -53,7 +61,11 @@ export const db = {
     getByDepartment: (deptId: string) => query<Staff>(KEYS.STAFF, s => s.departmentId === deptId),
     create: (data: Omit<Staff, 'id' | 'staffNumber'>) => {
       const all = getAll<Staff>(KEYS.STAFF);
-      const prefix = data.role === 'DOCTOR' ? 'DR' : data.role === 'NURSE' ? 'NR' : data.role === 'RECEPTIONIST' ? 'RC' : 'AD';
+      const prefixMap: Record<Staff['role'], string> = {
+        DOCTOR: 'DR', NURSE: 'NR', RECEPTIONIST: 'RC', ADMIN: 'AD',
+        PHARMACIST: 'PH', LAB_TECHNICIAN: 'LT', RADIOLOGIST: 'RD',
+      };
+      const prefix = prefixMap[data.role] ?? 'ST';
       const count = all.filter(s => s.role === data.role).length + 1;
       return insert<Staff>(KEYS.STAFF, { ...data, staffNumber: `${prefix}-${String(count).padStart(3, '0')}` });
     },
@@ -126,6 +138,10 @@ export const db = {
       return insert<Prescription>(KEYS.PRESCRIPTIONS, { ...data, prescriptionNumber: `RX-${num}`, createdAt: now() });
     },
     update: (id: string, data: Partial<Prescription>) => update<Prescription>(KEYS.PRESCRIPTIONS, id, data),
+    dispense: (id: string, pharmacistId: string) =>
+      update<Prescription>(KEYS.PRESCRIPTIONS, id, { status: 'dispensed', dispensedAt: now(), dispensedBy: pharmacistId }),
+    getPendingDispense: () => query<Prescription>(KEYS.PRESCRIPTIONS, p => p.status === 'active' && !p.dispensedAt),
+    getDispensedToday: () => query<Prescription>(KEYS.PRESCRIPTIONS, p => !!p.dispensedAt && p.dispensedAt.startsWith(today())),
   },
 
   // ─── Lab Orders ───────────────────────────────────────────────────────────────
@@ -242,6 +258,20 @@ export const db = {
     getByPatient: (patientId: string) => query<VitalRecord>(KEYS.VITALS, v => v.patientId === patientId).sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)),
     getLatest: (patientId: string) => query<VitalRecord>(KEYS.VITALS, v => v.patientId === patientId).sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))[0] ?? null,
     add: (data: Omit<VitalRecord, 'id'>) => insert<VitalRecord>(KEYS.VITALS, data),
+    countByRecorderToday: (recorderId: string) => query<VitalRecord>(KEYS.VITALS, v => v.recordedBy === recorderId && v.recordedAt.startsWith(today())).length,
+  },
+
+  // ─── Nursing Tasks ────────────────────────────────────────────────────────────
+  nursingTasks: {
+    getAll: () => getAll<NursingTask>(KEYS.NURSING_TASKS),
+    getByNurse: (nurseId: string) => query<NursingTask>(KEYS.NURSING_TASKS, t => t.nurseId === nurseId).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt)),
+    getByPatient: (patientId: string) => query<NursingTask>(KEYS.NURSING_TASKS, t => t.patientId === patientId).sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)),
+    getTodayByNurse: (nurseId: string) => query<NursingTask>(KEYS.NURSING_TASKS, t => t.nurseId === nurseId && t.scheduledAt.startsWith(today())),
+    getPendingByNurse: (nurseId: string) => query<NursingTask>(KEYS.NURSING_TASKS, t => t.nurseId === nurseId && (t.status === 'pending' || t.status === 'in_progress')),
+    create: (data: Omit<NursingTask, 'id'>) => insert<NursingTask>(KEYS.NURSING_TASKS, data),
+    update: (id: string, data: Partial<NursingTask>) => update<NursingTask>(KEYS.NURSING_TASKS, id, data),
+    complete: (id: string, notes?: string) =>
+      update<NursingTask>(KEYS.NURSING_TASKS, id, { status: 'completed', completedAt: now(), notes }),
   },
 
   // ─── Dashboard Stats ──────────────────────────────────────────────────────────
@@ -277,5 +307,44 @@ export const db = {
       pendingBills:         query<Invoice>(KEYS.INVOICES, i => i.patientId === patientId && (i.status === 'pending' || i.status === 'overdue')).length,
       totalVisits:          query<Appointment>(KEYS.APPOINTMENTS, a => a.patientId === patientId && a.status === 'completed').length,
     }),
+    nurse: (nurseId: string): NurseStats => {
+      const nurse = getById<Staff>(KEYS.STAFF, nurseId);
+      const deptPatients = nurse?.departmentId
+        ? query<Patient>(KEYS.PATIENTS, p => {
+            const apt = query<Appointment>(KEYS.APPOINTMENTS, a => a.patientId === p.id && a.departmentId === nurse.departmentId);
+            return apt.length > 0;
+          }).length
+        : 0;
+      return {
+        myPatients:           deptPatients,
+        tasksToday:           query<NursingTask>(KEYS.NURSING_TASKS, t => t.nurseId === nurseId && t.scheduledAt.startsWith(today())).length,
+        tasksCompleted:       query<NursingTask>(KEYS.NURSING_TASKS, t => t.nurseId === nurseId && t.status === 'completed' && (t.completedAt?.startsWith(today()) ?? false)).length,
+        vitalsRecordedToday:  query<VitalRecord>(KEYS.VITALS, v => v.recordedBy === nurseId && v.recordedAt.startsWith(today())).length,
+      };
+    },
+    pharmacist: (): PharmacistStats => ({
+      pendingPrescriptions:  query<Prescription>(KEYS.PRESCRIPTIONS, p => p.status === 'active' && !p.dispensedAt).length,
+      dispensedToday:        query<Prescription>(KEYS.PRESCRIPTIONS, p => !!p.dispensedAt && p.dispensedAt.startsWith(today())).length,
+      lowStockMedicines:     query<InventoryItem>(KEYS.INVENTORY, i => i.category === 'medicine' && i.quantity <= i.minQuantity).length,
+      totalActive:           query<Prescription>(KEYS.PRESCRIPTIONS, p => p.status === 'active').length,
+    }),
+    labTech: (): LabTechStatsType => {
+      const all = getAll<LabOrder>(KEYS.LAB_ORDERS).filter(o => !isImagingOrder(o));
+      return {
+        pendingOrders:    all.filter(o => o.status === 'ordered' || o.status === 'collected').length,
+        inProgress:       all.filter(o => o.status === 'processing').length,
+        completedToday:   all.filter(o => o.status === 'completed' && (o.completedAt?.startsWith(today()) ?? false)).length,
+        urgentOrders:     all.filter(o => (o.priority === 'urgent' || o.priority === 'stat') && o.status !== 'completed' && o.status !== 'cancelled').length,
+      };
+    },
+    radiologist: (): RadiologistStats => {
+      const all = getAll<LabOrder>(KEYS.LAB_ORDERS).filter(o => isImagingOrder(o));
+      return {
+        pendingImaging:   all.filter(o => o.status === 'ordered' || o.status === 'collected').length,
+        inProgress:       all.filter(o => o.status === 'processing').length,
+        completedToday:   all.filter(o => o.status === 'completed' && (o.completedAt?.startsWith(today()) ?? false)).length,
+        urgentImaging:    all.filter(o => (o.priority === 'urgent' || o.priority === 'stat') && o.status !== 'completed' && o.status !== 'cancelled').length,
+      };
+    },
   },
 };

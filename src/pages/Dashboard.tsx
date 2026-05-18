@@ -4,6 +4,10 @@ import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
 import ReceptionistDashboard from './ReceptionistDashboard';
 import AdminDashboard from './AdminDashboard';
+import NurseDashboard from './NurseDashboard';
+import PharmacistDashboard from './PharmacistDashboard';
+import LabTechDashboard from './LabTechDashboard';
+import RadiologistDashboard from './RadiologistDashboard';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -58,6 +62,22 @@ const Dashboard: React.FC = () => {
 
   if (user?.role === 'ADMIN') {
     return <AdminDashboard />;
+  }
+
+  if (user?.role === 'NURSE') {
+    return <NurseDashboard />;
+  }
+
+  if (user?.role === 'PHARMACIST') {
+    return <PharmacistDashboard />;
+  }
+
+  if (user?.role === 'LAB_TECHNICIAN') {
+    return <LabTechDashboard />;
+  }
+
+  if (user?.role === 'RADIOLOGIST') {
+    return <RadiologistDashboard />;
   }
 
   // Fallback to Admin view if role is unknown or not handled
