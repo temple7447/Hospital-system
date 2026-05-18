@@ -8,10 +8,10 @@ import {
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Invoice, InvoiceStatus, Patient, PaymentMethod } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Invoice, InvoiceStatus, Patient, PaymentMethod } from '@/types';
 import { toast } from 'sonner';
 
 const STATUS_CFG: Record<InvoiceStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {

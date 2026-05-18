@@ -31,6 +31,12 @@ import AuditLogsPage from './pages/admin/AuditLogs';
 import NotificationsPage from './pages/Notifications';
 import MyAppointmentsPage from './pages/patient/MyAppointments';
 import PrescriptionsPage from './pages/patient/Prescriptions';
+import MyPatientsPage from './pages/doctor/MyPatients';
+import ConsultationNotesPage from './pages/doctor/ConsultationNotes';
+import AvailabilityPage from './pages/doctor/Availability';
+import CheckInPage from './pages/receptionist/CheckIn';
+import QueuePage from './pages/receptionist/Queue';
+import HealthSummaryPage from './pages/patient/HealthSummary';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -195,6 +201,42 @@ function App() {
             <Route path="/patient/prescriptions" element={
               <ProtectedRoute allowedRoles={['PATIENT']}>
                 <DashboardLayout><PrescriptionsPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/doctor/patients" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR']}>
+                <DashboardLayout><MyPatientsPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/doctor/consultation-notes" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR']}>
+                <DashboardLayout><ConsultationNotesPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/doctor/availability" element={
+              <ProtectedRoute allowedRoles={['DOCTOR']}>
+                <DashboardLayout><AvailabilityPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/receptionist/checkin" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'RECEPTIONIST']}>
+                <DashboardLayout><CheckInPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/receptionist/queue" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'RECEPTIONIST']}>
+                <DashboardLayout><QueuePage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/patient/health-summary" element={
+              <ProtectedRoute allowedRoles={['PATIENT']}>
+                <DashboardLayout><HealthSummaryPage /></DashboardLayout>
               </ProtectedRoute>
             } />
 

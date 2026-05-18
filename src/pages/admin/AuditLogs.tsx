@@ -4,9 +4,9 @@ import {
   ShieldCheck, Search, X, Download, User,
   Plus, Edit2, Trash2, LogIn, FileText, Activity,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { db } from '../../lib/db';
-import type { AuditLog, Staff, Patient } from '../../types';
+import { cn } from '@/utils/cn';
+import { db } from '@/lib/db';
+import type { AuditLog, Staff, Patient } from '@/types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

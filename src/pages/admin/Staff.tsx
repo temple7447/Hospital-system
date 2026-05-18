@@ -6,10 +6,10 @@ import {
   UserCheck, UserX, ChevronDown, Filter, Edit3,
   Phone, Mail, Building2, Calendar, BadgeCheck,
 } from 'lucide-react';
-import { db } from '../../lib/db';
-import { cn } from '../../utils/cn';
-import type { Staff, StaffRole, StaffStatus, WeekDay } from '../../types';
-import { useAuth } from '../../context/AuthContext';
+import { db } from '@/lib/db';
+import { cn } from '@/utils/cn';
+import type { Staff, StaffRole, StaffStatus, WeekDay } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 const ROLES: StaffRole[] = ['DOCTOR', 'RECEPTIONIST', 'NURSE', 'ADMIN'];
 const DAYS: WeekDay[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];

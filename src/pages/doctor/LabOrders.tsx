@@ -5,10 +5,10 @@ import {
   Clock, CheckCircle2, AlertTriangle, XCircle, Loader2,
   Zap, ArrowRight, ClipboardList, User,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { LabOrder, LabResult, LabTestStatus, Patient, Appointment, ResultFlag } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { LabOrder, LabResult, LabTestStatus, Patient, Appointment, ResultFlag } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

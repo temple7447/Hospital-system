@@ -5,10 +5,10 @@ import {
   Building2, Users, BedDouble, Edit3, Save, X,
   Stethoscope, ChevronRight, TrendingUp, AlertTriangle,
 } from 'lucide-react';
-import { db } from '../../lib/db';
-import { cn } from '../../utils/cn';
-import type { Department } from '../../types';
-import { useAuth } from '../../context/AuthContext';
+import { db } from '@/lib/db';
+import { cn } from '@/utils/cn';
+import type { Department } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 // ─── Edit Modal ────────────────────────────────────────────────────────────────
 const EditModal: React.FC<{

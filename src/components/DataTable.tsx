@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../utils/cn';
+import { cn } from '@/utils/cn';
 import { 
   ChevronLeft, 
   ChevronRight, 

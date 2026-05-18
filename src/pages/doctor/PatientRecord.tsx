@@ -30,10 +30,10 @@ import {
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Patient, Staff, Appointment, Prescription, ConsultationNote, VitalRecord, Department } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Patient, Staff, Appointment, Prescription, ConsultationNote, VitalRecord, Department } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

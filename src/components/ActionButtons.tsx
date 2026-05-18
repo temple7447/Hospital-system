@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../utils/cn';
+import { cn } from '@/utils/cn';
 import { Eye, Pencil, Trash2, Download, MoreVertical } from 'lucide-react';
 
 interface ActionButtonsProps {

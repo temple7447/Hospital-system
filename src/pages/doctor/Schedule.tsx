@@ -16,10 +16,10 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Appointment, AppointmentStatus, Patient, Department } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Appointment, AppointmentStatus, Patient, Department } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

@@ -4,10 +4,10 @@ import {
   Receipt, CreditCard, CheckCircle2, Clock, AlertCircle, XCircle,
   ChevronDown, ChevronUp, Banknote, Building2, Wallet, Download,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Invoice, InvoiceStatus } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Invoice, InvoiceStatus } from '@/types';
 
 const STATUS_CFG: Record<InvoiceStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
   pending:        { label: 'Pending',    bg: 'bg-amber-50 dark:bg-amber-900/20',    text: 'text-amber-600',   icon: Clock },

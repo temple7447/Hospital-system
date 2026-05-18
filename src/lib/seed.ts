@@ -3,7 +3,7 @@ import type {
   Department, Staff, Patient, Room, Appointment,
   Prescription, LabOrder, Invoice, InventoryItem,
   Notification, AuditLog, QueueEntry, ConsultationNote, VitalRecord,
-} from '../types';
+} from '@/types';
 
 // ─── Departments ──────────────────────────────────────────────────────────────
 const departments: Department[] = [

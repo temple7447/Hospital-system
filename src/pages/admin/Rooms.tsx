@@ -5,10 +5,10 @@ import {
   BedDouble, Search, Filter, Save, X, Edit3,
   CheckCircle2, AlertTriangle, Wrench, Clock, ChevronDown,
 } from 'lucide-react';
-import { db } from '../../lib/db';
-import { cn } from '../../utils/cn';
-import type { Room, RoomType, RoomStatus } from '../../types';
-import { useAuth } from '../../context/AuthContext';
+import { db } from '@/lib/db';
+import { cn } from '@/utils/cn';
+import type { Room, RoomType, RoomStatus } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 const ROOM_TYPES: RoomType[] = ['general', 'private', 'icu', 'emergency', 'operation', 'consultation'];
 const ROOM_STATUSES: RoomStatus[] = ['available', 'full', 'maintenance', 'reserved'];

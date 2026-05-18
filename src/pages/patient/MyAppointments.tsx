@@ -4,11 +4,11 @@ import {
   Calendar, Clock, User, Building2, CheckCircle2, XCircle,
   AlertCircle, Loader2, X, ChevronDown, ChevronUp, Plus,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../../lib/db';
-import type { Appointment, AppointmentStatus, Staff, Department } from '../../types';
+import { db } from '@/lib/db';
+import type { Appointment, AppointmentStatus, Staff, Department } from '@/types';
 import { toast } from 'sonner';
 
 const STATUS_CFG: Record<AppointmentStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {

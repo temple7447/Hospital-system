@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
 import ReceptionistDashboard from './ReceptionistDashboard';
@@ -38,7 +38,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { cn } from '../utils/cn';
+import { cn } from '@/utils/cn';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();

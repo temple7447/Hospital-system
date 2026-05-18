@@ -5,7 +5,7 @@ import type {
   AuditLog, QueueEntry, ConsultationNote, VitalRecord,
   AppointmentStatus, InvoiceStatus, PaymentMethod,
   AdminStats, DoctorStats, ReceptionistStats, PatientStats,
-} from '../types';
+} from '@/types';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const now = () => new Date().toISOString();

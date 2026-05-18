@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hospital, Mail, ArrowLeft, CheckCircle2, AlertCircle, Loader2, KeyRound,
 } from 'lucide-react';
-import { db } from '../lib/db';
+import { db } from '@/lib/db';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');

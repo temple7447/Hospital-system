@@ -5,10 +5,10 @@ import {
   ChevronDown, ChevronUp, CheckCircle2, Clock, AlertCircle,
   Trash2, Loader2, Receipt, User, Calendar, FileText, XCircle,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Invoice, InvoiceStatus, PaymentMethod, Patient, Appointment, InvoiceItem } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Invoice, InvoiceStatus, PaymentMethod, Patient, Appointment, InvoiceItem } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

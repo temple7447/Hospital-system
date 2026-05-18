@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '../utils/cn';
+import { cn } from '@/utils/cn';
 import { MapPin, Search, Eye, Pencil, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 

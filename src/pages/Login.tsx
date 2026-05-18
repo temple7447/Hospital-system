@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   Hospital, Lock, Mail, ChevronRight, Activity,
   ShieldCheck, Heart, Stethoscope, AlertCircle, User, Zap,

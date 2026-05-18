@@ -4,10 +4,10 @@ import {
   Bell, Calendar, FlaskConical, Pill, Receipt,
   Settings, AlertTriangle, CheckCheck, X, Circle,
 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import type { Notification, NotificationType } from '../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Notification, NotificationType } from '@/types';
 
 const TYPE_CFG: Record<NotificationType, { icon: React.ElementType; bg: string; text: string; label: string }> = {
   appointment:  { icon: Calendar,      bg: 'bg-blue-50 dark:bg-blue-900/20',    text: 'text-blue-600',    label: 'Appointment' },

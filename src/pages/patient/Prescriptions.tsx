@@ -4,10 +4,10 @@ import {
   Pill, ChevronDown, ChevronUp, CheckCircle2, XCircle, Clock,
   User, Calendar, FileText, AlertTriangle,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Prescription, PrescriptionStatus, Staff } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Prescription, PrescriptionStatus, Staff } from '@/types';
 
 const STATUS_CFG: Record<PrescriptionStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
   active:    { label: 'Active',    bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600', icon: CheckCircle2 },

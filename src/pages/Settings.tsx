@@ -1,320 +1,377 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  User, 
-  Lock, 
-  Bell, 
-  Shield, 
-  Globe, 
-  Moon, 
-  Sun,
-  Camera,
-  Mail,
-  CheckCircle2,
-  ChevronRight,
-  LogOut,
-  Trash2
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Hospital, Clock, Bell, Shield, Globe, Save,
+  Loader2, CheckCircle2, Users, Calendar, Phone, Mail,
+  MapPin, Building2,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { cn } from '../utils/cn';
+import { cn } from '@/utils/cn';
+import { toast } from 'sonner';
 
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
+const TABS = [
+  { id: 'hospital',      label: 'Hospital Info',   icon: Hospital },
+  { id: 'operations',   label: 'Operations',      icon: Clock },
+  { id: 'notifications', label: 'Notifications',   icon: Bell },
+  { id: 'security',     label: 'Security',         icon: Shield },
+];
 
-const item = {
-  hidden: { opacity: 0, x: -20 },
-  show: { opacity: 1, x: 0 }
-};
+function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
+  return (
+    <button onClick={onChange}
+      className={cn('w-11 h-6 rounded-full transition-colors relative shrink-0',
+        enabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700')}>
+      <div className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all',
+        enabled ? 'left-6' : 'left-1')} />
+    </button>
+  );
+}
 
 const Settings: React.FC = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
-  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState('hospital');
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
+  const [hospital, setHospital] = useState({
+    name:    'CareFlow Medical Center',
+    tagline: 'Excellence in Patient Care',
+    phone:   '+1 (555) 000-1234',
+    email:   'admin@careflow.com',
+    address: '123 Medical Drive',
+    city:    'San Francisco, CA 94102',
+    website: 'www.careflow.com',
+    beds:    '250',
+    founded: '1985',
+    license: 'HOS-2024-001',
+  });
+
+  const [ops, setOps] = useState({
+    openTime:          '07:00',
+    closeTime:         '21:00',
+    emergencyHours:    true,
+    maxDailyPatients:  '120',
+    appointmentSlot:   '30',
+    walkinEnabled:     true,
+    autoQueueEnabled:  true,
+  });
+
+  const [notifs, setNotifs] = useState({
+    emailAppointments: true,
+    emailBilling:      true,
+    emailLab:          false,
+    smsReminders:      true,
+    smsEmergency:      true,
+    inAppAll:          true,
+    lowStockAlert:     true,
+    lowStockThreshold: '10',
+  });
+
+  const [security, setSecurity] = useState({
+    sessionTimeout:    '60',
+    twoFactor:         false,
+    auditAll:          true,
+    passwordExpiry:    '90',
+    ipWhitelist:       false,
+  });
+
+  const handleSave = () => {
+    setSaving(true);
     setTimeout(() => {
-      setIsSaving(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    }, 1500);
+      setSaving(false);
+      toast.success('Settings saved successfully');
+    }, 600);
   };
 
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'security', label: 'Security', icon: Lock },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'appearance', label: 'Appearance', icon: Moon },
-  ];
+  const inputCls = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all";
+  const labelCls = "text-[10px] font-black text-slate-400 uppercase tracking-widest";
 
   return (
-    <motion.div 
-      initial="hidden"
-      animate="show"
-      variants={container}
-      className="p-4 lg:p-8 max-w-[1200px] mx-auto space-y-8"
-    >
-      <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Settings</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Manage your account preferences and hospital settings</p>
-      </div>
+    <div className="space-y-8 max-w-5xl">
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">System Settings</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Hospital configuration and preferences</p>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Sidebar Tabs */}
-        <div className="lg:col-span-3 space-y-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold transition-all text-sm",
-                activeTab === tab.id 
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25" 
-                  : "text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800"
-              )}
-            >
-              <tab.icon className="w-5 h-5" />
-              <span>{tab.label}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Tab sidebar */}
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}
+          className="lg:col-span-1 space-y-1.5">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              className={cn('w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm transition-all',
+                activeTab === t.id
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800')}>
+              <t.icon className="w-4 h-4 shrink-0" />
+              {t.label}
             </button>
           ))}
-          <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm">
-              <LogOut className="w-5 h-5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </div>
+        </motion.div>
 
-        {/* Content Area */}
-        <div className="lg:col-span-9">
-          <motion.div 
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-3xl p-8 space-y-8"
-          >
-            {activeTab === 'profile' && (
-              <form onSubmit={handleSave} className="space-y-8">
-                <div className="flex flex-col md:flex-row items-center gap-8">
-                  <div className="relative group">
-                    <div className="w-32 h-32 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-4xl font-black overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl">
-                      {user?.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <button type="button" className="absolute -bottom-2 -right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-800 hover:scale-110 transition-transform">
-                      <Camera className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="text-center md:text-left space-y-1">
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white">{user?.name}</h3>
-                    <p className="text-slate-500 font-medium">{user?.role} • Hospital ID: #8824</p>
-                    <div className="flex items-center gap-2 justify-center md:justify-start pt-2">
-                      <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider rounded-full">Verified Profile</span>
-                    </div>
-                  </div>
-                </div>
+        {/* Content */}
+        <div className="lg:col-span-3">
+          <AnimatePresence mode="wait">
+            <motion.div key={activeTab}
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="glass-card rounded-3xl p-8 space-y-6">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Full Name</label>
-                    <input 
-                      type="text" 
-                      defaultValue={user?.name}
-                      required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-sm font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      defaultValue={user?.email}
-                      required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-sm font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
-                    <input 
-                      type="tel" 
-                      defaultValue="+1 234 567 890"
-                      required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-sm font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Department</label>
-                    <input 
-                      type="text" 
-                      defaultValue="Cardiology"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-sm font-bold opacity-70 cursor-not-allowed"
-                      readOnly
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 flex items-center justify-between">
-                  <div className={cn(
-                    "flex items-center gap-2 text-emerald-600 transition-all duration-500",
-                    showSuccess ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-                  )}>
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="text-sm font-bold">Changes saved successfully!</span>
-                  </div>
-                  <button 
-                    type="submit"
-                    disabled={isSaving}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/25 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed min-w-[140px]"
-                  >
-                    {isSaving ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Saving...</span>
+              {activeTab === 'hospital' && (
+                <>
+                  <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Hospital className="w-5 h-5 text-blue-600" /> Hospital Information
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <label className={labelCls}>Hospital Name</label>
+                      <div className="relative">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input value={hospital.name} onChange={e => setHospital(h => ({ ...h, name: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
                       </div>
-                    ) : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {activeTab === 'security' && (
-              <div className="space-y-8">
-                <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-2xl">
-                      <Shield className="w-6 h-6" />
                     </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900 dark:text-white">Two-Factor Authentication</h4>
-                      <p className="text-xs text-slate-500">Add an extra layer of security to your account</p>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Tagline</label>
+                      <input value={hospital.tagline} onChange={e => setHospital(h => ({ ...h, tagline: e.target.value }))} className={inputCls} />
                     </div>
-                  </div>
-                  <button type="button" className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Enable</button>
-                </div>
-
-                <form onSubmit={handleSave} className="space-y-6">
-                  <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Change Password</h4>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Current Password</label>
-                      <input type="password" placeholder="••••••••" required className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>License Number</label>
+                      <input value={hospital.license} onChange={e => setHospital(h => ({ ...h, license: e.target.value }))} className={inputCls} />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">New Password</label>
-                        <input type="password" placeholder="••••••••" required className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Phone</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input value={hospital.phone} onChange={e => setHospital(h => ({ ...h, phone: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-wider ml-1">Confirm Password</label>
-                        <input type="password" placeholder="••••••••" required className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Email</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input value={hospital.email} onChange={e => setHospital(h => ({ ...h, email: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <label className={labelCls}>Address</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input value={hospital.address} onChange={e => setHospital(h => ({ ...h, address: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>City / State / ZIP</label>
+                      <input value={hospital.city} onChange={e => setHospital(h => ({ ...h, city: e.target.value }))} className={inputCls} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Website</label>
+                      <div className="relative">
+                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input value={hospital.website} onChange={e => setHospital(h => ({ ...h, website: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Total Beds</label>
+                      <div className="relative">
+                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input type="number" value={hospital.beds} onChange={e => setHospital(h => ({ ...h, beds: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Founded Year</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input value={hospital.founded} onChange={e => setHospital(h => ({ ...h, founded: e.target.value }))}
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
                       </div>
                     </div>
                   </div>
-                  <div className="pt-2 flex items-center justify-between">
-                    <div className={cn(
-                      "flex items-center gap-2 text-emerald-600 transition-all duration-500",
-                      showSuccess ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-                    )}>
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span className="text-sm font-bold">Password updated successfully!</span>
+                </>
+              )}
+
+              {activeTab === 'operations' && (
+                <>
+                  <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-emerald-600" /> Operational Settings
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Opening Time</label>
+                      <input type="time" value={ops.openTime} onChange={e => setOps(o => ({ ...o, openTime: e.target.value }))} className={inputCls} />
                     </div>
-                    <button 
-                      type="submit"
-                      disabled={isSaving}
-                      className="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed min-w-[140px]"
-                    >
-                      {isSaving ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-900 rounded-full animate-spin" />
-                          <span>Updating...</span>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Closing Time</label>
+                      <input type="time" value={ops.closeTime} onChange={e => setOps(o => ({ ...o, closeTime: e.target.value }))} className={inputCls} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Max Daily Patients</label>
+                      <input type="number" value={ops.maxDailyPatients} onChange={e => setOps(o => ({ ...o, maxDailyPatients: e.target.value }))} className={inputCls} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Appointment Slot (min)</label>
+                      <select value={ops.appointmentSlot} onChange={e => setOps(o => ({ ...o, appointmentSlot: e.target.value }))} className={inputCls + ' cursor-pointer'}>
+                        <option value="15">15 minutes</option>
+                        <option value="20">20 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60">60 minutes</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-3 pt-2">
+                    {[
+                      { key: 'emergencyHours',   label: '24/7 Emergency Services',   desc: 'Emergency department operates around the clock' },
+                      { key: 'walkinEnabled',    label: 'Walk-in Patients',           desc: 'Allow patients to visit without prior appointment' },
+                      { key: 'autoQueueEnabled', label: 'Auto Queue Management',      desc: 'Automatically assign queue tokens on check-in' },
+                    ].map(item => (
+                      <div key={item.key} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                        <div>
+                          <p className="text-sm font-black text-slate-900 dark:text-white">{item.label}</p>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
                         </div>
-                      ) : 'Update Password'}
-                    </button>
+                        <Toggle
+                          enabled={ops[item.key as keyof typeof ops] as boolean}
+                          onChange={() => setOps(o => ({ ...o, [item.key]: !o[item.key as keyof typeof ops] }))}
+                        />
+                      </div>
+                    ))}
                   </div>
-                </form>
+                </>
+              )}
 
-                <div className="pt-8 border-t border-slate-200 dark:border-slate-800">
-                  <h4 className="text-sm font-black text-red-500 uppercase tracking-wider mb-4">Danger Zone</h4>
-                  <button type="button" className="flex items-center gap-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 px-4 py-3 rounded-2xl font-bold text-sm transition-all">
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete My Account</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'notifications' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl transition-all">
-                  <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white">Email Notifications</h4>
-                    <p className="text-xs text-slate-500">Receive daily reports and appointment alerts via email</p>
+              {activeTab === 'notifications' && (
+                <>
+                  <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-amber-600" /> Notification Preferences
+                  </h3>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email Alerts</p>
+                    {[
+                      { key: 'emailAppointments', label: 'Appointment Confirmations', desc: 'Send confirmation emails to patients' },
+                      { key: 'emailBilling',      label: 'Billing & Invoices',        desc: 'Email invoices when generated' },
+                      { key: 'emailLab',          label: 'Lab Results Ready',         desc: 'Notify patients when lab results are available' },
+                    ].map(item => (
+                      <div key={item.key} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                        <div>
+                          <p className="text-sm font-black text-slate-900 dark:text-white">{item.label}</p>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
+                        </div>
+                        <Toggle
+                          enabled={notifs[item.key as keyof typeof notifs] as boolean}
+                          onChange={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof typeof notifs] }))}
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <button 
-                    onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
-                    className={cn(
-                      "w-12 h-6 rounded-full transition-all relative",
-                      isNotificationsEnabled ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SMS Alerts</p>
+                    {[
+                      { key: 'smsReminders', label: 'Appointment Reminders', desc: '24h before appointment SMS reminder' },
+                      { key: 'smsEmergency', label: 'Emergency Alerts',      desc: 'Critical patient alerts to on-call staff' },
+                    ].map(item => (
+                      <div key={item.key} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                        <div>
+                          <p className="text-sm font-black text-slate-900 dark:text-white">{item.label}</p>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
+                        </div>
+                        <Toggle
+                          enabled={notifs[item.key as keyof typeof notifs] as boolean}
+                          onChange={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof typeof notifs] }))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Alerts</p>
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                      <div>
+                        <p className="text-sm font-black text-slate-900 dark:text-white">Low Stock Alerts</p>
+                        <p className="text-xs text-slate-400 font-medium mt-0.5">Alert when inventory drops below threshold</p>
+                      </div>
+                      <Toggle enabled={notifs.lowStockAlert} onChange={() => setNotifs(n => ({ ...n, lowStockAlert: !n.lowStockAlert }))} />
+                    </div>
+                    {notifs.lowStockAlert && (
+                      <div className="space-y-1.5 px-1">
+                        <label className={labelCls}>Low Stock Threshold (units)</label>
+                        <input type="number" value={notifs.lowStockThreshold}
+                          onChange={e => setNotifs(n => ({ ...n, lowStockThreshold: e.target.value }))}
+                          className={inputCls} />
+                      </div>
                     )}
-                  >
-                    <div className={cn(
-                      "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
-                      isNotificationsEnabled ? "left-7" : "left-1"
-                    )} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl transition-all">
-                  <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white">Push Notifications</h4>
-                    <p className="text-xs text-slate-500">Real-time alerts for critical patient updates</p>
                   </div>
-                  <div className="w-12 h-6 bg-blue-600 rounded-full relative cursor-pointer">
-                    <div className="absolute top-1 left-7 w-4 h-4 bg-white rounded-full" />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl transition-all">
-                  <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white">SMS Alerts</h4>
-                    <p className="text-xs text-slate-500">Emergency notifications on your mobile device</p>
-                  </div>
-                  <div className="w-12 h-6 bg-slate-300 dark:bg-slate-700 rounded-full relative cursor-pointer">
-                    <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full" />
-                  </div>
-                </div>
-              </div>
-            )}
+                </>
+              )}
 
-            {activeTab === 'appearance' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <button className="p-6 rounded-3xl border-2 border-blue-600 bg-white dark:bg-slate-900 space-y-4 text-left">
-                    <div className="w-full aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl" />
-                    <div>
-                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">Light Mode</h4>
-                      <p className="text-xs text-slate-500">Clean and bright appearance</p>
+              {activeTab === 'security' && (
+                <>
+                  <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-violet-600" /> Security Settings
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Session Timeout (min)</label>
+                      <select value={security.sessionTimeout} onChange={e => setSecurity(s => ({ ...s, sessionTimeout: e.target.value }))} className={inputCls + ' cursor-pointer'}>
+                        <option value="30">30 minutes</option>
+                        <option value="60">60 minutes</option>
+                        <option value="120">2 hours</option>
+                        <option value="480">8 hours</option>
+                      </select>
                     </div>
-                  </button>
-                  <button className="p-6 rounded-3xl border-2 border-transparent bg-slate-900 space-y-4 text-left">
-                    <div className="w-full aspect-video bg-slate-800 rounded-xl" />
-                    <div>
-                      <h4 className="font-bold text-white text-sm">Dark Mode</h4>
-                      <p className="text-xs text-slate-400">Easy on the eyes in low light</p>
+                    <div className="space-y-1.5">
+                      <label className={labelCls}>Password Expiry (days)</label>
+                      <select value={security.passwordExpiry} onChange={e => setSecurity(s => ({ ...s, passwordExpiry: e.target.value }))} className={inputCls + ' cursor-pointer'}>
+                        <option value="30">30 days</option>
+                        <option value="60">60 days</option>
+                        <option value="90">90 days</option>
+                        <option value="180">180 days</option>
+                        <option value="0">Never</option>
+                      </select>
                     </div>
-                  </button>
-                </div>
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { key: 'twoFactor', label: 'Two-Factor Authentication', desc: 'Require 2FA for all staff logins' },
+                      { key: 'auditAll',  label: 'Full Audit Logging',         desc: 'Log all user actions including reads' },
+                      { key: 'ipWhitelist', label: 'IP Whitelist',             desc: 'Restrict access to approved IPs only' },
+                    ].map(item => (
+                      <div key={item.key} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                        <div>
+                          <p className="text-sm font-black text-slate-900 dark:text-white">{item.label}</p>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
+                        </div>
+                        <Toggle
+                          enabled={security[item.key as keyof typeof security] as boolean}
+                          onChange={() => setSecurity(s => ({ ...s, [item.key]: !s[item.key as keyof typeof security] }))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl">
+                    <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                      Security changes take effect on next login session. Existing sessions are not terminated.
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Save button */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50">
+                  {saving
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving…</>
+                    : <><Save className="w-3.5 h-3.5" /> Save Settings</>}
+                </button>
               </div>
-            )}
-          </motion.div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

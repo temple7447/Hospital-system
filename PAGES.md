@@ -45,8 +45,8 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 | 3.5 | 🟢 ✅ | Room & Bed Management | `admin/Rooms.tsx` | Grouped by floor, filter by type/status/dept, edit modal with bed tracking |
 | 3.6 | 🔵 ✅ | Inventory Management | `admin/Inventory.tsx` | Medicines, equipment — stock levels, low-stock alerts |
 | 3.7 | 🔵 ✅ | Billing Management | `admin/Billing.tsx` | View all invoices, filter by status (paid/pending/overdue) |
-| 3.8 | 🟢 ❌ | Reports & Analytics | `Reports.tsx` | Exists but basic — charts for revenue, patient trends, dept stats |
-| 3.9 | 🟢 ❌ | System Settings | `Settings.tsx` | Exists — hospital info, working hours, system config |
+| 3.8 | 🟢 ✅ | Reports & Analytics | `Reports.tsx` | Exists but basic — charts for revenue, patient trends, dept stats |
+| 3.9 | 🟢 ✅ | System Settings | `Settings.tsx` | Exists — hospital info, working hours, system config |
 | 3.10 | 🔵 ✅ | Audit Logs | `admin/AuditLogs.tsx` | Log of all key actions (logins, record edits, billing changes) |
 
 ---
@@ -57,12 +57,12 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 |---|--------|------|------|-------|
 | 4.1 | 🟢 ✅ | Doctor Dashboard | `DoctorDashboard.tsx` | Today's appointments, stats — exists, review quality |
 | 4.2 | 🔵 ✅ | My Schedule | `doctor/Schedule.tsx` | Weekly grid calendar, appointment blocks, status updates, working hours highlight |
-| 4.3 | 🔵 ❌ | My Patients | `doctor/MyPatients.tsx` | List of all assigned/past patients with search & filter |
+| 4.3 | 🔵 ✅ | My Patients | `doctor/MyPatients.tsx` | List of all assigned/past patients with search & filter |
 | 4.4 | 🔵 ✅ | Patient Medical Record | `doctor/PatientRecord.tsx` | Tabs: Overview, Vitals (chart+table), Prescriptions, SOAP Notes; add vitals/note modals |
 | 4.5 | 🔵 ✅ | Write Prescription | `doctor/Prescription.tsx` | Multi-medicine form with autocomplete, dosage/freq/duration, diagnosis, expiry |
 | 4.6 | 🔵 ✅ | Lab Test Orders | `doctor/LabOrders.tsx` | Order tests, view results when ready |
-| 4.7 | 🔵 ❌ | Consultation Notes | `doctor/ConsultationNotes.tsx` | SOAP notes editor per appointment/visit |
-| 4.8 | 🔵 ❌ | Doctor Availability | `doctor/Availability.tsx` | Set weekly working hours and leave days |
+| 4.7 | 🔵 ✅ | Consultation Notes | `doctor/ConsultationNotes.tsx` | SOAP notes editor per appointment/visit |
+| 4.8 | 🔵 ✅ | Doctor Availability | `doctor/Availability.tsx` | Set weekly working hours and leave days |
 
 ---
 
@@ -72,11 +72,11 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 |---|--------|------|------|-------|
 | 5.1 | 🟢 ✅ | Receptionist Dashboard | `ReceptionistDashboard.tsx` | Queue, today's appointments — exists, review |
 | 5.2 | 🟢 ✅ | All Appointments | `Appointments.tsx` | Role-aware rebuild — book, cancel, status management, real db |
-| 5.3 | 🔵 ❌ | Patient Check-In | `receptionist/CheckIn.tsx` | Walk-in registration, assign to queue, print token |
-| 5.4 | 🔵 ❌ | Arrival Queue | `receptionist/Queue.tsx` | Live queue view — waiting, in-progress, done. Drag to reorder |
+| 5.3 | 🔵 ✅ | Patient Check-In | `receptionist/CheckIn.tsx` | Walk-in registration, assign to queue, print token |
+| 5.4 | 🔵 ✅ | Arrival Queue | `receptionist/Queue.tsx` | Live queue view — waiting, in-progress, done. Drag to reorder |
 | 5.5 | 🔵 ✅ | Patient Registration | `receptionist/RegisterPatient.tsx` | Multi-step wizard — personal, medical, emergency, success |
 | 5.6 | 🔵 ✅ | Billing & Payment | `receptionist/Payment.tsx` | Generate invoice for a visit, mark as paid (cash/card/insurance) |
-| 5.7 | 🟢 ❌ | Patient List | `Patients.tsx` | Exists — search, view, filter all patients |
+| 5.7 | 🟢 ✅ | Patient List | `Patients.tsx` | Exists — search, view, filter all patients |
 
 ---
 
@@ -91,7 +91,7 @@ Mark each with ✅ when done, 🔄 when in progress, ❌ if skipped.
 | 6.5 | 🔵 ✅ | My Prescriptions | `patient/Prescriptions.tsx` | All active and past prescriptions |
 | 6.6 | 🔵 ✅ | Lab Results | `patient/LabResults.tsx` | View completed test results |
 | 6.7 | 🔵 ✅ | My Bills | `patient/Bills.tsx` | View invoices, payment status, download receipt |
-| 6.8 | 🔵 ❌ | Health Summary | `patient/HealthSummary.tsx` | Vitals chart over time (BP, weight, temp), risk indicators |
+| 6.8 | 🔵 ✅ | Health Summary | `patient/HealthSummary.tsx` | Vitals chart over time (BP, weight, temp), risk indicators |
 
 ---
 

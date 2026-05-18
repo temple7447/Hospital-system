@@ -4,10 +4,10 @@ import {
   FlaskConical, ChevronDown, ChevronUp, CheckCircle2, Clock,
   AlertTriangle, XCircle, Loader2, Zap,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { LabOrder, LabTestStatus, ResultFlag, Staff } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { LabOrder, LabTestStatus, ResultFlag, Staff } from '@/types';
 
 const STATUS_CFG: Record<LabTestStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
   ordered:    { label: 'Ordered',    bg: 'bg-slate-100 dark:bg-slate-800',       text: 'text-slate-500',   icon: FlaskConical },

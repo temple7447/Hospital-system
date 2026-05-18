@@ -5,10 +5,10 @@ import {
   AlertTriangle, TrendingDown, DollarSign, Loader2,
   Pill, Stethoscope, FlaskConical, ShoppingBag,
 } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { InventoryItem, InventoryCategory } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { InventoryItem, InventoryCategory } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

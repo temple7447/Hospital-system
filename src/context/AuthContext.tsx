@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Role } from '../types/auth';
-import type { User, AuthState } from '../types/auth';
-import { KEYS, getAll } from '../lib/storage';
-import type { Staff, Patient } from '../types';
+import type { Role } from '@/types/auth';
+import type { User, AuthState } from '@/types/auth';
+import { KEYS, getAll } from '@/lib/storage';
+import type { Staff, Patient } from '@/types';
 
 interface AuthContextType extends AuthState {
   login: (email: string) => Promise<void>;

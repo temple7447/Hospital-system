@@ -7,10 +7,10 @@ import {
   ArrowUpRight, ChevronRight,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { cn } from '../utils/cn';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import type { Appointment, Patient } from '../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Appointment, Patient } from '@/types';
 
 const STATUS_CFG = {
   scheduled:   { label: 'Scheduled',   cls: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' },

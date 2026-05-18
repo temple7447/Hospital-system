@@ -5,10 +5,10 @@ import {
   Calendar, Clock, Users, CreditCard, UserPlus, Receipt,
   ArrowUpRight, ChevronRight, CheckCircle2, AlertCircle,
 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import type { Appointment, Patient, Staff } from '../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Appointment, Patient, Staff } from '@/types';
 
 const STATUS_CFG = {
   scheduled:   { label: 'Scheduled',   cls: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' },

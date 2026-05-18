@@ -24,8 +24,8 @@ import {
   Trash2,
   Eye
 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import Modal from '../components/Modal';
+import { cn } from '@/utils/cn';
+import Modal from '@/components/Modal';
 
 const FileText = LucideFileText;
 

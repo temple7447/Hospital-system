@@ -6,10 +6,10 @@ import {
   Heart, Droplets, Thermometer, AlertTriangle, ArrowUpRight,
   CheckCircle2, FlaskConical,
 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import type { Appointment, Prescription, Staff, VitalRecord } from '../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Appointment, Prescription, Staff, VitalRecord } from '@/types';
 
 const PatientDashboard: React.FC = () => {
   const { user } = useAuth();

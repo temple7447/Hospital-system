@@ -6,10 +6,10 @@ import {
   User, Mail, Phone, Calendar, Droplets, AlertCircle,
   MapPin, Users, Loader2, Eye, EyeOff,
 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import type { BloodType } from '../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { BloodType } from '@/types';
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 

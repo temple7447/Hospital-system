@@ -7,10 +7,10 @@ import {
   Shield, ChevronRight, ChevronLeft, CheckCircle2,
   Plus, X, Calendar, Clipboard,
 } from 'lucide-react';
-import { db } from '../../lib/db';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import type { BloodType } from '../../types';
+import { db } from '@/lib/db';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import type { BloodType } from '@/types';
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'];
 const GENDERS = ['male', 'female', 'other'] as const;

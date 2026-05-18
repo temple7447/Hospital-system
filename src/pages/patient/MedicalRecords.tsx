@@ -20,10 +20,10 @@ import {
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { cn } from '../../utils/cn';
-import { useAuth } from '../../context/AuthContext';
-import { db } from '../../lib/db';
-import type { Prescription, ConsultationNote, VitalRecord, Appointment, Staff, Department } from '../../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Prescription, ConsultationNote, VitalRecord, Appointment, Staff, Department } from '@/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

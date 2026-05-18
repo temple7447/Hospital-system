@@ -6,10 +6,10 @@ import {
   Stethoscope, Edit3, Save, X, BadgeCheck, Clock, Heart,
   AlertTriangle, FileText,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import { cn } from '../utils/cn';
-import type { Staff, Patient } from '../types';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import { cn } from '@/utils/cn';
+import type { Staff, Patient } from '@/types';
 
 type ProfileMode = 'view' | 'edit';
 

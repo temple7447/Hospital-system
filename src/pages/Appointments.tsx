@@ -24,10 +24,10 @@ import {
   ChevronDown,
   Loader2,
 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/db';
-import type { Appointment, AppointmentStatus, AppointmentType, Patient, Staff, Department } from '../types';
+import { cn } from '@/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/db';
+import type { Appointment, AppointmentStatus, AppointmentType, Patient, Staff, Department } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
