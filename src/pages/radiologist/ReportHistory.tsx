@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ScanLine, Search, CheckCircle2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { db, isImagingOrder } from '@/lib/db';
-import type { ResultFlag } from '@/types';
+import { listLabOrders, listPatients, listStaff } from '@/lib/services';
+import type { LabOrder, Patient, Staff, ResultFlag } from '@/types';
 
 const FLAG_CFG: Record<ResultFlag, string> = {
   normal:   'text-emerald-600',
@@ -11,28 +11,45 @@ const FLAG_CFG: Record<ResultFlag, string> = {
   critical: 'text-red-600',
 };
 
+const IMAGING_CATEGORIES = ['radiology', 'imaging', 'xray', 'mri', 'ct', 'ultrasound'];
+function isImagingOrder(o: LabOrder) {
+  return o.category ? IMAGING_CATEGORIES.includes(o.category.toLowerCase()) : false;
+}
+
 const ReportHistory: React.FC = () => {
+  const [reports, setReports] = useState<LabOrder[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const reports = useMemo(() =>
-    db.labOrders.getAll()
-      .filter(o => isImagingOrder(o) && o.status === 'completed')
-      .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? '')),
-  []);
+  useEffect(() => {
+    Promise.all([
+      listLabOrders({ category: 'radiology', status: 'completed' }),
+      listPatients(),
+      listStaff(),
+    ]).then(([labOrders, pts, st]) => {
+      const completed = labOrders
+        .filter(o => isImagingOrder(o) && o.status === 'completed')
+        .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+      setReports(completed);
+      setPatients(pts);
+      setStaff(st);
+    }).catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     if (!search) return reports;
     const t = search.toLowerCase();
     return reports.filter(o => {
-      const p = db.patients.getById(o.patientId);
+      const p = patients.find(pt => pt.id === o.patientId);
       return (
         o.labNumber.toLowerCase().includes(t) ||
         o.tests.some(test => test.toLowerCase().includes(t)) ||
         (p && `${p.firstName} ${p.lastName}`.toLowerCase().includes(t))
       );
     });
-  }, [reports, search]);
+  }, [reports, search, patients]);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-8">
@@ -54,8 +71,8 @@ const ReportHistory: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map(o => {
-            const patient = db.patients.getById(o.patientId);
-            const radiologist = o.processedBy ? db.staff.getById(o.processedBy) : null;
+            const patient = patients.find(p => p.id === o.patientId);
+            const radiologist = o.processedBy ? staff.find(s => s.id === o.processedBy) : null;
             const isExpanded = expanded === o.id;
             const hasAbnormal = o.results?.some(r => r.flag !== 'normal');
 
@@ -70,7 +87,7 @@ const ReportHistory: React.FC = () => {
                     <p className="font-black text-slate-900 dark:text-white truncate">{o.labNumber} · {o.tests.join(', ')}</p>
                     <p className="text-xs text-slate-500 font-medium truncate">
                       {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'}
-                      {radiologist && ` · reported by ${db.staff.getFullName(radiologist)}`}
+                      {radiologist && ` · reported by ${radiologist.firstName} ${radiologist.lastName}`}
                     </p>
                   </div>
                   {hasAbnormal && (

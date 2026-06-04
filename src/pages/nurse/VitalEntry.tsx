@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { HeartPulse, Activity, Thermometer, Droplets, Save, Search } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
-import type { Patient } from '@/types';
+import { listPatients, getPatient, createVital, listVitals } from '@/lib/services';
+import type { Patient, VitalRecord } from '@/types';
 
 const VitalEntry: React.FC = () => {
   const { user } = useAuth();
@@ -14,6 +14,9 @@ const VitalEntry: React.FC = () => {
   const initialPatientId = params.get('patientId') ?? '';
   const [patientId, setPatientId] = useState(initialPatientId);
   const [search, setSearch] = useState('');
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [lastVitals, setLastVitals] = useState<VitalRecord | null>(null);
 
   const [form, setForm] = useState({
     bloodPressureSystolic:  '',
@@ -26,37 +29,53 @@ const VitalEntry: React.FC = () => {
     respiratoryRate:        '',
   });
 
-  const patient = useMemo(() => patientId ? db.patients.getById(patientId) : null, [patientId]);
-  const lastVitals = useMemo(() => patientId ? db.vitals.getLatest(patientId) : null, [patientId]);
+  useEffect(() => {
+    listPatients().then(setAllPatients);
+  }, []);
+
+  useEffect(() => {
+    if (!patientId) { setPatient(null); setLastVitals(null); return; }
+    Promise.all([
+      getPatient(patientId).catch(() => null as unknown as Patient),
+      listVitals({ patient_id: patientId }),
+    ]).then(([p, vitals]) => {
+      setPatient(p);
+      const sorted = vitals.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+      setLastVitals(sorted[0] ?? null);
+    });
+  }, [patientId]);
 
   const results = useMemo<Patient[]>(() => {
     if (patientId || !search) return [];
-    return db.patients.search(search).slice(0, 6);
-  }, [search, patientId]);
+    const q = search.toLowerCase();
+    return allPatients.filter(p =>
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
+      p.patientNumber.toLowerCase().includes(q)
+    ).slice(0, 6);
+  }, [search, patientId, allPatients]);
 
   const set = <K extends keyof typeof form>(k: K, v: string) => setForm(p => ({ ...p, [k]: v }));
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user || !patient) return;
     const required = ['bloodPressureSystolic', 'bloodPressureDiastolic', 'heartRate', 'temperature'] as const;
     if (required.some(k => !form[k])) {
       toast.error('Please fill BP, heart rate, and temperature');
       return;
     }
-    db.vitals.add({
+    await createVital({
       patientId:              patient.id,
       recordedBy:             user.id,
       bloodPressureSystolic:  Number(form.bloodPressureSystolic),
       bloodPressureDiastolic: Number(form.bloodPressureDiastolic),
       heartRate:              Number(form.heartRate),
       temperature:            Number(form.temperature),
-      weight:                 Number(form.weight)       || lastVitals?.weight || 0,
-      height:                 Number(form.height)       || lastVitals?.height || 0,
+      weight:                 Number(form.weight)           || lastVitals?.weight || 0,
+      height:                 Number(form.height)           || lastVitals?.height || 0,
       oxygenSaturation:       Number(form.oxygenSaturation) || 98,
       respiratoryRate:        Number(form.respiratoryRate)  || 16,
       recordedAt:             new Date().toISOString(),
     });
-    db.auditLogs.create({ userId: user.id, userRole: user.role, action: 'RECORD_VITALS', resource: 'VitalRecord', resourceId: patient.id, details: `Recorded vitals for ${patient.firstName} ${patient.lastName}` });
     toast.success(`Vitals recorded for ${patient.firstName} ${patient.lastName}`);
     setForm({ bloodPressureSystolic: '', bloodPressureDiastolic: '', heartRate: '', temperature: '', weight: '', height: '', oxygenSaturation: '', respiratoryRate: '' });
   };

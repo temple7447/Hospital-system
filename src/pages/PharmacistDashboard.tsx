@@ -1,24 +1,55 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Pill, Package, AlertTriangle, CheckCircle2, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getPharmacistStats,
+  listPrescriptions,
+  listInventory,
+  listPatients,
+  listStaff,
+} from '@/lib/services';
+import type { Prescription, InventoryItem, Patient, Staff } from '@/types';
 
 const PharmacistDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [pending, setPending] = useState<Prescription[]>([]);
+  const [lowStock, setLowStock] = useState<InventoryItem[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+
+  const { data: stats } = useApi(getPharmacistStats);
+
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      listPrescriptions({ status: 'active' }),
+      listInventory({ category: 'medicine', low_stock: true }),
+      listPatients({ limit: 500 }),
+      listStaff({ limit: 500 }),
+    ]).then(([rxList, stockList, patientList, staffList]) => {
+      setPending(rxList.slice(0, 6));
+      setLowStock(stockList.slice(0, 5));
+      setPatients(patientList);
+      setStaff(staffList);
+    });
+  }, [user]);
+
   if (!user) return null;
 
-  const stats   = useMemo(() => db.stats.pharmacist(), []);
-  const pending = useMemo(() => db.prescriptions.getPendingDispense().slice(0, 6), []);
-  const lowStock = useMemo(() => db.inventory.getLowStock().filter(i => i.category === 'medicine').slice(0, 5), []);
+  const getPatient = (id: string) => patients.find(p => p.id === id);
+  const getDoctor  = (id: string) => staff.find(s => s.id === id);
+  const getDisplayName = (s: Staff) =>
+    s.role === 'DOCTOR' ? `Dr. ${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`;
 
   const KPI = [
-    { label: 'Pending Rx',     value: stats.pendingPrescriptions, icon: Pill,           color: 'blue' },
-    { label: 'Dispensed Today',value: stats.dispensedToday,        icon: CheckCircle2,   color: 'emerald' },
-    { label: 'Low Stock',      value: stats.lowStockMedicines,     icon: AlertTriangle,  color: 'amber' },
-    { label: 'Active Rx',      value: stats.totalActive,           icon: Package,        color: 'violet' },
+    { label: 'Pending Rx',     value: stats?.pendingPrescriptions ?? '—', icon: Pill,           color: 'blue' },
+    { label: 'Dispensed Today',value: stats?.dispensedToday ?? '—',        icon: CheckCircle2,   color: 'emerald' },
+    { label: 'Low Stock',      value: stats?.lowStockMedicines ?? '—',     icon: AlertTriangle,  color: 'amber' },
+    { label: 'Active Rx',      value: stats?.totalActive ?? '—',           icon: Package,        color: 'violet' },
   ];
 
   return (
@@ -60,8 +91,8 @@ const PharmacistDashboard: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {pending.map(rx => {
-                const patient = db.patients.getById(rx.patientId);
-                const doctor  = db.staff.getById(rx.doctorId);
+                const patient = getPatient(rx.patientId);
+                const doctor  = getDoctor(rx.doctorId);
                 return (
                   <Link key={rx.id} to={`/pharmacist/queue?id=${rx.id}`}
                     className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
@@ -71,7 +102,7 @@ const PharmacistDashboard: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{rx.prescriptionNumber} · {rx.diagnosis}</p>
                       <p className="text-xs text-slate-500 font-medium truncate">
-                        {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {doctor ? db.staff.getDisplayName(doctor) : '—'} · {rx.items.length} items
+                        {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {doctor ? getDisplayName(doctor) : '—'} · {rx.items.length} items
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">

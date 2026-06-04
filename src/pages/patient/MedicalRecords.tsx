@@ -22,8 +22,14 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
-import type { Prescription, ConsultationNote, VitalRecord, Appointment, Staff, Department } from '@/types';
+import {
+  listPrescriptions,
+  listVitals,
+  listAppointments,
+  listStaff,
+  listDepartments,
+} from '@/lib/services';
+import type { Prescription, VitalRecord, Appointment, Staff, Department } from '@/types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -64,7 +70,6 @@ const MedicalRecords: React.FC = () => {
   const { user } = useAuth();
 
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [notes, setNotes] = useState<ConsultationNote[]>([]);
   const [vitals, setVitals] = useState<VitalRecord[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -72,26 +77,24 @@ const MedicalRecords: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedRxId, setExpandedRxId] = useState<string | null>(null);
-  const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    const rxs = db.prescriptions.getByPatient(user.id);
-    rxs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    setPrescriptions(rxs);
-
-    const ns = db.consultationNotes.getByPatient(user.id);
-    setNotes(ns);
-
-    const vs = db.vitals.getByPatient(user.id);
-    setVitals(vs);
-
-    const apts = db.appointments.getByPatient(user.id);
-    apts.sort((a, b) => b.date.localeCompare(a.date));
-    setAppointments(apts);
-
-    setStaff(db.staff.getAll());
-    setDepartments(db.departments.getAll());
+    Promise.all([
+      listPrescriptions({ patient_id: user.id }),
+      listVitals({ patient_id: user.id }),
+      listAppointments({ patient_id: user.id }),
+      listStaff(),
+      listDepartments(),
+    ]).then(([rxs, vs, apts, st, depts]) => {
+      rxs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      apts.sort((a, b) => b.date.localeCompare(a.date));
+      setPrescriptions(rxs);
+      setVitals(vs);
+      setAppointments(apts);
+      setStaff(st);
+      setDepartments(depts);
+    }).catch(() => {});
   }, [user]);
 
   const latestVitals = vitals[0] ?? null;
@@ -110,8 +113,8 @@ const MedicalRecords: React.FC = () => {
     totalVisits:      appointments.filter(a => a.status === 'completed').length,
     activeRx:         prescriptions.filter(p => p.status === 'active').length,
     totalPrescriptions: prescriptions.length,
-    totalNotes:       notes.length,
-  }), [appointments, prescriptions, notes]);
+    totalNotes:       0, // consultation notes not shown here
+  }), [appointments, prescriptions]);
 
   return (
     <div className="space-y-6">
@@ -407,65 +410,10 @@ const MedicalRecords: React.FC = () => {
         {/* ─── NOTES ────────────────────────────────────────────────────────── */}
         {activeTab === 'notes' && (
           <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-            {notes.length === 0 ? (
-              <div className="glass-card p-16 rounded-3xl text-center">
-                <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-400 font-bold">No doctor notes yet</p>
-              </div>
-            ) : (
-              <>
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex gap-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                    These are clinical notes recorded by your doctor. They are provided for your reference.
-                  </p>
-                </div>
-
-                {notes.map(note => {
-                  const doc = staff.find(s => s.id === note.doctorId);
-                  const expanded = expandedNoteId === note.id;
-                  return (
-                    <div key={note.id} className="glass-card rounded-3xl overflow-hidden">
-                      <button
-                        className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all"
-                        onClick={() => setExpandedNoteId(expanded ? null : note.id)}
-                      >
-                        <div className="flex items-center gap-4 text-left">
-                          <div className="w-10 h-10 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
-                            <FileText className="w-5 h-5 text-violet-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-900 dark:text-white">{fmtDate(note.createdAt)}</p>
-                            <p className="text-xs text-slate-400 font-bold">
-                              {doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'}
-                            </p>
-                          </div>
-                        </div>
-                        {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-                      </button>
-
-                      <AnimatePresence>
-                        {expanded && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                            <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
-                              {[
-                                { label: 'Assessment', value: note.assessment, color: 'border-amber-400' },
-                                { label: 'Plan', value: note.plan, color: 'border-violet-400' },
-                              ].filter(s => s.value).map(({ label, value, color }) => (
-                                <div key={label} className={cn('p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border-l-4', color)}>
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{label}</p>
-                                  <p className="text-sm text-slate-700 dark:text-slate-300">{value}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })}
-              </>
-            )}
+            <div className="glass-card p-16 rounded-3xl text-center">
+              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-400 font-bold">No doctor notes yet</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

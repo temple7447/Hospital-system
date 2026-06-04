@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listPrescriptions, listStaff } from '@/lib/services';
 import type { Prescription, PrescriptionStatus, Staff } from '@/types';
 
 const STATUS_CFG: Record<PrescriptionStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
@@ -163,10 +163,15 @@ const Prescriptions: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      setPrescriptions(db.prescriptions.getByPatient(user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-      setDoctors(db.staff.getDoctors());
-    }
+    if (!user) return;
+    Promise.all([
+      listPrescriptions({ patient_id: user.id }),
+      listStaff({ role: 'DOCTOR' }),
+    ]).then(([rxs, staff]) => {
+      rxs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      setPrescriptions(rxs);
+      setDoctors(staff);
+    }).catch(() => {});
   }, [user]);
 
   const stats = useMemo(() => ({

@@ -16,6 +16,7 @@ export const KEYS = {
   VITALS:             'hospital_vitals',
   NURSING_TASKS:      'hospital_nursing_tasks',
   SEEDED:             'hospital_seeded',
+  SETTINGS:           'hospital_settings',
 } as const;
 
 export function generateId(): string {

@@ -1,10 +1,25 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ScanLine, AlertTriangle, CheckCircle2, Activity, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db, isImagingOrder } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getRadiologistStats,
+  listLabOrders,
+  listPatients,
+  listStaff,
+} from '@/lib/services';
+import type { LabOrder, Patient, Staff } from '@/types';
+
+const IMAGING_KEYWORDS = ['mri', 'x-ray', 'xray', 'ct ', 'ct scan', 'ultrasound', 'echo', 'scan', 'mammogram', 'fluoroscopy'];
+
+const isImagingOrder = (order: LabOrder): boolean => {
+  if (order.category === 'radiology') return true;
+  if (order.category === 'lab') return false;
+  return order.tests.some(t => IMAGING_KEYWORDS.some(k => t.toLowerCase().includes(k)));
+};
 
 const PRIORITY_CFG = {
   routine: { color: 'text-slate-500 bg-slate-100 dark:bg-slate-800', label: 'Routine' },
@@ -14,25 +29,43 @@ const PRIORITY_CFG = {
 
 const RadiologistDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [pending, setPending] = useState<LabOrder[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+
+  const { data: stats } = useApi(getRadiologistStats);
+
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      listLabOrders({ category: 'radiology' }),
+      listPatients({ limit: 500 }),
+      listStaff({ limit: 500 }),
+    ]).then(([orders, patientList, staffList]) => {
+      const priorityOrder = { stat: 0, urgent: 1, routine: 2 } as const;
+      const filtered = orders
+        .filter(o => isImagingOrder(o))
+        .filter(o => o.status !== 'completed' && o.status !== 'cancelled')
+        .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
+        .slice(0, 6);
+      setPending(filtered);
+      setPatients(patientList);
+      setStaff(staffList);
+    });
+  }, [user]);
+
   if (!user) return null;
 
-  const stats = useMemo(() => db.stats.radiologist(), []);
-  const pending = useMemo(() => {
-    return db.labOrders.getAll()
-      .filter(o => isImagingOrder(o))
-      .filter(o => o.status !== 'completed' && o.status !== 'cancelled')
-      .sort((a, b) => {
-        const order = { stat: 0, urgent: 1, routine: 2 };
-        return order[a.priority] - order[b.priority];
-      })
-      .slice(0, 6);
-  }, []);
+  const getPatient = (id: string) => patients.find(p => p.id === id);
+  const getDoctor  = (id: string) => staff.find(s => s.id === id);
+  const getDisplayName = (s: Staff) =>
+    s.role === 'DOCTOR' ? `Dr. ${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`;
 
   const KPI = [
-    { label: 'Pending Imaging', value: stats.pendingImaging,  icon: ScanLine,      color: 'blue' },
-    { label: 'In Progress',     value: stats.inProgress,      icon: Activity,      color: 'violet' },
-    { label: 'Completed Today', value: stats.completedToday,  icon: CheckCircle2,  color: 'emerald' },
-    { label: 'Urgent',          value: stats.urgentImaging,   icon: AlertTriangle, color: 'amber' },
+    { label: 'Pending Imaging', value: stats?.pendingImaging ?? '—',  icon: ScanLine,      color: 'blue' },
+    { label: 'In Progress',     value: stats?.inProgress ?? '—',      icon: Activity,      color: 'violet' },
+    { label: 'Completed Today', value: stats?.completedToday ?? '—',  icon: CheckCircle2,  color: 'emerald' },
+    { label: 'Urgent',          value: stats?.urgentImaging ?? '—',   icon: AlertTriangle, color: 'amber' },
   ];
 
   return (
@@ -74,8 +107,8 @@ const RadiologistDashboard: React.FC = () => {
         ) : (
           <div className="space-y-3">
             {pending.map(o => {
-              const patient = db.patients.getById(o.patientId);
-              const doctor  = db.staff.getById(o.doctorId);
+              const patient = getPatient(o.patientId);
+              const doctor  = getDoctor(o.doctorId);
               const pri = PRIORITY_CFG[o.priority];
               return (
                 <Link key={o.id} to={`/radiology/report?id=${o.id}`}
@@ -86,7 +119,7 @@ const RadiologistDashboard: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{o.labNumber} · {o.tests.join(', ')}</p>
                     <p className="text-xs text-slate-500 font-medium truncate">
-                      {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {doctor ? db.staff.getDisplayName(doctor) : '—'}
+                      {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {doctor ? getDisplayName(doctor) : '—'}
                     </p>
                   </div>
                   <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', pri.color)}>

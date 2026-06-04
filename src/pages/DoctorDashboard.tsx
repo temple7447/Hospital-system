@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,7 +9,12 @@ import {
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getDoctorStats,
+  listAppointments,
+  listPatients,
+} from '@/lib/services';
 import type { Appointment, Patient } from '@/types';
 
 const STATUS_CFG = {
@@ -28,40 +33,47 @@ const DoctorDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [todayApts, setTodayApts] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [weekData, setWeekData] = useState<{ day: string; count: number }[]>([]);
+  const [nextApt, setNextApt] = useState<Appointment | null>(null);
+
+  const { data: stats } = useApi(getDoctorStats);
 
   useEffect(() => {
-    if (user) {
-      setTodayApts(db.appointments.getTodayByDoctor(user.id).sort((a, b) => a.time.localeCompare(b.time)));
-      setPatients(db.patients.getAll());
-    }
-  }, [user]);
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
 
-  const stats = useMemo(() => user ? db.stats.doctor(user.id) : null, [user]);
+    // Load today's appointments and all recent appointments (for weekly chart + next apt)
+    Promise.all([
+      listAppointments({ date: today, doctor_id: user.id }),
+      listPatients({ limit: 500 }),
+      // Fetch last 7 days + upcoming for weekly chart and next appointment
+      listAppointments({ doctor_id: user.id }),
+    ]).then(([todayList, patientList, allApts]) => {
+      setTodayApts(todayList.slice().sort((a, b) => a.time.localeCompare(b.time)));
+      setPatients(patientList);
 
-  const weekData = useMemo(() => {
-    if (!user) return [];
-    const today = new Date();
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - 6 + i);
-      const dateStr = d.toISOString().split('T')[0];
-      return {
-        day: DAYS[d.getDay()],
-        count: db.appointments.getByDoctor(user.id).filter(a => a.date === dateStr).length,
-      };
+      // Build weekly chart data
+      const now = new Date();
+      const weekly = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(now);
+        d.setDate(now.getDate() - 6 + i);
+        const dateStr = d.toISOString().slice(0, 10);
+        return {
+          day: DAYS[d.getDay()],
+          count: allApts.filter(a => a.date === dateStr).length,
+        };
+      });
+      setWeekData(weekly);
+
+      // Find next upcoming appointment
+      const upcoming = allApts
+        .filter(a => a.date >= today && (a.status === 'scheduled' || a.status === 'confirmed'))
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+      setNextApt(upcoming[0] ?? null);
     });
   }, [user]);
 
   const getPatient = (id: string) => patients.find(p => p.id === id);
-
-  const nextApt = useMemo(() => {
-    if (!user) return null;
-    const today = new Date().toISOString().split('T')[0];
-    return db.appointments.getByDoctor(user.id)
-      .filter(a => a.date >= today && (a.status === 'scheduled' || a.status === 'confirmed'))
-      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))[0] ?? null;
-  }, [user]);
-
   const nextPatient = nextApt ? getPatient(nextApt.patientId) : null;
 
   if (!stats) return null;

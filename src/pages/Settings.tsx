@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hospital, Clock, Bell, Shield, Globe, Save,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { toast } from 'sonner';
+import { KEYS } from '@/lib/storage';
 
 const TABS = [
   { id: 'hospital',      label: 'Hospital Info',   icon: Hospital },
@@ -14,6 +15,72 @@ const TABS = [
   { id: 'notifications', label: 'Notifications',   icon: Bell },
   { id: 'security',     label: 'Security',         icon: Shield },
 ];
+
+interface HospitalSettings {
+  name: string; tagline: string; phone: string; email: string;
+  address: string; city: string; website: string; beds: string;
+  founded: string; license: string;
+}
+
+interface OpsSettings {
+  openTime: string; closeTime: string; emergencyHours: boolean;
+  maxDailyPatients: string; appointmentSlot: string;
+  walkinEnabled: boolean; autoQueueEnabled: boolean;
+}
+
+interface NotifSettings {
+  emailAppointments: boolean; emailBilling: boolean; emailLab: boolean;
+  smsReminders: boolean; smsEmergency: boolean; inAppAll: boolean;
+  lowStockAlert: boolean; lowStockThreshold: string;
+}
+
+interface SecuritySettings {
+  sessionTimeout: string; twoFactor: boolean; auditAll: boolean;
+  passwordExpiry: string; ipWhitelist: boolean;
+}
+
+interface AppSettings {
+  hospital: HospitalSettings;
+  ops: OpsSettings;
+  notifs: NotifSettings;
+  security: SecuritySettings;
+}
+
+const DEFAULTS: AppSettings = {
+  hospital: {
+    name: 'CareFlow Medical Center', tagline: 'Excellence in Patient Care',
+    phone: '+1 (555) 000-1234', email: 'admin@careflow.com',
+    address: '123 Medical Drive', city: 'San Francisco, CA 94102',
+    website: 'www.careflow.com', beds: '250', founded: '1985',
+    license: 'HOS-2024-001',
+  },
+  ops: {
+    openTime: '07:00', closeTime: '21:00', emergencyHours: true,
+    maxDailyPatients: '120', appointmentSlot: '30',
+    walkinEnabled: true, autoQueueEnabled: true,
+  },
+  notifs: {
+    emailAppointments: true, emailBilling: true, emailLab: false,
+    smsReminders: true, smsEmergency: true, inAppAll: true,
+    lowStockAlert: true, lowStockThreshold: '10',
+  },
+  security: {
+    sessionTimeout: '60', twoFactor: false, auditAll: true,
+    passwordExpiry: '90', ipWhitelist: false,
+  },
+};
+
+const loadSettings = (): AppSettings => {
+  try {
+    const raw = localStorage.getItem(KEYS.SETTINGS);
+    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
+  } catch {}
+  return DEFAULTS;
+};
+
+const saveSettings = (settings: AppSettings) => {
+  localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
+};
 
 function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
   return (
@@ -30,54 +97,26 @@ const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('hospital');
   const [saving, setSaving] = useState(false);
 
-  const [hospital, setHospital] = useState({
-    name:    'CareFlow Medical Center',
-    tagline: 'Excellence in Patient Care',
-    phone:   '+1 (555) 000-1234',
-    email:   'admin@careflow.com',
-    address: '123 Medical Drive',
-    city:    'San Francisco, CA 94102',
-    website: 'www.careflow.com',
-    beds:    '250',
-    founded: '1985',
-    license: 'HOS-2024-001',
-  });
+  const [hospital, setHospital] = useState<HospitalSettings>(DEFAULTS.hospital);
+  const [ops, setOps] = useState<OpsSettings>(DEFAULTS.ops);
+  const [notifs, setNotifs] = useState<NotifSettings>(DEFAULTS.notifs);
+  const [security, setSecurity] = useState<SecuritySettings>(DEFAULTS.security);
 
-  const [ops, setOps] = useState({
-    openTime:          '07:00',
-    closeTime:         '21:00',
-    emergencyHours:    true,
-    maxDailyPatients:  '120',
-    appointmentSlot:   '30',
-    walkinEnabled:     true,
-    autoQueueEnabled:  true,
-  });
-
-  const [notifs, setNotifs] = useState({
-    emailAppointments: true,
-    emailBilling:      true,
-    emailLab:          false,
-    smsReminders:      true,
-    smsEmergency:      true,
-    inAppAll:          true,
-    lowStockAlert:     true,
-    lowStockThreshold: '10',
-  });
-
-  const [security, setSecurity] = useState({
-    sessionTimeout:    '60',
-    twoFactor:         false,
-    auditAll:          true,
-    passwordExpiry:    '90',
-    ipWhitelist:       false,
-  });
+  useEffect(() => {
+    const s = loadSettings();
+    setHospital(s.hospital);
+    setOps(s.ops);
+    setNotifs(s.notifs);
+    setSecurity(s.security);
+  }, []);
 
   const handleSave = () => {
     setSaving(true);
     setTimeout(() => {
+      saveSettings({ hospital, ops, notifs, security });
       setSaving(false);
       toast.success('Settings saved successfully');
-    }, 600);
+    }, 400);
   };
 
   const inputCls = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all";
@@ -85,14 +124,12 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-8 max-w-5xl">
-      {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">System Settings</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Hospital configuration and preferences</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Tab sidebar */}
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}
           className="lg:col-span-1 space-y-1.5">
           {TABS.map(t => (
@@ -107,7 +144,6 @@ const Settings: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* Content */}
         <div className="lg:col-span-3">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab}
@@ -234,8 +270,8 @@ const Settings: React.FC = () => {
                           <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
                         </div>
                         <Toggle
-                          enabled={ops[item.key as keyof typeof ops] as boolean}
-                          onChange={() => setOps(o => ({ ...o, [item.key]: !o[item.key as keyof typeof ops] }))}
+                          enabled={ops[item.key as keyof OpsSettings] as boolean}
+                          onChange={() => setOps(o => ({ ...o, [item.key]: !o[item.key as keyof OpsSettings] }))}
                         />
                       </div>
                     ))}
@@ -261,8 +297,8 @@ const Settings: React.FC = () => {
                           <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
                         </div>
                         <Toggle
-                          enabled={notifs[item.key as keyof typeof notifs] as boolean}
-                          onChange={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof typeof notifs] }))}
+                          enabled={notifs[item.key as keyof NotifSettings] as boolean}
+                          onChange={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof NotifSettings] }))}
                         />
                       </div>
                     ))}
@@ -279,8 +315,8 @@ const Settings: React.FC = () => {
                           <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
                         </div>
                         <Toggle
-                          enabled={notifs[item.key as keyof typeof notifs] as boolean}
-                          onChange={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof typeof notifs] }))}
+                          enabled={notifs[item.key as keyof NotifSettings] as boolean}
+                          onChange={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof NotifSettings] }))}
                         />
                       </div>
                     ))}
@@ -344,8 +380,8 @@ const Settings: React.FC = () => {
                           <p className="text-xs text-slate-400 font-medium mt-0.5">{item.desc}</p>
                         </div>
                         <Toggle
-                          enabled={security[item.key as keyof typeof security] as boolean}
-                          onChange={() => setSecurity(s => ({ ...s, [item.key]: !s[item.key as keyof typeof security] }))}
+                          enabled={security[item.key as keyof SecuritySettings] as boolean}
+                          onChange={() => setSecurity(s => ({ ...s, [item.key]: !s[item.key as keyof SecuritySettings] }))}
                         />
                       </div>
                     ))}
@@ -358,7 +394,6 @@ const Settings: React.FC = () => {
                 </>
               )}
 
-              {/* Save button */}
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button onClick={handleSave} disabled={saving}
                   className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50">

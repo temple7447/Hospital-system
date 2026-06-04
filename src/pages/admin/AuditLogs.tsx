@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   ShieldCheck, Search, X, Download, User,
   Plus, Edit2, Trash2, LogIn, FileText, Activity,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { db } from '@/lib/db';
+import { api } from '@/lib/api';
 import type { AuditLog, Staff, Patient } from '@/types';
+import { listStaff, listPatients } from '@/lib/services';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -138,11 +139,18 @@ const AuditLogs: React.FC = () => {
   const [resourceFilter, setResourceFilter] = useState('all');
   const [dateRange, setDateRange] = useState('today');
 
-  useEffect(() => {
-    setLogs(db.auditLogs.getAll());
-    setStaff(db.staff.getAll());
-    setPatients(db.patients.getAll());
+  const loadData = useCallback(async () => {
+    const [logsData, staffData, patientsData] = await Promise.all([
+      api.get<{ logs: AuditLog[] }>('/audit-logs').then(r => r.logs ?? []).catch(() => [] as AuditLog[]),
+      listStaff(),
+      listPatients(),
+    ]);
+    setLogs(logsData);
+    setStaff(staffData);
+    setPatients(patientsData);
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const getActorName = (userId: string, role: string): string => {
     if (role === 'PATIENT') {

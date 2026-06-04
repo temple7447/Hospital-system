@@ -1,60 +1,80 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   TrendingUp, Users, Calendar, DollarSign,
   Activity, CheckCircle2, Clock, XCircle,
 } from 'lucide-react';
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Cell, PieChart, Pie, Legend,
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listAppointments, listPatients, listInvoices, getAdminStats } from '@/lib/services';
+import type { Appointment, Patient, Invoice, AdminStats } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const Reports: React.FC = () => {
   const { user } = useAuth();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      listAppointments({ limit: 1000 }),
+      listPatients({ limit: 1000 }),
+      listInvoices({ limit: 1000 }),
+      getAdminStats(),
+    ]).then(([apts, pats, invs, s]) => {
+      setAppointments(apts);
+      setPatients(pats);
+      setInvoices(invs);
+      setStats(s);
+    }).catch(() => {});
+  }, []);
 
   const revenueData = useMemo(() => {
     const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-      return {
-        month:   MONTHS[d.getMonth()],
-        revenue: db.invoices.getMonthlyRevenue(d.getFullYear(), d.getMonth() + 1),
-      };
+      const next = new Date(now.getFullYear(), now.getMonth() - 4 + i, 1);
+      const revenue = invoices
+        .filter(inv => {
+          if (inv.status !== 'paid' || !inv.paidAt) return false;
+          const pd = new Date(inv.paidAt);
+          return pd >= d && pd < next;
+        })
+        .reduce((sum, inv) => sum + (inv.total ?? 0), 0);
+      return { month: MONTHS[d.getMonth()], revenue };
     });
-  }, []);
+  }, [invoices]);
 
   const aptStats = useMemo(() => {
-    const all = db.appointments.getAll();
-    const completed  = all.filter(a => a.status === 'completed').length;
-    const scheduled  = all.filter(a => a.status === 'scheduled' || a.status === 'confirmed').length;
-    const cancelled  = all.filter(a => a.status === 'cancelled').length;
-    const noShow     = all.filter(a => a.status === 'no_show').length;
+    const completed  = appointments.filter(a => a.status === 'completed').length;
+    const scheduled  = appointments.filter(a => a.status === 'scheduled' || a.status === 'confirmed').length;
+    const cancelled  = appointments.filter(a => a.status === 'cancelled').length;
+    const noShow     = appointments.filter(a => a.status === 'no_show').length;
     return [
-      { name: 'Completed',  value: completed,  color: '#10b981' },
-      { name: 'Upcoming',   value: scheduled,  color: '#3b82f6' },
-      { name: 'Cancelled',  value: cancelled,  color: '#f59e0b' },
-      { name: 'No Show',    value: noShow,     color: '#ef4444' },
+      { name: 'Completed', value: completed, color: '#10b981' },
+      { name: 'Upcoming',  value: scheduled, color: '#3b82f6' },
+      { name: 'Cancelled', value: cancelled, color: '#f59e0b' },
+      { name: 'No Show',   value: noShow,    color: '#ef4444' },
     ];
-  }, []);
+  }, [appointments]);
 
   const aptByType = useMemo(() => {
-    const all = db.appointments.getAll();
     const counts: Record<string, number> = {};
-    all.forEach(a => { counts[a.type] = (counts[a.type] ?? 0) + 1; });
+    appointments.forEach(a => { counts[a.type] = (counts[a.type] ?? 0) + 1; });
     return Object.entries(counts).map(([type, count]) => ({
-      type: type.replace(/_/g, ' '),
-      count,
+      type: type.replace(/_/g, ' '), count,
     })).sort((a, b) => b.count - a.count).slice(0, 6);
-  }, []);
+  }, [appointments]);
 
   const patientGrowth = useMemo(() => {
-    const patients = db.patients.getAll();
     const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
@@ -65,17 +85,16 @@ const Reports: React.FC = () => {
       }).length;
       return { month: MONTHS[d.getMonth()], patients: count };
     });
-  }, []);
+  }, [patients]);
 
-  const stats = useMemo(() => db.stats.admin(), []);
   const totalRevenue = revenueData.reduce((s, d) => s + d.revenue, 0);
   const totalApts    = aptStats.reduce((s, d) => s + d.value, 0);
 
   const KPI = [
     { label: 'Total Revenue (6mo)', value: `$${(totalRevenue / 1000).toFixed(1)}k`, icon: DollarSign, color: 'emerald', change: '+12%' },
     { label: 'Total Appointments',  value: totalApts,                                icon: Calendar,   color: 'blue',    change: '+8%' },
-    { label: 'Active Patients',     value: stats.totalPatients,                      icon: Users,      color: 'violet',  change: '+5%' },
-    { label: 'Active Staff',        value: stats.activeStaff,                        icon: Activity,   color: 'amber',   change: '0%' },
+    { label: 'Active Patients',     value: stats?.totalPatients ?? '—',              icon: Users,      color: 'violet',  change: '+5%' },
+    { label: 'Active Staff',        value: stats?.totalStaff ?? '—',                 icon: Activity,   color: 'amber',   change: '0%' },
   ];
 
   return (
@@ -217,12 +236,12 @@ const Reports: React.FC = () => {
         <h3 className="font-black text-slate-900 dark:text-white mb-5">Quick Stats</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { label: 'Doctors',    value: stats.totalDoctors,          icon: Activity,      color: 'blue' },
-            { label: 'Patients',   value: stats.totalPatients,         icon: Users,         color: 'violet' },
-            { label: 'Today Apts', value: stats.todayAppointments,     icon: Calendar,      color: 'amber' },
-            { label: 'Completed',  value: stats.completedAppointments, icon: CheckCircle2,  color: 'emerald' },
-            { label: 'Pending Bills', value: stats.pendingInvoices,    icon: Clock,         color: 'orange' },
-            { label: 'Low Stock',  value: stats.lowStockItems,         icon: XCircle,       color: 'red' },
+            { label: 'Staff',      value: stats?.totalStaff ?? '—',        icon: Activity,     color: 'blue' },
+            { label: 'Patients',   value: stats?.totalPatients ?? '—',      icon: Users,        color: 'violet' },
+            { label: 'Today Apts', value: stats?.todayAppointments ?? '—',  icon: Calendar,     color: 'amber' },
+            { label: 'Completed',  value: aptStats[0]?.value ?? '—',        icon: CheckCircle2, color: 'emerald' },
+            { label: 'Pending Bills', value: stats?.pendingInvoices ?? '—', icon: Clock,        color: 'orange' },
+            { label: 'Low Stock',  value: stats?.lowStockItems ?? '—',      icon: XCircle,      color: 'red' },
           ].map(s => (
             <div key={s.label} className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
               <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>

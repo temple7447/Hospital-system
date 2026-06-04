@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Search, UserRound, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
-import type { Patient, Appointment } from '@/types';
+import { listPatients, listAppointments, listPrescriptions, listLabOrders } from '@/lib/services';
+import type { Patient, Appointment, Prescription, LabOrder } from '@/types';
 
 function calcAge(dob: string) {
   const d = new Date(dob);
@@ -22,13 +22,25 @@ const MyPatients: React.FC = () => {
   const navigate = useNavigate();
   const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [apts, setApts] = useState<Appointment[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [labOrders, setLabOrders] = useState<LabOrder[]>([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
 
   useEffect(() => {
-    setAllPatients(db.patients.getAll());
-    if (user) setApts(db.appointments.getByDoctor(user.id));
-  }, [user]);
+    if (!user) return;
+    Promise.all([
+      listPatients(),
+      listAppointments({ doctor_id: user.id }),
+      listPrescriptions(),
+      listLabOrders({ doctor_id: user.id }),
+    ]).then(([pats, apt, rxs, labs]) => {
+      setAllPatients(pats);
+      setApts(apt);
+      setPrescriptions(rxs);
+      setLabOrders(labs);
+    });
+  }, [user?.id]);
 
   const assignedIds = useMemo(
     () => new Set(allPatients.filter(p => p.assignedDoctorId === user?.id).map(p => p.id)),
@@ -52,8 +64,8 @@ const MyPatients: React.FC = () => {
   }, [allPatients, filter, search, assignedIds, visitedIds]);
 
   const visitCount = (pid: string) => apts.filter(a => a.patientId === pid).length;
-  const rxCount   = (pid: string) => db.prescriptions.getActiveByPatient(pid).length;
-  const labCount  = (pid: string) => db.labOrders.getByPatient(pid).filter(l => l.status === 'pending').length;
+  const rxCount   = (pid: string) => prescriptions.filter(rx => rx.patientId === pid && rx.status === 'active').length;
+  const labCount  = (pid: string) => labOrders.filter(l => l.patientId === pid && l.status === 'pending').length;
 
   return (
     <div className="space-y-8">

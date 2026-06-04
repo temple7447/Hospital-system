@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, UserRound, HeartPulse, ClipboardList, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
-import type { Patient } from '@/types';
+import { listPatients, listStaff, listAppointments, listNursingTasks, listVitals } from '@/lib/services';
+import type { Patient, NursingTask, VitalRecord } from '@/types';
 
 const calcAge = (dob: string) => {
   const d = new Date(dob);
@@ -16,18 +16,32 @@ const calcAge = (dob: string) => {
 const NurseMyPatients: React.FC = () => {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [tasks, setTasks] = useState<NursingTask[]>([]);
+  const [vitals, setVitals] = useState<VitalRecord[]>([]);
 
-  const patients = useMemo<Patient[]>(() => {
-    if (!user) return [];
-    const nurse = db.staff.getById(user.id);
-    if (!nurse?.departmentId) return db.patients.getAll();
-    const appointmentPatientIds = new Set(
-      db.appointments.getAll()
-        .filter(a => a.departmentId === nurse.departmentId)
-        .map(a => a.patientId)
-    );
-    return db.patients.getAll().filter(p => appointmentPatientIds.has(p.id));
-  }, [user]);
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      listPatients(),
+      listStaff(),
+      listAppointments(),
+      listNursingTasks({ nurse_id: user.id }),
+      listVitals(),
+    ]).then(([allPatients, staffList, apts, nurseTasks, allVitals]) => {
+      const nurse = staffList.find(s => s.id === user.id);
+      let filtered = allPatients;
+      if (nurse?.departmentId) {
+        const deptPatientIds = new Set(
+          apts.filter(a => a.departmentId === nurse.departmentId).map(a => a.patientId)
+        );
+        filtered = allPatients.filter(p => deptPatientIds.has(p.id));
+      }
+      setPatients(filtered);
+      setTasks(nurseTasks);
+      setVitals(allVitals);
+    });
+  }, [user?.id]);
 
   const filtered = useMemo(() => {
     const t = search.toLowerCase();
@@ -61,8 +75,10 @@ const NurseMyPatients: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(p => {
-            const tasks = db.nursingTasks.getByPatient(p.id).filter(t => t.status === 'pending' || t.status === 'in_progress').length;
-            const vitals = db.vitals.getLatest(p.id);
+            const taskCount = tasks.filter(t => t.patientId === p.id && (t.status === 'pending' || t.status === 'in_progress')).length;
+            const latestVital = vitals
+              .filter(v => v.patientId === p.id)
+              .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))[0] ?? null;
             return (
               <motion.div key={p.id} whileHover={{ y: -3 }} className="glass-card rounded-3xl p-5">
                 <div className="flex items-start gap-3 mb-4">
@@ -86,12 +102,12 @@ const NurseMyPatients: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-center">
                     <ClipboardList className="w-3.5 h-3.5 mx-auto mb-1 text-violet-500" />
-                    <p className="text-xs font-black text-slate-900 dark:text-white">{tasks}</p>
+                    <p className="text-xs font-black text-slate-900 dark:text-white">{taskCount}</p>
                     <p className="text-[9px] text-slate-400 font-bold uppercase">Tasks</p>
                   </div>
                   <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-center">
                     <HeartPulse className="w-3.5 h-3.5 mx-auto mb-1 text-rose-500" />
-                    <p className="text-xs font-black text-slate-900 dark:text-white">{vitals?.heartRate ?? '—'}</p>
+                    <p className="text-xs font-black text-slate-900 dark:text-white">{latestVital?.heartRate ?? '—'}</p>
                     <p className="text-[9px] text-slate-400 font-bold uppercase">Heart rate</p>
                   </div>
                 </div>

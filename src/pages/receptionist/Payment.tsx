@@ -1,13 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, X, CreditCard, Banknote, Building2, Wallet,
   ChevronDown, ChevronUp, CheckCircle2, Clock, AlertCircle,
-  Trash2, Loader2, Receipt, User, Calendar, FileText, XCircle,
+  Trash2, Loader2, Receipt, User, XCircle,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  listInvoices,
+  createInvoice,
+  updateInvoice,
+  listPatients,
+  listAppointments,
+} from '@/lib/services';
 import type { Invoice, InvoiceStatus, PaymentMethod, Patient, Appointment, InvoiceItem } from '@/types';
 import { toast } from 'sonner';
 
@@ -60,17 +66,16 @@ interface CreateModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
-  userId: string;
 }
 
-const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, userId }) => {
+const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) => {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [patientId, setPatientId] = useState('');
   const [patientSearch, setPatientSearch] = useState('');
   const [patient, setPatient] = useState<Patient | null>(null);
   const [aptId, setAptId] = useState('');
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [aptOptions, setAptOptions] = useState<Appointment[]>([]);
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [taxRate, setTaxRate] = useState(10);
@@ -85,23 +90,27 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, use
       setStep(0); setPatientId(''); setPatientSearch(''); setPatient(null);
       setAptId(''); setItems([emptyItem()]); setTaxRate(10); setDiscount(0);
       setPayNow(false); setPayMethod('cash'); setNotes(''); setDueInDays(30);
-      setPatients(db.patients.getAll());
+      listPatients().then(setAllPatients).catch(() => {});
     }
   }, [open]);
 
   useEffect(() => {
-    if (patientId) {
-      const p = db.patients.getById(patientId);
-      setPatient(p);
-      if (p) {
-        setPatientSearch(`${p.firstName} ${p.lastName}`);
-        const apts = db.appointments.getByPatient(patientId)
-          .filter(a => a.status === 'completed' || a.status === 'confirmed')
-          .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
-        setAptOptions(apts);
-      }
+    if (!patientId) return;
+    const p = allPatients.find(pt => pt.id === patientId) ?? null;
+    setPatient(p);
+    if (p) {
+      setPatientSearch(`${p.firstName} ${p.lastName}`);
+      listAppointments({ patient_id: patientId })
+        .then(apts => {
+          const filtered = apts
+            .filter(a => a.status === 'completed' || a.status === 'confirmed')
+            .sort((a, b) => b.date.localeCompare(a.date))
+            .slice(0, 8);
+          setAptOptions(filtered);
+        })
+        .catch(() => {});
     }
-  }, [patientId]);
+  }, [patientId, allPatients]);
 
   useEffect(() => {
     if (aptId) {
@@ -110,12 +119,15 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, use
         setItems(PRESET_ITEMS[apt.type].map(p => ({ ...p, quantity: 1, total: p.unitPrice })));
       }
     }
-  }, [aptId]);
+  }, [aptId, aptOptions]);
 
   const filteredPatients = useMemo(() => {
     const q = patientSearch.toLowerCase();
-    return patients.filter(p => `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) || p.patientNumber.toLowerCase().includes(q)).slice(0, 7);
-  }, [patients, patientSearch]);
+    return allPatients.filter(p =>
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
+      p.patientNumber.toLowerCase().includes(q)
+    ).slice(0, 7);
+  }, [allPatients, patientSearch]);
 
   const updateItem = (i: number, field: keyof InvoiceItem, val: string | number) => {
     setItems(prev => prev.map((it, idx) => {
@@ -134,40 +146,32 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, use
   const canStep0 = patientId !== '';
   const canStep1 = items.every(it => it.description.trim() && it.unitPrice > 0 && it.quantity > 0);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSaving(true);
-    const inv = db.invoices.create({
-      patientId,
-      appointmentId: aptId || undefined,
-      items,
-      subtotal,
-      tax: taxAmt,
-      discount,
-      total,
-      amountPaid: payNow ? total : 0,
-      status: payNow ? 'paid' : 'pending',
-      paymentMethod: payNow ? payMethod : undefined,
-      notes: notes.trim() || undefined,
-      dueDate: futureDays(dueInDays),
-      paidAt: payNow ? new Date().toISOString() : undefined,
-    });
-    db.notifications.create({
-      userId: patientId,
-      title: payNow ? 'Payment Received' : 'New Invoice',
-      message: payNow
-        ? `Invoice ${inv.invoiceNumber} for ${fmtMoney(total)} has been paid.`
-        : `Invoice ${inv.invoiceNumber} for ${fmtMoney(total)} is due on ${fmtDate(futureDays(dueInDays))}.`,
-      type: 'billing',
-      relatedId: inv.id,
-    });
-    db.auditLogs.create({
-      userId, action: 'CREATE', resource: 'invoice', resourceId: inv.id,
-      details: `Invoice ${inv.invoiceNumber} created${payNow ? ' and paid' : ''}`,
-    });
-    setTimeout(() => {
-      setSaving(false); onCreated(); onClose();
-      toast.success(payNow ? `Invoice ${inv.invoiceNumber} created and paid` : `Invoice ${inv.invoiceNumber} created`);
-    }, 500);
+    try {
+      await createInvoice({
+        patientId,
+        appointmentId: aptId || undefined,
+        items,
+        subtotal,
+        tax: taxAmt,
+        discount,
+        total,
+        amountPaid: payNow ? total : 0,
+        status: payNow ? 'paid' : 'pending',
+        paymentMethod: payNow ? payMethod : undefined,
+        notes: notes.trim() || undefined,
+        dueDate: futureDays(dueInDays),
+        paidAt: payNow ? new Date().toISOString() : undefined,
+      });
+      onCreated();
+      onClose();
+      toast.success(payNow ? 'Invoice created and paid' : 'Invoice created');
+    } catch {
+      toast.error('Failed to create invoice');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -427,27 +431,31 @@ interface MarkPaidModalProps {
   invoice: Invoice | null;
   onClose: () => void;
   onPaid: () => void;
-  userId: string;
 }
 
-const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid, userId }) => {
+const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid }) => {
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [saving, setSaving] = useState(false);
 
   if (!invoice) return null;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setSaving(true);
-    db.invoices.markPaid(invoice.id, method);
-    db.notifications.create({
-      userId: invoice.patientId,
-      title: 'Payment Received',
-      message: `Invoice ${invoice.invoiceNumber} has been paid.`,
-      type: 'billing',
-      relatedId: invoice.id,
-    });
-    db.auditLogs.create({ userId, action: 'UPDATE', resource: 'invoice', resourceId: invoice.id, details: `Invoice marked paid via ${method}` });
-    setTimeout(() => { setSaving(false); onPaid(); onClose(); toast.success('Payment recorded'); }, 400);
+    try {
+      await updateInvoice(invoice.id, {
+        status: 'paid',
+        paymentMethod: method,
+        amountPaid: invoice.total,
+        paidAt: new Date().toISOString(),
+      });
+      onPaid();
+      onClose();
+      toast.success('Payment recorded');
+    } catch {
+      toast.error('Failed to record payment');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -580,20 +588,31 @@ const Payment: React.FC = () => {
   const [markPaidTarget, setMarkPaidTarget] = useState<Invoice | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const loadData = () => {
-    const all = db.invoices.getAll().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    setInvoices(all);
-    setPatients(db.patients.getAll());
-  };
+  const loadData = useCallback(async () => {
+    try {
+      const [invs, pts] = await Promise.all([
+        listInvoices(),
+        listPatients(),
+      ]);
+      invs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      setInvoices(invs);
+      setPatients(pts);
+    } catch {
+      // silently ignore
+    }
+  }, []);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
+    const totalRevenue = invoices
+      .filter(i => i.status === 'paid')
+      .reduce((s, i) => s + i.amountPaid, 0);
     return {
-      totalRevenue: db.invoices.getTotalRevenue(),
+      totalRevenue,
       pending: invoices.filter(i => i.status === 'pending').length,
-      overdue:  invoices.filter(i => i.status === 'overdue').length,
+      overdue: invoices.filter(i => i.status === 'overdue').length,
       todayPaid: invoices.filter(i => i.paidAt?.startsWith(today)).length,
     };
   }, [invoices]);
@@ -613,8 +632,8 @@ const Payment: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <CreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={loadData} userId={user!.id} />
-      <MarkPaidModal invoice={markPaidTarget} onClose={() => setMarkPaidTarget(null)} onPaid={loadData} userId={user!.id} />
+      <CreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={loadData} />
+      <MarkPaidModal invoice={markPaidTarget} onClose={() => setMarkPaidTarget(null)} onPaid={loadData} />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/routes/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/config/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/**)",
+      "Bash(node migrations/run.js)",
+      "Bash(node seed.js)",
+      "Bash(node -e ' *)",
+      "Bash(node src/index.js)",
+      "Bash(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(kill %1)",
+      "Bash(mkdir -p /tmp/careflow-work)",
+      "Bash(export CLAUDE_CODE_TMPDIR)",
+      "Bash(echo \"set\")",
+      "Bash(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{\"username\":\"admin\",\"password\":\"admin123\"}' -w '\\\\nHTTP %{http_code}')",
+      "Bash(npx vite *)"
+    ],
+    "additionalDirectories": [
+      "/Users/temple/Documents/System/Hospital-backend/migrations",
+      "/Users/temple/Documents/System/Hospital-backend"
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2, XCircle,
@@ -10,9 +10,9 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
 import type { Invoice, InvoiceStatus, Patient, PaymentMethod } from '@/types';
 import { toast } from 'sonner';
+import { listInvoices, updateInvoice, listPatients, createNotification } from '@/lib/services';
 
 const STATUS_CFG: Record<InvoiceStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
   pending:        { label: 'Pending',    bg: 'bg-amber-50 dark:bg-amber-900/20',    text: 'text-amber-600',   icon: Clock },
@@ -37,11 +37,21 @@ function fmtMoney(n: number) {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function buildMonthlyData() {
+function buildMonthlyData(invoices: Invoice[]): { month: string; revenue: number }[] {
   const now = new Date();
   return Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const revenue = db.invoices.getMonthlyRevenue(d.getFullYear(), d.getMonth() + 1);
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const revenue = invoices
+      .filter(inv => inv.status === 'paid' && inv.paidAt)
+      .reduce((sum, inv) => {
+        const paid = new Date(inv.paidAt!);
+        if (paid.getFullYear() === year && paid.getMonth() + 1 === month) {
+          return sum + inv.amountPaid;
+        }
+        return sum;
+      }, 0);
     return {
       month: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
       revenue,
@@ -64,29 +74,27 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
 
   if (!invoice) return null;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setSaving(true);
-    db.invoices.markPaid(invoice.id, method);
-    db.notifications.create({
-      userId: invoice.patientId,
-      title: 'Payment Received',
-      message: `Invoice ${invoice.invoiceNumber} has been paid.`,
-      type: 'billing',
-      relatedId: invoice.id,
-    });
-    db.auditLogs.create({
-      userId,
-      action: 'UPDATE',
-      resource: 'invoice',
-      resourceId: invoice.id,
-      details: `Invoice marked paid via ${method}`,
-    });
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await updateInvoice(invoice.id, {
+        status: 'paid',
+        paymentMethod: method,
+        paidAt: new Date().toISOString(),
+        amountPaid: invoice.total,
+      });
+      await createNotification({
+        user_id: invoice.patientId,
+        type: 'billing',
+        title: 'Payment Received',
+        message: `Invoice ${invoice.invoiceNumber} has been paid.`,
+      });
       onPaid();
       onClose();
       toast.success('Payment recorded');
-    }, 400);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -245,13 +253,15 @@ const AdminBilling: React.FC = () => {
   const [markPaidTarget, setMarkPaidTarget] = useState<Invoice | null>(null);
   const [chartData, setChartData] = useState<{ month: string; revenue: number }[]>([]);
 
-  const loadData = () => {
-    setInvoices(db.invoices.getAll().sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-    setPatients(db.patients.getAll());
-    setChartData(buildMonthlyData());
-  };
+  const loadData = useCallback(async () => {
+    const [invs, pats] = await Promise.all([listInvoices(), listPatients()]);
+    const sorted = invs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    setInvoices(sorted);
+    setPatients(pats);
+    setChartData(buildMonthlyData(sorted));
+  }, []);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];

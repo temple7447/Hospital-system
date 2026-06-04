@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listAppointments, updateAppointment, listPatients, listDepartments, listStaff } from '@/lib/services';
 import type { Appointment, AppointmentStatus, Patient, Department } from '@/types';
 import { toast } from 'sonner';
 
@@ -311,17 +311,22 @@ const Schedule: React.FC = () => {
   const weekDates = useMemo(() => getWeekDates(weekAnchor), [weekAnchor]);
   const today = toDateStr(new Date());
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!user) return;
-    const apts = db.appointments.getByDoctor(user.id);
+    const [apts, pats, depts, staffList] = await Promise.all([
+      listAppointments({ doctor_id: user.id }),
+      listPatients(),
+      listDepartments(),
+      listStaff({ role: 'doctor' }),
+    ]);
     setAppointments(apts);
-    setPatients(db.patients.getAll());
-    setDepartments(db.departments.getAll().map(d => ({ id: d.id, name: d.name })));
-    const doc = db.staff.getById(user.id);
+    setPatients(pats);
+    setDepartments(depts.map(d => ({ id: d.id, name: d.name })));
+    const doc = staffList.find(s => s.id === user.id);
     if (doc) setDoctor({ workingDays: doc.workingDays, workingHours: doc.workingHours });
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [user?.id]);
 
   const weekApts = useMemo(() => {
     const dateSet = new Set(weekDates.map(toDateStr));
@@ -348,16 +353,9 @@ const Schedule: React.FC = () => {
     };
   }, [appointments, weekApts, today]);
 
-  const handleStatusChange = (apt: Appointment, newStatus: AppointmentStatus) => {
-    db.appointments.update(apt.id, { status: newStatus });
-    db.auditLogs.create({
-      userId: user!.id,
-      action: 'UPDATE',
-      resource: 'appointment',
-      resourceId: apt.id,
-      details: `Status changed to ${newStatus}`,
-    });
-    loadData();
+  const handleStatusChange = async (apt: Appointment, newStatus: AppointmentStatus) => {
+    await updateAppointment(apt.id, { status: newStatus });
+    await loadData();
     if (selectedApt?.id === apt.id) {
       setSelectedApt({ ...apt, status: newStatus });
     }

@@ -1,32 +1,49 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Pill, Search, Calendar, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listPrescriptions, listPatients, listStaff } from '@/lib/services';
+import type { Prescription, Patient, Staff } from '@/types';
 
 const DispenseHistory: React.FC = () => {
   const { user } = useAuth();
+  const [records, setRecords] = useState<Prescription[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [search, setSearch] = useState('');
   const [scope, setScope] = useState<'mine' | 'all'>('mine');
 
-  const records = useMemo(() => {
-    let list = db.prescriptions.getAll().filter(rx => !!rx.dispensedAt);
-    if (scope === 'mine' && user) list = list.filter(rx => rx.dispensedBy === user.id);
-    return list.sort((a, b) => (b.dispensedAt ?? '').localeCompare(a.dispensedAt ?? ''));
-  }, [user, scope]);
+  useEffect(() => {
+    Promise.all([
+      listPrescriptions(),
+      listPatients(),
+      listStaff(),
+    ]).then(([rxs, pts, st]) => {
+      const dispensed = rxs.filter(rx => !!rx.dispensedAt);
+      dispensed.sort((a, b) => (b.dispensedAt ?? '').localeCompare(a.dispensedAt ?? ''));
+      setRecords(dispensed);
+      setPatients(pts);
+      setStaff(st);
+    }).catch(() => {});
+  }, []);
+
+  const scopedRecords = useMemo(() => {
+    if (scope === 'mine' && user) return records.filter(rx => rx.dispensedBy === user.id);
+    return records;
+  }, [records, scope, user]);
 
   const filtered = useMemo(() => {
-    if (!search) return records;
+    if (!search) return scopedRecords;
     const t = search.toLowerCase();
-    return records.filter(rx => {
-      const p = db.patients.getById(rx.patientId);
+    return scopedRecords.filter(rx => {
+      const p = patients.find(pt => pt.id === rx.patientId);
       return (
         rx.prescriptionNumber.toLowerCase().includes(t) ||
         rx.diagnosis.toLowerCase().includes(t) ||
         (p && `${p.firstName} ${p.lastName}`.toLowerCase().includes(t))
       );
     });
-  }, [records, search]);
+  }, [scopedRecords, search, patients]);
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-8">
@@ -58,9 +75,9 @@ const DispenseHistory: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map(rx => {
-            const patient = db.patients.getById(rx.patientId);
-            const doctor  = db.staff.getById(rx.doctorId);
-            const dispenser = rx.dispensedBy ? db.staff.getById(rx.dispensedBy) : null;
+            const patient = patients.find(p => p.id === rx.patientId);
+            const doctor  = staff.find(s => s.id === rx.doctorId);
+            const dispenser = rx.dispensedBy ? staff.find(s => s.id === rx.dispensedBy) : null;
             return (
               <div key={rx.id} className="glass-card rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center shrink-0">
@@ -69,10 +86,13 @@ const DispenseHistory: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-slate-900 dark:text-white truncate">{rx.prescriptionNumber} · {rx.diagnosis}</p>
                   <p className="text-xs text-slate-500 font-medium truncate">
-                    {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · prescribed by {doctor ? db.staff.getDisplayName(doctor) : '—'}
+                    {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'}
+                    {doctor && ` · prescribed by Dr. ${doctor.firstName} ${doctor.lastName}`}
                   </p>
                   {dispenser && (
-                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">Dispensed by {db.staff.getFullName(dispenser)}</p>
+                    <p className="text-[10px] text-slate-400 font-bold mt-0.5">
+                      Dispensed by {dispenser.firstName} {dispenser.lastName}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 shrink-0">

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Clock, ChevronRight, CheckCircle2, Bell,
@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listQueue, updateQueueEntry, updateAppointment, listPatients, listStaff } from '@/lib/services';
 import { toast } from 'sonner';
 import type { QueueEntry, Patient, Staff } from '@/types';
 
@@ -40,18 +40,28 @@ const QueuePage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<QueueStatus | 'active'>('active');
   const [updating, setUpdating] = useState<string | null>(null);
 
-  const load = () => {
-    setQueue(db.queue.getAll().sort((a, b) => a.checkedInAt.localeCompare(b.checkedInAt)));
-    setPatients(db.patients.getAll());
-    setDoctors(db.staff.getDoctors());
-  };
+  const load = useCallback(async () => {
+    try {
+      const [queueEntries, pts, staff] = await Promise.all([
+        listQueue(),
+        listPatients(),
+        listStaff({ role: 'DOCTOR' }),
+      ]);
+      queueEntries.sort((a, b) => a.checkedInAt.localeCompare(b.checkedInAt));
+      setQueue(queueEntries);
+      setPatients(pts);
+      setDoctors(staff);
+    } catch {
+      // silently ignore
+    }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     const id = setInterval(load, 30000);
     return () => clearInterval(id);
-  }, []);
+  }, [load]);
 
   const filtered = useMemo(() => {
     if (statusFilter === 'active')
@@ -66,7 +76,7 @@ const QueuePage: React.FC = () => {
     completed:  queue.filter(q => q.status === 'completed').length,
   }), [queue]);
 
-  const advance = (entry: QueueEntry) => {
+  const advance = async (entry: QueueEntry) => {
     setUpdating(entry.id);
     const next: QueueStatus | null =
       entry.status === 'waiting'     ? 'called' :
@@ -74,56 +84,35 @@ const QueuePage: React.FC = () => {
       entry.status === 'in_progress' ? 'completed' : null;
     if (!next) { setUpdating(null); return; }
 
-    setTimeout(() => {
-      if (next === 'completed') {
-        db.queue.complete(entry.id);
-        if (entry.appointmentId) db.appointments.update(entry.appointmentId, { status: 'completed' });
-        toast.success(`${entry.tokenNumber} marked complete`);
-      } else if (next === 'called') {
-        db.queue.call(entry.id);
-        const patient = patients.find(p => p.id === entry.patientId);
-        if (patient) {
-          db.notifications.create({
-            userId:    patient.id,
-            title:     "You're being called",
-            message:   `Token ${entry.tokenNumber} — please proceed to the consultation room.`,
-            type:      'appointment',
-            relatedId: entry.id,
-          });
-        }
-        toast.success(`${entry.tokenNumber} called`);
-      } else {
-        db.queue.update(entry.id, { status: next });
-        toast.success(`${entry.tokenNumber} → ${next.replace('_', ' ')}`);
+    try {
+      await updateQueueEntry(entry.id, { status: next as any });
+      if (next === 'completed' && entry.appointmentId) {
+        await updateAppointment(entry.appointmentId, { status: 'completed' }).catch(() => {});
       }
-
-      if (next !== 'waiting') {
-        db.auditLogs.create({
-          userId: user!.id, userRole: user!.role,
-          action: 'UPDATE', resource: 'queue_entry', resourceId: entry.id,
-          details: `Queue token ${entry.tokenNumber} → ${next}`,
-        });
-      }
-
+      const labels: Record<string, string> = { called: 'called', in_progress: 'started', completed: 'complete' };
+      toast.success(`${entry.tokenNumber} marked ${labels[next] ?? next}`);
       load();
+    } catch {
+      toast.error('Failed to update queue entry');
+    } finally {
       setUpdating(null);
-    }, 300);
+    }
   };
 
-  const markNoShow = (entry: QueueEntry) => {
+  const markNoShow = async (entry: QueueEntry) => {
     setUpdating(entry.id);
-    setTimeout(() => {
-      db.queue.update(entry.id, { status: 'no_show' });
-      if (entry.appointmentId) db.appointments.update(entry.appointmentId, { status: 'no_show' });
-      db.auditLogs.create({
-        userId: user!.id, userRole: user!.role,
-        action: 'UPDATE', resource: 'queue_entry', resourceId: entry.id,
-        details: `Queue token ${entry.tokenNumber} marked no-show`,
-      });
-      load();
-      setUpdating(null);
+    try {
+      await updateQueueEntry(entry.id, { status: 'no_show' as any });
+      if (entry.appointmentId) {
+        await updateAppointment(entry.appointmentId, { status: 'no_show' }).catch(() => {});
+      }
       toast.success(`${entry.tokenNumber} marked no-show`);
-    }, 300);
+      load();
+    } catch {
+      toast.error('Failed to update queue entry');
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const nextAction = (status: QueueStatus) =>

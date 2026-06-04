@@ -1,51 +1,65 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Pill, Search, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
-import type { Prescription } from '@/types';
+import {
+  listPrescriptions,
+  updatePrescription,
+  listPatients,
+} from '@/lib/services';
+import type { Prescription, Patient } from '@/types';
 
 const PrescriptionQueue: React.FC = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<Prescription[]>(() => db.prescriptions.getPendingDispense());
+  const [items, setItems] = useState<Prescription[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const refresh = () => setItems(db.prescriptions.getPendingDispense());
+  const load = useCallback(async () => {
+    try {
+      const [rxs, pts] = await Promise.all([
+        listPrescriptions({ status: 'active' }),
+        listPatients(),
+      ]);
+      // pending dispense = active prescriptions not yet dispensed
+      setItems(rxs.filter(rx => !rx.dispensedAt));
+      setPatients(pts);
+    } catch {
+      // silently ignore
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     if (!search) return items;
     const t = search.toLowerCase();
     return items.filter(rx => {
-      const p = db.patients.getById(rx.patientId);
+      const p = patients.find(pt => pt.id === rx.patientId);
       return (
         rx.prescriptionNumber.toLowerCase().includes(t) ||
         rx.diagnosis.toLowerCase().includes(t) ||
         (p && (`${p.firstName} ${p.lastName}`.toLowerCase().includes(t) || p.patientNumber.toLowerCase().includes(t)))
       );
     });
-  }, [items, search]);
+  }, [items, search, patients]);
 
-  const handleDispense = (rx: Prescription) => {
+  const handleDispense = async (rx: Prescription) => {
     if (!user) return;
-    db.prescriptions.dispense(rx.id, user.id);
-    const patient = db.patients.getById(rx.patientId);
-    db.auditLogs.create({
-      userId: user.id, userRole: user.role,
-      action: 'DISPENSE_PRESCRIPTION', resource: 'Prescription', resourceId: rx.id,
-      details: `Dispensed ${rx.prescriptionNumber} for ${patient ? `${patient.firstName} ${patient.lastName}` : 'patient'}`,
-    });
-    if (patient) {
-      db.notifications.create({
-        userId: patient.id, type: 'prescription',
-        title: 'Prescription ready',
-        message: `Your prescription ${rx.prescriptionNumber} has been dispensed.`,
+    try {
+      await updatePrescription(rx.id, {
+        status: 'completed',
+        dispensedAt: new Date().toISOString(),
+        dispensedBy: user.id,
       });
+      toast.success(`Dispensed ${rx.prescriptionNumber}`);
+      load();
+    } catch {
+      toast.error('Failed to dispense prescription');
     }
-    toast.success(`Dispensed ${rx.prescriptionNumber}`);
-    refresh();
   };
 
   return (
@@ -72,8 +86,7 @@ const PrescriptionQueue: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map(rx => {
-            const patient = db.patients.getById(rx.patientId);
-            const doctor  = db.staff.getById(rx.doctorId);
+            const patient = patients.find(p => p.id === rx.patientId);
             const isExpanded = expanded === rx.id;
             const hasAllergyConflict = patient && rx.items.some(item =>
               patient.allergies.some(a => item.medicine.toLowerCase().includes(a.toLowerCase()))
@@ -91,7 +104,7 @@ const PrescriptionQueue: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-slate-900 dark:text-white truncate">{rx.prescriptionNumber} · {rx.diagnosis}</p>
                     <p className="text-xs text-slate-500 font-medium truncate">
-                      {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {doctor ? db.staff.getDisplayName(doctor) : '—'} · {rx.items.length} medicine{rx.items.length === 1 ? '' : 's'}
+                      {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {rx.items.length} medicine{rx.items.length === 1 ? '' : 's'}
                     </p>
                   </div>
                   {hasAllergyConflict && (

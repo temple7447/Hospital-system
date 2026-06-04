@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hospital, Mail, ArrowLeft, CheckCircle2, AlertCircle, Loader2, KeyRound,
 } from 'lucide-react';
-import { db } from '@/lib/db';
+import { listPatients, listStaff } from '@/lib/services';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,26 +12,29 @@ const ForgotPassword: React.FC = () => {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     const q = email.trim().toLowerCase();
     if (!q) return;
-
     setLoading(true);
-
-    setTimeout(() => {
-      const staffMatch = db.staff.getByEmail(q);
-      const patientMatch = db.patients.getAll().find(p => p.email.toLowerCase() === q);
-
-      if (!staffMatch && !patientMatch) {
+    try {
+      const [staff, patients] = await Promise.all([
+        listStaff({ search: q }),
+        listPatients({ search: q }),
+      ]);
+      const found = staff.some(s => s.email.toLowerCase() === q) ||
+                    patients.some(p => p.email.toLowerCase() === q);
+      if (!found) {
         setError('No account found with this email address.');
-        setLoading(false);
         return;
       }
-      setLoading(false);
       setSent(true);
-    }, 900);
+    } catch {
+      setError('Unable to verify account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

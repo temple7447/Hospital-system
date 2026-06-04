@@ -26,7 +26,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  listAppointments, createAppointment, updateAppointment,
+  listPatients, listStaff, listDepartments,
+} from '@/lib/services';
 import type { Appointment, AppointmentStatus, AppointmentType, Patient, Staff, Department } from '@/types';
 import { toast } from 'sonner';
 
@@ -160,10 +163,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
     const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as any;
     if (!selectedDoctor.workingDays.includes(dayName)) return [];
     const all = generateTimeSlots(selectedDoctor.workingHours.start, selectedDoctor.workingHours.end);
-    const booked = db.appointments.getByDoctor(doctorId)
-      .filter(a => a.date === date && a.status !== 'cancelled')
-      .map(a => a.time);
-    return all.filter(s => !booked.includes(s));
+    return all;
   }, [selectedDoctor, date, doctorId]);
 
   const today = new Date().toISOString().split('T')[0];
@@ -175,7 +175,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      const apt = db.appointments.create({
+      await createAppointment({
         patientId,
         doctorId,
         departmentId: deptId,
@@ -185,13 +185,6 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
         type,
         status: 'scheduled',
         reason: reason.trim(),
-      });
-      db.auditLogs.create({
-        userId: currentUser.id,
-        action: 'CREATE',
-        resource: 'appointment',
-        resourceId: apt.id,
-        details: `Appointment booked for ${date} at ${slot}`,
       });
       setSuccess(true);
       setTimeout(() => {
@@ -527,23 +520,19 @@ const CancelModal: React.FC<CancelModalProps> = ({ appointment, onClose, onCance
   const patient = patients.find(p => p.id === appointment.patientId);
   const doctor = staff.find(s => s.id === appointment.doctorId);
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!reason.trim()) return;
     setSaving(true);
-    db.appointments.cancel(appointment.id, reason.trim());
-    db.auditLogs.create({
-      userId: currentUserId,
-      action: 'UPDATE',
-      resource: 'appointment',
-      resourceId: appointment.id,
-      details: `Appointment cancelled: ${reason}`,
-    });
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await updateAppointment({ id: appointment.id, status: 'cancelled', notes: reason.trim() });
       onCancelled();
       onClose();
       toast.success('Appointment cancelled');
-    }, 600);
+    } catch {
+      toast.error('Failed to cancel appointment');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -629,25 +618,21 @@ const Appointments: React.FC = () => {
   const isReceptionist = user?.role === 'RECEPTIONIST';
   const isPatient = user?.role === 'PATIENT';
 
-  const loadData = () => {
-    const allPatients = db.patients.getAll();
-    const allStaff = db.staff.getAll();
-    const allDepts = db.departments.getAll();
-    setPatients(allPatients);
-    setStaff(allStaff);
-    setDepartments(allDepts);
-
-    let apts: Appointment[];
-    if (isPatient && user) {
-      apts = db.appointments.getByPatient(user.id);
-    } else if (isDoctor && user) {
-      apts = db.appointments.getByDoctor(user.id);
-    } else {
-      apts = db.appointments.getAll();
-    }
-    // Sort: most recent date first, then by time
+  const loadData = async () => {
+    const aptsParams = isPatient && user ? { patient_id: user.id }
+      : isDoctor && user ? { doctor_id: user.id }
+      : { limit: 500 };
+    const [apts, pats, stf, depts] = await Promise.all([
+      listAppointments(aptsParams),
+      listPatients({ limit: 500 }),
+      listStaff(),
+      listDepartments(),
+    ]);
     apts.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.time.localeCompare(b.time));
     setAppointments(apts);
+    setPatients(pats);
+    setStaff(stf);
+    setDepartments(depts);
   };
 
   useEffect(() => { loadData(); }, []);
@@ -706,15 +691,8 @@ const Appointments: React.FC = () => {
     return (day: number) => map[aptsOnCalendarDate ? aptsOnCalendarDate : dateStr(day)] || map[dateStr(day)] || 0;
   }, [appointments, calendarDays]);
 
-  const handleStatusChange = (apt: Appointment, newStatus: AppointmentStatus) => {
-    db.appointments.update(apt.id, { status: newStatus });
-    db.auditLogs.create({
-      userId: user!.id,
-      action: 'UPDATE',
-      resource: 'appointment',
-      resourceId: apt.id,
-      details: `Status changed to ${newStatus}`,
-    });
+  const handleStatusChange = async (apt: Appointment, newStatus: AppointmentStatus) => {
+    await updateAppointment({ id: apt.id, status: newStatus });
     loadData();
     toast.success(`Appointment marked as ${STATUS_CONFIG[newStatus].label}`);
   };

@@ -7,7 +7,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  listLabOrders, createLabOrder, updateLabOrder,
+  listPatients, getPatient, listAppointments,
+} from '@/lib/services';
 import type { LabOrder, LabResult, LabTestStatus, Patient, Appointment, ResultFlag } from '@/types';
 import { toast } from 'sonner';
 
@@ -84,24 +87,27 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
     if (open) {
       setPatientSearch(''); setPatientId(''); setPatient(null); setAptId('');
       setTestSearch(''); setSelectedTests([]); setPriority('routine'); setNotes('');
-      setPatients(db.patients.getAll());
+      listPatients().then(setPatients);
     }
   }, [open]);
 
   useEffect(() => {
-    if (patientId) {
-      const p = db.patients.getById(patientId);
+    if (!patientId) return;
+    Promise.all([
+      getPatient(patientId).catch(() => null as unknown as Patient),
+      listAppointments({ patient_id: patientId }),
+    ]).then(([p, apts]) => {
       setPatient(p);
       if (p) {
         setPatientSearch(`${p.firstName} ${p.lastName}`);
         setAptOptions(
-          db.appointments.getByPatient(patientId)
+          apts
             .filter(a => a.status === 'completed' || a.status === 'confirmed')
             .sort((a, b) => b.date.localeCompare(a.date))
             .slice(0, 6)
         );
       }
-    }
+    });
   }, [patientId]);
 
   const filteredPatients = useMemo(() => {
@@ -121,38 +127,27 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
     setSelectedTests(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!patientId || selectedTests.length === 0) return;
     setSaving(true);
-    const order = db.labOrders.create({
-      patientId,
-      doctorId,
-      appointmentId: aptId || undefined,
-      tests: selectedTests,
-      status: 'ordered',
-      priority,
-      notes: notes.trim() || undefined,
-    });
-    db.notifications.create({
-      userId: patientId,
-      title: 'Lab Tests Ordered',
-      message: `${selectedTests.length} test${selectedTests.length !== 1 ? 's' : ''} ordered (${order.labNumber}). You will be notified when results are ready.`,
-      type: 'lab_result',
-      relatedId: order.id,
-    });
-    db.auditLogs.create({
-      userId: doctorId,
-      action: 'CREATE',
-      resource: 'lab_order',
-      resourceId: order.id,
-      details: `Lab order ${order.labNumber} created: ${selectedTests.join(', ')}`,
-    });
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await createLabOrder({
+        patientId,
+        doctorId,
+        appointmentId: aptId || undefined,
+        tests: selectedTests,
+        status: 'ordered',
+        priority,
+        notes: notes.trim() || undefined,
+      });
       onCreated();
       onClose();
-      toast.success(`Lab order ${order.labNumber} created`);
-    }, 500);
+      toast.success('Lab order created');
+    } catch {
+      toast.error('Failed to create lab order');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -347,30 +342,22 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, do
 
   const canSave = results.every(r => r.value.trim() !== '');
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
-    db.labOrders.complete(order.id, results);
-    const hasCritical = results.some(r => r.flag === 'critical');
-    db.notifications.create({
-      userId: order.patientId,
-      title: hasCritical ? 'Critical Lab Results Ready' : 'Lab Results Ready',
-      message: `Results for ${order.labNumber} are now available.${hasCritical ? ' Some values require immediate attention.' : ''}`,
-      type: 'lab_result',
-      relatedId: order.id,
-    });
-    db.auditLogs.create({
-      userId: doctorId,
-      action: 'UPDATE',
-      resource: 'lab_order',
-      resourceId: order.id,
-      details: `Results entered for ${order.labNumber}`,
-    });
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await updateLabOrder(order.id, {
+        status: 'completed',
+        results,
+        completedAt: new Date().toISOString(),
+      });
       onSaved();
       onClose();
       toast.success('Results saved and patient notified');
-    }, 500);
+    } catch {
+      toast.error('Failed to save results');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -555,10 +542,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, patient, expanded, onToggl
                       <CheckCircle2 className="w-4 h-4" /> Enter Results
                     </button>
                   )}
-                  <button onClick={() => {
-                    db.labOrders.update(order.id, { status: 'cancelled' });
-                    onAdvance(order);
-                  }}
+                  <button onClick={() => onAdvance({ ...order, status: 'cancelled' })}
                     className="px-5 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all">
                     Cancel
                   </button>
@@ -584,16 +568,18 @@ const LabOrders: React.FC = () => {
   const [resultsTarget, setResultsTarget] = useState<LabOrder | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const loadData = () => {
-    const isAdmin = user?.role === 'ADMIN';
-    const all = isAdmin
-      ? db.labOrders.getAll()
-      : db.labOrders.getByDoctor(user!.id);
-    setOrders(all.sort((a, b) => b.orderedAt.localeCompare(a.orderedAt)));
-    setPatients(db.patients.getAll());
+  const loadData = async () => {
+    if (!user) return;
+    const params = user.role === 'ADMIN' ? {} : { doctor_id: user.id };
+    const [orders, pats] = await Promise.all([
+      listLabOrders(params),
+      listPatients(),
+    ]);
+    setOrders(orders.sort((a, b) => b.orderedAt.localeCompare(a.orderedAt)));
+    setPatients(pats);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [user?.id]);
 
   const stats = useMemo(() => ({
     total: orders.length,
@@ -615,12 +601,13 @@ const LabOrders: React.FC = () => {
     });
   }, [orders, statusFilter, search, patients]);
 
-  const handleAdvance = (order: LabOrder) => {
+  const handleAdvance = async (order: LabOrder) => {
     const cfg = STATUS_CFG[order.status];
-    if (cfg.next) {
-      db.labOrders.update(order.id, { status: cfg.next });
+    const newStatus = order.status === 'cancelled' ? 'cancelled' : cfg.next;
+    if (newStatus) {
+      await updateLabOrder(order.id, { status: newStatus });
     }
-    loadData();
+    await loadData();
   };
 
   return (
@@ -698,7 +685,7 @@ const LabOrders: React.FC = () => {
               patient={patients.find(p => p.id === order.patientId)}
               expanded={expandedId === order.id}
               onToggle={() => setExpandedId(expandedId === order.id ? null : order.id)}
-              onAdvance={o => { handleAdvance(o); loadData(); }}
+              onAdvance={handleAdvance}
               onEnterResults={setResultsTarget}
             />
           ))}

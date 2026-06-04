@@ -1,22 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Building2, Users, BedDouble, Edit3, Save, X,
   Stethoscope, ChevronRight, TrendingUp, AlertTriangle,
 } from 'lucide-react';
-import { db } from '@/lib/db';
 import { cn } from '@/utils/cn';
-import type { Department } from '@/types';
+import type { Department, Staff, Room } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { listDepartments, updateDepartment, listStaff, listRooms } from '@/lib/services';
 
 // ─── Edit Modal ────────────────────────────────────────────────────────────────
 const EditModal: React.FC<{
   dept: Department;
+  doctors: Staff[];
   onClose: () => void;
   onSave: (data: Partial<Department>) => void;
-}> = ({ dept, onClose, onSave }) => {
-  const doctors = db.staff.getDoctors().filter(d => d.status === 'active');
+}> = ({ dept, doctors, onClose, onSave }) => {
   const [form, setForm] = useState({
     name:          dept.name,
     description:   dept.description,
@@ -106,12 +106,14 @@ const EditModal: React.FC<{
 // ─── Department Card ───────────────────────────────────────────────────────────
 const DeptCard: React.FC<{
   dept: Department;
+  allStaff: Staff[];
+  allRooms: Room[];
   onEdit: (d: Department) => void;
-}> = ({ dept, onEdit }) => {
+}> = ({ dept, allStaff, allRooms, onEdit }) => {
   const occupancy = dept.totalBeds > 0 ? ((dept.totalBeds - dept.availableBeds) / dept.totalBeds) * 100 : 0;
-  const hod = dept.headDoctorId ? db.staff.getById(dept.headDoctorId) : null;
-  const staffCount = db.staff.getByDepartment(dept.id).length;
-  const rooms = db.rooms.getByDepartment(dept.id);
+  const hod = dept.headDoctorId ? allStaff.find(s => s.id === dept.headDoctorId) ?? null : null;
+  const staffCount = allStaff.filter(s => s.departmentId === dept.id).length;
+  const rooms = allRooms.filter(r => r.departmentId === dept.id);
 
   const barColor =
     occupancy >= 90 ? 'bg-red-500' :
@@ -207,22 +209,35 @@ const DeptCard: React.FC<{
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 const DepartmentsPage: React.FC = () => {
   const { user } = useAuth();
-  const [departments, setDepartments] = useState<Department[]>(() => db.departments.getAll());
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [allStaff, setAllStaff] = useState<Staff[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
 
-  const refresh = () => setDepartments(db.departments.getAll());
+  const refresh = useCallback(async () => {
+    const [d, s, r] = await Promise.all([listDepartments(), listStaff(), listRooms()]);
+    setDepartments(d);
+    setAllStaff(s);
+    setAllRooms(r);
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const doctors = useMemo(
+    () => allStaff.filter(s => s.role === 'DOCTOR' && s.status === 'active'),
+    [allStaff]
+  );
 
   const totalBeds     = departments.reduce((s, d) => s + d.totalBeds, 0);
   const availableBeds = departments.reduce((s, d) => s + d.availableBeds, 0);
   const occupiedBeds  = totalBeds - availableBeds;
   const overloaded    = departments.filter(d => d.totalBeds > 0 && (d.totalBeds - d.availableBeds) / d.totalBeds >= 0.9).length;
 
-  const handleSave = (data: Partial<Department>) => {
+  const handleSave = async (data: Partial<Department>) => {
     if (!editingDept) return;
-    db.departments.update(editingDept.id, data);
-    db.auditLogs.create({ userId: user!.id, userRole: user!.role, action: 'UPDATE_DEPARTMENT', resource: 'Department', resourceId: editingDept.id, details: `Updated department: ${data.name}` });
+    await updateDepartment(editingDept.id, data);
     toast.success('Department updated successfully');
-    refresh();
+    await refresh();
     setEditingDept(null);
   };
 
@@ -297,14 +312,14 @@ const DepartmentsPage: React.FC = () => {
       {/* Department cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {departments.map(dept => (
-          <DeptCard key={dept.id} dept={dept} onEdit={d => setEditingDept(d)} />
+          <DeptCard key={dept.id} dept={dept} allStaff={allStaff} allRooms={allRooms} onEdit={d => setEditingDept(d)} />
         ))}
       </div>
 
       {/* Edit modal */}
       <AnimatePresence>
         {editingDept && (
-          <EditModal dept={editingDept} onClose={() => setEditingDept(null)} onSave={handleSave} />
+          <EditModal dept={editingDept} doctors={doctors} onClose={() => setEditingDept(null)} onSave={handleSave} />
         )}
       </AnimatePresence>
     </motion.div>

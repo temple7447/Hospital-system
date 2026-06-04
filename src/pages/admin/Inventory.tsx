@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package, Plus, Search, X, Edit2, Trash2, RotateCcw,
@@ -7,9 +7,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
 import type { InventoryItem, InventoryCategory } from '@/types';
 import { toast } from 'sonner';
+import {
+  listInventory,
+  createInventoryItem,
+  updateInventoryItem,
+  deleteInventoryItem,
+} from '@/lib/services';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -74,7 +79,7 @@ const ItemModal: React.FC<ItemModalProps> = ({ item, open, onClose, onSaved, use
 
   const canSave = form.name.trim() && form.supplier.trim() && form.location.trim() && form.unitPrice > 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
     const payload = {
       name: form.name.trim(),
@@ -88,20 +93,19 @@ const ItemModal: React.FC<ItemModalProps> = ({ item, open, onClose, onSaved, use
       location: form.location.trim(),
       lastRestocked: new Date().toISOString().split('T')[0],
     };
-    setTimeout(() => {
+    try {
       if (isEdit && item) {
-        db.inventory.update(item.id, payload);
-        db.auditLogs.create({ userId, userRole: 'ADMIN', action: 'UPDATE', resource: 'inventory', resourceId: item.id, details: `Updated ${payload.name}` });
+        await updateInventoryItem(item.id, payload);
         toast.success('Item updated');
       } else {
-        const newItem = db.inventory.create(payload);
-        db.auditLogs.create({ userId, userRole: 'ADMIN', action: 'CREATE', resource: 'inventory', resourceId: newItem.id, details: `Added ${payload.name} to inventory` });
+        await createInventoryItem(payload);
         toast.success('Item added to inventory');
       }
-      setSaving(false);
       onSaved();
       onClose();
-    }, 400);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -220,14 +224,19 @@ const RestockModal: React.FC<RestockModalProps> = ({ item, onClose, onRestocked,
 
   if (!item) return null;
 
-  const handleRestock = () => {
+  const handleRestock = async () => {
     setSaving(true);
-    db.inventory.restock(item.id, qty);
-    db.auditLogs.create({ userId, userRole: 'ADMIN', action: 'UPDATE', resource: 'inventory', resourceId: item.id, details: `Restocked ${item.name} +${qty} ${item.unit}` });
-    setTimeout(() => {
-      setSaving(false); onRestocked(); onClose();
+    try {
+      await updateInventoryItem(item.id, {
+        quantity: item.quantity + qty,
+        lastRestocked: new Date().toISOString().split('T')[0],
+      });
       toast.success(`Restocked ${qty} ${item.unit} of ${item.name}`);
-    }, 400);
+      onRestocked();
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -353,8 +362,12 @@ const Inventory: React.FC = () => {
   const [editTarget, setEditTarget] = useState<InventoryItem | null>(null);
   const [restockTarget, setRestockTarget] = useState<InventoryItem | null>(null);
 
-  const loadData = () => setItems(db.inventory.getAll().sort((a, b) => a.name.localeCompare(b.name)));
-  useEffect(() => { loadData(); }, []);
+  const loadData = useCallback(async () => {
+    const data = await listInventory();
+    setItems(data.sort((a, b) => a.name.localeCompare(b.name)));
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const stats = useMemo(() => ({
     total: items.length,
@@ -376,11 +389,10 @@ const Inventory: React.FC = () => {
     });
   }, [items, catFilter, stockFilter, search]);
 
-  const handleDelete = (item: InventoryItem) => {
+  const handleDelete = async (item: InventoryItem) => {
     if (!window.confirm(`Delete "${item.name}" from inventory?`)) return;
-    db.inventory.delete(item.id);
-    db.auditLogs.create({ userId: user!.id, userRole: 'ADMIN', action: 'DELETE', resource: 'inventory', resourceId: item.id, details: `Deleted ${item.name} from inventory` });
-    loadData();
+    await deleteInventoryItem(item.id);
+    await loadData();
     toast.success('Item removed');
   };
 

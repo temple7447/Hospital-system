@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -6,10 +6,10 @@ import {
   UserCheck, UserX, ChevronDown, Filter, Edit3,
   Phone, Mail, Building2, Calendar, BadgeCheck,
 } from 'lucide-react';
-import { db } from '@/lib/db';
 import { cn } from '@/utils/cn';
-import type { Staff, StaffRole, StaffStatus, WeekDay } from '@/types';
+import type { Staff, StaffRole, StaffStatus, WeekDay, Department } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { listStaff, createStaff, updateStaff, listDepartments } from '@/lib/services';
 
 const ROLES: StaffRole[] = ['DOCTOR', 'RECEPTIONIST', 'NURSE', 'ADMIN'];
 const DAYS: WeekDay[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -46,9 +46,10 @@ const statusMeta: Record<string, { label: string; color: string; bg: string }> =
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 const StaffModal: React.FC<{
   staff: Staff | null;
+  departments: Department[];
   onClose: () => void;
   onSave: (form: StaffForm) => void;
-}> = ({ staff, onClose, onSave }) => {
+}> = ({ staff, departments, onClose, onSave }) => {
   const [form, setForm] = useState<StaffForm>(staff ? {
     firstName: staff.firstName, lastName: staff.lastName, email: staff.email,
     phone: staff.phone, role: staff.role, departmentId: staff.departmentId ?? '',
@@ -57,7 +58,6 @@ const StaffModal: React.FC<{
     workingDays: staff.workingDays, workingHours: staff.workingHours,
   } : emptyForm());
 
-  const departments = db.departments.getAll();
   const set = <K extends keyof StaffForm>(k: K, v: StaffForm[K]) => setForm(p => ({ ...p, [k]: v }));
 
   const toggleDay = (day: WeekDay) =>
@@ -218,10 +218,11 @@ const StaffModal: React.FC<{
 // ─── Staff Row ─────────────────────────────────────────────────────────────────
 const StaffRow: React.FC<{
   member: Staff;
+  departments: Department[];
   onEdit: (s: Staff) => void;
   onToggleStatus: (s: Staff) => void;
-}> = ({ member, onEdit, onToggleStatus }) => {
-  const dept = member.departmentId ? db.departments.getById(member.departmentId) : null;
+}> = ({ member, departments, onEdit, onToggleStatus }) => {
+  const dept = member.departmentId ? departments.find(d => d.id === member.departmentId) ?? null : null;
   const role = roleMeta[member.role];
   const status = statusMeta[member.status];
   const initials = `${member.firstName[0]}${member.lastName[0]}`.toUpperCase();
@@ -288,14 +289,21 @@ const StaffRow: React.FC<{
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 const StaffPage: React.FC = () => {
   const { user } = useAuth();
-  const [staffList, setStaffList] = useState<Staff[]>(() => db.staff.getAll());
+  const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
-  const refresh = () => setStaffList(db.staff.getAll());
+  const refresh = useCallback(async () => {
+    const [s, d] = await Promise.all([listStaff(), listDepartments()]);
+    setStaffList(s);
+    setDepartments(d);
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
 
   const stats = useMemo(() => ({
     total:    staffList.length,
@@ -316,26 +324,23 @@ const StaffPage: React.FC = () => {
   const openEdit = (s: Staff) => { setEditingStaff(s); setIsModalOpen(true); };
   const closeModal = () => { setIsModalOpen(false); setEditingStaff(null); };
 
-  const handleSave = (form: StaffForm) => {
+  const handleSave = async (form: StaffForm) => {
     if (editingStaff) {
-      db.staff.update(editingStaff.id, form);
+      await updateStaff(editingStaff.id, form);
       toast.success(`${form.firstName} ${form.lastName}'s profile updated`);
-      db.auditLogs.create({ userId: user!.id, userRole: user!.role, action: 'UPDATE_STAFF', resource: 'Staff', resourceId: editingStaff.id, details: `Updated staff record for ${form.firstName} ${form.lastName}` });
     } else {
-      const newMember = db.staff.create({ ...form, address: '', gender: 'other' as const, salary: 0, avatar: undefined, dateOfBirth: undefined });
-      toast.success(`${newMember.firstName} ${newMember.lastName} added to staff`);
-      db.auditLogs.create({ userId: user!.id, userRole: user!.role, action: 'CREATE_STAFF', resource: 'Staff', resourceId: newMember.id, details: `Added new ${form.role} ${form.firstName} ${form.lastName}` });
+      await createStaff({ ...form, address: '', gender: 'other' as const, salary: 0, avatar: undefined, dateOfBirth: undefined });
+      toast.success(`${form.firstName} ${form.lastName} added to staff`);
     }
-    refresh();
+    await refresh();
     closeModal();
   };
 
-  const handleToggleStatus = (member: Staff) => {
+  const handleToggleStatus = async (member: Staff) => {
     const next: StaffStatus = member.status === 'active' ? 'inactive' : 'active';
-    db.staff.update(member.id, { status: next });
+    await updateStaff(member.id, { status: next });
     toast.success(`${member.firstName} ${member.lastName} marked as ${next}`);
-    db.auditLogs.create({ userId: user!.id, userRole: user!.role, action: 'UPDATE_STAFF', resource: 'Staff', resourceId: member.id, details: `Changed status to ${next}` });
-    refresh();
+    await refresh();
   };
 
   return (
@@ -429,7 +434,7 @@ const StaffPage: React.FC = () => {
                 </tr>
               ) : (
                 filtered.map(member => (
-                  <StaffRow key={member.id} member={member} onEdit={openEdit} onToggleStatus={handleToggleStatus} />
+                  <StaffRow key={member.id} member={member} departments={departments} onEdit={openEdit} onToggleStatus={handleToggleStatus} />
                 ))
               )}
             </tbody>
@@ -440,7 +445,7 @@ const StaffPage: React.FC = () => {
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <StaffModal staff={editingStaff} onClose={closeModal} onSave={handleSave} />
+          <StaffModal staff={editingStaff} departments={departments} onClose={closeModal} onSave={handleSave} />
         )}
       </AnimatePresence>
     </motion.div>

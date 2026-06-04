@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { ScanLine, Search, Clock, ChevronRight, Activity } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db, isImagingOrder } from '@/lib/db';
-import type { LabOrder, LabTestStatus } from '@/types';
+import { listLabOrders, updateLabOrder, listPatients, listStaff } from '@/lib/services';
+import type { LabOrder, LabTestStatus, Patient, Staff } from '@/types';
 
 const PRIORITY_CFG = {
   routine: { color: 'text-slate-500 bg-slate-100 dark:bg-slate-800', label: 'Routine' },
@@ -24,12 +24,28 @@ const STATUS_CFG = {
 
 const ImagingQueue: React.FC = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<LabOrder[]>(() =>
-    db.labOrders.getAll().filter(o => isImagingOrder(o)));
+  const [orders, setOrders] = useState<LabOrder[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LabTestStatus | 'all'>('all');
 
-  const refresh = () => setOrders(db.labOrders.getAll().filter(o => isImagingOrder(o)));
+  const load = useCallback(async () => {
+    try {
+      const [labOrders, pts, st] = await Promise.all([
+        listLabOrders({ category: 'radiology' }),
+        listPatients(),
+        listStaff(),
+      ]);
+      setOrders(labOrders);
+      setPatients(pts);
+      setStaff(st);
+    } catch {
+      // silently ignore
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     let list = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
@@ -37,7 +53,7 @@ const ImagingQueue: React.FC = () => {
     if (search) {
       const t = search.toLowerCase();
       list = list.filter(o => {
-        const p = db.patients.getById(o.patientId);
+        const p = patients.find(pt => pt.id === o.patientId);
         return (
           o.labNumber.toLowerCase().includes(t) ||
           o.tests.some(test => test.toLowerCase().includes(t)) ||
@@ -49,21 +65,20 @@ const ImagingQueue: React.FC = () => {
       const order = { stat: 0, urgent: 1, routine: 2 };
       return order[a.priority] - order[b.priority];
     });
-  }, [orders, search, statusFilter]);
+  }, [orders, search, statusFilter, patients]);
 
-  const advance = (o: LabOrder) => {
+  const advance = async (o: LabOrder) => {
     if (!user) return;
     const nextStatus: LabTestStatus =
       o.status === 'ordered'    ? 'collected'  :
       o.status === 'collected'  ? 'processing' : 'processing';
-    db.labOrders.update(o.id, { status: nextStatus });
-    db.auditLogs.create({
-      userId: user.id, userRole: user.role,
-      action: 'UPDATE_IMAGING_STATUS', resource: 'LabOrder', resourceId: o.id,
-      details: `${o.labNumber} → ${nextStatus}`,
-    });
-    toast.success(`Status updated to ${nextStatus}`);
-    refresh();
+    try {
+      await updateLabOrder(o.id, { status: nextStatus });
+      toast.success(`Status updated to ${nextStatus}`);
+      load();
+    } catch {
+      toast.error('Failed to update status');
+    }
   };
 
   return (
@@ -93,8 +108,8 @@ const ImagingQueue: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map(o => {
-            const patient = db.patients.getById(o.patientId);
-            const doctor  = db.staff.getById(o.doctorId);
+            const patient = patients.find(p => p.id === o.patientId);
+            const doctor  = staff.find(s => s.id === o.doctorId);
             const pri = PRIORITY_CFG[o.priority];
             const st  = STATUS_CFG[o.status];
 
@@ -107,7 +122,8 @@ const ImagingQueue: React.FC = () => {
                   <p className="font-black text-slate-900 dark:text-white truncate">{o.labNumber}</p>
                   <p className="text-xs text-slate-500 font-medium truncate">{o.tests.join(', ')}</p>
                   <p className="text-[10px] text-slate-400 font-bold mt-0.5 truncate">
-                    {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · ordered by {doctor ? db.staff.getDisplayName(doctor) : '—'}
+                    {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'}
+                    {doctor && ` · ordered by Dr. ${doctor.firstName} ${doctor.lastName}`}
                   </p>
                 </div>
                 <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', pri.color)}>

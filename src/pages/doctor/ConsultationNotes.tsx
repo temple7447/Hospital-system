@@ -7,7 +7,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  listConsultationNotes, createConsultationNote, updateConsultationNote,
+  listPatients, listAppointments,
+} from '@/lib/services';
 import { toast } from 'sonner';
 import type { ConsultationNote, Patient, Appointment } from '@/types';
 
@@ -49,14 +52,19 @@ const ConsultationNotes: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const load = () => {
+  const load = async () => {
     if (!user) return;
-    setNotes(db.consultationNotes.getByDoctor(user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-    setPatients(db.patients.getAll());
-    setApts(db.appointments.getByDoctor(user.id));
+    const [notes, pats, apts] = await Promise.all([
+      listConsultationNotes({ doctor_id: user.id }),
+      listPatients(),
+      listAppointments({ doctor_id: user.id }),
+    ]);
+    setNotes(notes.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+    setPatients(pats);
+    setApts(apts);
   };
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => { load(); }, [user?.id]);
 
   useEffect(() => {
     const pid = searchParams.get('patientId');
@@ -85,7 +93,7 @@ const ConsultationNotes: React.FC = () => {
     });
   }, [notes, search, patients]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!user || !form.patientId || !form.appointmentId) {
       toast.error('Select a patient and appointment');
       return;
@@ -95,9 +103,9 @@ const ConsultationNotes: React.FC = () => {
       return;
     }
     setSaving(true);
-    setTimeout(() => {
+    try {
       if (editId) {
-        db.consultationNotes.update(editId, {
+        await updateConsultationNote(editId, {
           subjective: form.subjective,
           objective:  form.objective,
           assessment: form.assessment,
@@ -105,7 +113,7 @@ const ConsultationNotes: React.FC = () => {
         });
         toast.success('Note updated');
       } else {
-        db.consultationNotes.create({
+        await createConsultationNote({
           patientId:     form.patientId,
           doctorId:      user.id,
           appointmentId: form.appointmentId,
@@ -116,18 +124,15 @@ const ConsultationNotes: React.FC = () => {
         });
         toast.success('Note saved');
       }
-      db.auditLogs.create({
-        userId: user.id, userRole: user.role,
-        action: editId ? 'UPDATE' : 'CREATE',
-        resource: 'consultation_note', resourceId: form.appointmentId,
-        details: `${editId ? 'Updated' : 'Created'} SOAP note for appointment ${form.appointmentId}`,
-      });
-      load();
+      await load();
       setShowForm(false);
       setForm({ ...EMPTY });
       setEditId(null);
+    } catch {
+      toast.error('Failed to save note');
+    } finally {
       setSaving(false);
-    }, 400);
+    }
   };
 
   const handleEdit = (note: ConsultationNote) => {

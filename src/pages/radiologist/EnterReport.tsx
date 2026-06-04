@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { ScanLine, Save, ChevronLeft, AlertTriangle } from 'lucide-react';
+import { ScanLine, Save, ChevronLeft, AlertTriangle, Loader2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db, isImagingOrder } from '@/lib/db';
-import type { LabResult, ResultFlag } from '@/types';
+import { getLabOrder, updateLabOrder, getPatient, getStaff } from '@/lib/services';
+import type { LabOrder, LabResult, ResultFlag, Patient, Staff } from '@/types';
 
 const FLAG_CFG: Record<ResultFlag, { color: string; label: string }> = {
   normal:   { color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20', label: 'Normal' },
@@ -14,25 +14,54 @@ const FLAG_CFG: Record<ResultFlag, { color: string; label: string }> = {
   critical: { color: 'bg-red-50 text-red-600 dark:bg-red-900/20',             label: 'Critical' },
 };
 
+const IMAGING_CATEGORIES = ['radiology', 'imaging', 'xray', 'mri', 'ct', 'ultrasound'];
+function isImagingOrder(o: LabOrder) {
+  return o.category ? IMAGING_CATEGORIES.includes(o.category.toLowerCase()) : false;
+}
+
 const EnterReport: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const orderId = params.get('id');
-  const order = useMemo(() => orderId ? db.labOrders.getById(orderId) : null, [orderId]);
 
-  const [results, setResults] = useState<LabResult[]>(() =>
-    order ? order.tests.map(t => ({
-      testName:       t,
-      value:          '',
-      unit:           '',
-      referenceRange: 'Normal',
-      flag:           'normal' as ResultFlag,
-    })) : []
-  );
+  const [order, setOrder] = useState<LabOrder | null>(null);
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [doctor, setDoctor] = useState<Staff | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  const [results, setResults] = useState<LabResult[]>([]);
   const [impression, setImpression] = useState('');
 
-  if (!order) {
+  useEffect(() => {
+    if (!orderId) { setNotFound(true); setLoading(false); return; }
+    getLabOrder(orderId)
+      .then(async o => {
+        setOrder(o);
+        setResults(o.tests.map(t => ({
+          testName: t, value: '', unit: '', referenceRange: 'Normal', flag: 'normal' as ResultFlag,
+        })));
+        const [pt, dr] = await Promise.all([
+          getPatient(o.patientId).catch(() => null),
+          getStaff(o.doctorId).catch(() => null),
+        ]);
+        setPatient(pt);
+        setDoctor(dr);
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (notFound || !order) {
     return (
       <div className="glass-card rounded-3xl p-16 text-center">
         <AlertTriangle className="w-12 h-12 mx-auto text-amber-500 mb-3" />
@@ -52,41 +81,29 @@ const EnterReport: React.FC = () => {
     );
   }
 
-  const patient = db.patients.getById(order.patientId);
-  const doctor  = db.staff.getById(order.doctorId);
-
   const setResult = (i: number, k: keyof LabResult, v: string) => {
     setResults(prev => prev.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user) return;
     if (results.some(r => !r.value)) {
       toast.error('Please write findings for every study');
       return;
     }
-    db.labOrders.update(order.id, {
-      results,
-      status:      'completed',
-      completedAt: new Date().toISOString(),
-      processedBy: user.id,
-      notes:       impression || undefined,
-    });
-    db.auditLogs.create({
-      userId: user.id, userRole: user.role,
-      action: 'COMPLETE_IMAGING_REPORT', resource: 'LabOrder', resourceId: order.id,
-      details: `Radiology report for ${order.labNumber} — ${order.tests.join(', ')}`,
-    });
-    if (patient) {
-      db.notifications.create({
-        userId: patient.id, type: 'lab_result',
-        title: 'Imaging results available',
-        message: `Your ${order.tests.join(', ')} results have been reported.`,
-        link: `/patient/lab-results`,
+    try {
+      await updateLabOrder(order.id, {
+        results,
+        status:      'completed',
+        completedAt: new Date().toISOString(),
+        processedBy: user.id,
+        notes:       impression || undefined,
       });
+      toast.success(`Report saved for ${order.labNumber}`);
+      navigate('/radiology/queue');
+    } catch {
+      toast.error('Failed to save report');
     }
-    toast.success(`Report saved for ${order.labNumber}`);
-    navigate('/radiology/queue');
   };
 
   return (
@@ -108,7 +125,7 @@ const EnterReport: React.FC = () => {
         </div>
         <p className="text-slate-500 dark:text-slate-400 font-medium">
           {patient ? `${patient.firstName} ${patient.lastName} (${patient.patientNumber})` : 'Unknown patient'}
-          {doctor && ` · ordered by ${db.staff.getDisplayName(doctor)}`}
+          {doctor && ` · ordered by Dr. ${doctor.firstName} ${doctor.lastName}`}
         </p>
       </div>
 

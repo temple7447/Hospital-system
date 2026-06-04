@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Activity, CheckCircle2, Clock, ChevronDown, ChevronUp, Pill, HeartPulse, Bandage, Stethoscope, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
-import type { NursingTask, NursingTaskType, NursingTaskStatus } from '@/types';
+import { listNursingTasks, updateNursingTask, listPatients } from '@/lib/services';
+import type { NursingTask, NursingTaskType, NursingTaskStatus, Patient } from '@/types';
 
 const TYPE_CFG: Record<NursingTaskType, { label: string; icon: React.ElementType; color: string }> = {
   medication: { label: 'Medication', icon: Pill,         color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' },
@@ -24,12 +24,28 @@ const STATUS_FILTERS: { value: NursingTaskStatus | 'all'; label: string }[] = [
 
 const NurseTasks: React.FC = () => {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState<NursingTask[]>(() => user ? db.nursingTasks.getByNurse(user.id) : []);
+  const [tasks, setTasks] = useState<NursingTask[]>([]);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [filter, setFilter] = useState<NursingTaskStatus | 'all'>('pending');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
 
-  const refresh = () => { if (user) setTasks(db.nursingTasks.getByNurse(user.id)); };
+  const refresh = async () => {
+    if (!user) return;
+    const t = await listNursingTasks({ nurse_id: user.id });
+    setTasks(t);
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      listNursingTasks({ nurse_id: user.id }),
+      listPatients(),
+    ]).then(([t, pats]) => {
+      setTasks(t);
+      setAllPatients(pats);
+    });
+  }, [user?.id]);
 
   const filtered = useMemo(() => {
     if (filter === 'all') return tasks;
@@ -42,29 +58,30 @@ const NurseTasks: React.FC = () => {
     completed:   tasks.filter(t => t.status === 'completed').length,
   }), [tasks]);
 
-  const start = (id: string) => {
+  const start = async (id: string) => {
     if (!user) return;
-    db.nursingTasks.update(id, { status: 'in_progress' });
-    db.auditLogs.create({ userId: user.id, userRole: user.role, action: 'START_TASK', resource: 'NursingTask', resourceId: id, details: 'Started nursing task' });
-    refresh();
+    await updateNursingTask(id, { status: 'in_progress' });
+    await refresh();
   };
 
-  const complete = (task: NursingTask) => {
+  const complete = async (task: NursingTask) => {
     if (!user) return;
-    db.nursingTasks.complete(task.id, notes || undefined);
-    db.auditLogs.create({ userId: user.id, userRole: user.role, action: 'COMPLETE_TASK', resource: 'NursingTask', resourceId: task.id, details: `Completed: ${task.description}` });
+    await updateNursingTask(task.id, {
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+      notes: notes || task.notes,
+    });
     toast.success('Task completed');
     setExpanded(null);
     setNotes('');
-    refresh();
+    await refresh();
   };
 
-  const skip = (task: NursingTask) => {
+  const skip = async (task: NursingTask) => {
     if (!user) return;
-    db.nursingTasks.update(task.id, { status: 'skipped' });
-    db.auditLogs.create({ userId: user.id, userRole: user.role, action: 'SKIP_TASK', resource: 'NursingTask', resourceId: task.id, details: `Skipped: ${task.description}` });
+    await updateNursingTask(task.id, { status: 'skipped' });
     toast.success('Task skipped');
-    refresh();
+    await refresh();
   };
 
   return (
@@ -95,7 +112,7 @@ const NurseTasks: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map(task => {
-            const patient = db.patients.getById(task.patientId);
+            const patient = allPatients.find(p => p.id === task.patientId);
             const cfg = TYPE_CFG[task.type];
             const Icon = cfg.icon;
             const isExpanded = expanded === task.id;

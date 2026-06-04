@@ -1,10 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Activity, ClipboardCheck, HeartPulse, Users, ChevronRight, Clock, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getNurseStats,
+  listNursingTasks,
+  listPatients,
+} from '@/lib/services';
+import type { NursingTask, Patient } from '@/types';
 
 const TASK_CFG = {
   medication: { color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20',     label: 'Medication' },
@@ -16,17 +22,34 @@ const TASK_CFG = {
 
 const NurseDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [pending, setPending] = useState<NursingTask[]>([]);
+  const [completed, setCompleted] = useState<NursingTask[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+
+  const { data: stats } = useApi(getNurseStats);
+
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      listNursingTasks({ nurse_id: user.id, status: 'pending' }),
+      listNursingTasks({ nurse_id: user.id, status: 'completed' }),
+      listPatients({ limit: 500 }),
+    ]).then(([pendingTasks, completedTasks, patientList]) => {
+      setPending(pendingTasks.slice(0, 6));
+      setCompleted(completedTasks.slice(0, 4));
+      setPatients(patientList);
+    });
+  }, [user]);
+
   if (!user) return null;
 
-  const stats     = useMemo(() => db.stats.nurse(user.id), [user.id]);
-  const pending   = useMemo(() => db.nursingTasks.getPendingByNurse(user.id).slice(0, 6), [user.id]);
-  const completed = useMemo(() => db.nursingTasks.getTodayByNurse(user.id).filter(t => t.status === 'completed').slice(0, 4), [user.id]);
+  const getPatient = (id: string) => patients.find(p => p.id === id);
 
   const KPI = [
-    { label: 'My Patients',    value: stats.myPatients,          icon: Users,          color: 'blue' },
-    { label: 'Tasks Today',    value: stats.tasksToday,          icon: ClipboardCheck, color: 'violet' },
-    { label: 'Completed',      value: stats.tasksCompleted,      icon: CheckCircle2,   color: 'emerald' },
-    { label: 'Vitals Recorded',value: stats.vitalsRecordedToday, icon: HeartPulse,     color: 'rose' },
+    { label: 'My Patients',    value: stats?.myPatients ?? '—',          icon: Users,          color: 'blue' },
+    { label: 'Tasks Today',    value: stats?.tasksToday ?? '—',          icon: ClipboardCheck, color: 'violet' },
+    { label: 'Completed',      value: stats?.tasksCompleted ?? '—',      icon: CheckCircle2,   color: 'emerald' },
+    { label: 'Vitals Recorded',value: stats?.vitalsRecordedToday ?? '—', icon: HeartPulse,     color: 'rose' },
   ];
 
   return (
@@ -68,7 +91,7 @@ const NurseDashboard: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {pending.map(t => {
-                const patient = db.patients.getById(t.patientId);
+                const patient = getPatient(t.patientId);
                 const cfg = TASK_CFG[t.type];
                 return (
                   <Link key={t.id} to={`/nurse/tasks?id=${t.id}`}

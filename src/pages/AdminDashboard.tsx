@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,7 +12,14 @@ import {
 import { motion as m } from 'framer-motion';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getAdminStats,
+  listAppointments,
+  listPatients,
+  listStaff,
+  listInvoices,
+} from '@/lib/services';
 import type { Appointment, Staff, Patient } from '@/types';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -32,27 +39,45 @@ const AdminDashboard: React.FC = () => {
   const [apts, setApts] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<Staff[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [revenueData, setRevenueData] = useState<{ month: string; revenue: number }[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+
+  const { data: stats } = useApi(getAdminStats);
 
   useEffect(() => {
-    setApts(db.appointments.getToday().sort((a, b) => a.time.localeCompare(b.time)));
-    setDoctors(db.staff.getDoctors());
-    setPatients(db.patients.getAll());
-  }, []);
+    const today = new Date().toISOString().slice(0, 10);
+    Promise.all([
+      listAppointments({ date: today }),
+      listStaff({ role: 'DOCTOR' }),
+      listPatients({ limit: 500 }),
+      listInvoices({ status: 'paid' }),
+    ]).then(([aptList, staffList, patientList, invoices]) => {
+      setApts(aptList.slice().sort((a, b) => a.time.localeCompare(b.time)));
+      setDoctors(staffList);
+      setPatients(patientList);
 
-  const stats = useMemo(() => db.stats.admin(), []);
+      // Compute total revenue and last-6-months breakdown from paid invoices
+      const total = invoices.reduce((s, i) => s + (i.amountPaid ?? 0), 0);
+      setTotalRevenue(total);
 
-  const revenueData = useMemo(() => {
-    const now = new Date();
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-      return {
-        month: MONTHS[d.getMonth()],
-        revenue: db.invoices.getMonthlyRevenue(d.getFullYear(), d.getMonth() + 1),
-      };
+      const now = new Date();
+      const monthly = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+        const yr = d.getFullYear();
+        const mo = d.getMonth() + 1;
+        const revenue = invoices
+          .filter(inv => {
+            const pd = new Date(inv.paidAt ?? inv.createdAt ?? '');
+            return pd.getFullYear() === yr && pd.getMonth() + 1 === mo;
+          })
+          .reduce((s, inv) => s + (inv.amountPaid ?? 0), 0);
+        return { month: MONTHS[d.getMonth()], revenue };
+      });
+      setRevenueData(monthly);
     });
   }, []);
 
-  const occupancyPct = stats.totalBeds > 0
+  const occupancyPct = stats && stats.totalBeds > 0
     ? Math.round(((stats.totalBeds - stats.availableBeds) / stats.totalBeds) * 100)
     : 0;
 
@@ -88,10 +113,10 @@ const AdminDashboard: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Active Patients',   value: stats.totalPatients,     icon: Users,      color: 'blue',   action: '/patients' },
-          { label: 'Active Staff',      value: stats.totalStaff,        icon: Stethoscope, color: 'purple', action: '/admin/staff' },
-          { label: 'Today\'s Appts',   value: stats.todayAppointments, icon: Calendar,    color: 'emerald',action: '/appointments' },
-          { label: 'Bed Occupancy',     value: `${occupancyPct}%`,      icon: BedDouble,  color: 'amber',  action: '/admin/rooms' },
+          { label: 'Active Patients',   value: stats?.totalPatients ?? '—',     icon: Users,      color: 'blue',   action: '/patients' },
+          { label: 'Active Staff',      value: stats?.totalStaff ?? '—',        icon: Stethoscope, color: 'purple', action: '/admin/staff' },
+          { label: 'Today\'s Appts',   value: stats?.todayAppointments ?? '—', icon: Calendar,    color: 'emerald',action: '/appointments' },
+          { label: 'Bed Occupancy',     value: stats ? `${occupancyPct}%` : '—', icon: BedDouble,  color: 'amber',  action: '/admin/rooms' },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.04 }}
@@ -120,7 +145,7 @@ const AdminDashboard: React.FC = () => {
       </motion.div>
 
       {/* Alerts row */}
-      {(stats.pendingInvoices > 0 || stats.lowStockItems > 0) && (
+      {stats && (stats.pendingInvoices > 0 || stats.lowStockItems > 0) && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
           className="flex flex-wrap gap-3">
           {stats.pendingInvoices > 0 && (
@@ -146,13 +171,13 @@ const AdminDashboard: React.FC = () => {
             <div>
               <h3 className="font-black text-slate-900 dark:text-white">Revenue (Last 6 Months)</h3>
               <p className="text-xs text-slate-400 font-bold mt-0.5">
-                This month: ${stats.monthlyRevenue.toLocaleString()}
+                This month: ${(stats?.monthlyRevenue ?? 0).toLocaleString()}
               </p>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
               <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
               <span className="text-xs font-black text-emerald-600">
-                ${db.invoices.getTotalRevenue().toLocaleString()} total
+                ${totalRevenue.toLocaleString()} total
               </span>
             </div>
           </div>

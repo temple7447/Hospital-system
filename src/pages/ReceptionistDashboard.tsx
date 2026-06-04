@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,7 +7,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getReceptionistStats,
+  listAppointments,
+  listPatients,
+  listStaff,
+} from '@/lib/services';
 import type { Appointment, Patient, Staff } from '@/types';
 
 const STATUS_CFG = {
@@ -26,13 +32,20 @@ const ReceptionistDashboard: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Staff[]>([]);
 
-  useEffect(() => {
-    setApts(db.appointments.getToday().sort((a, b) => a.time.localeCompare(b.time)));
-    setPatients(db.patients.getAll());
-    setDoctors(db.staff.getDoctors());
-  }, []);
+  const { data: stats } = useApi(getReceptionistStats);
 
-  const stats = useMemo(() => db.stats.receptionist(), []);
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    Promise.all([
+      listAppointments({ date: today }),
+      listPatients({ limit: 500 }),
+      listStaff({ role: 'DOCTOR' }),
+    ]).then(([aptList, patientList, staffList]) => {
+      setApts(aptList.slice().sort((a, b) => a.time.localeCompare(b.time)));
+      setPatients(patientList);
+      setDoctors(staffList);
+    });
+  }, []);
 
   const getPatient = (id: string) => patients.find(p => p.id === id);
   const getDoctor  = (id: string) => doctors.find(d => d.id === id);
@@ -68,10 +81,10 @@ const ReceptionistDashboard: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Today's Appointments", value: stats.todayAppointments, icon: Calendar,    color: 'blue',    path: '/appointments' },
-          { label: 'New Registrations',    value: stats.todayRegistrations,icon: UserPlus,    color: 'emerald', path: '/patients' },
-          { label: 'Waiting Queue',        value: stats.waitingQueue,      icon: Clock,       color: 'amber',   path: '/appointments' },
-          { label: 'Pending Payments',     value: stats.pendingPayments,   icon: CreditCard,  color: 'purple',  path: '/receptionist/billing' },
+          { label: "Today's Appointments", value: stats?.todayAppointments ?? '—', icon: Calendar,    color: 'blue',    path: '/appointments' },
+          { label: 'New Registrations',    value: stats?.todayRegistrations ?? '—',icon: UserPlus,    color: 'emerald', path: '/patients' },
+          { label: 'Waiting Queue',        value: stats?.waitingQueue ?? '—',      icon: Clock,       color: 'amber',   path: '/appointments' },
+          { label: 'Pending Payments',     value: stats?.pendingPayments ?? '—',   icon: CreditCard,  color: 'purple',  path: '/receptionist/billing' },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.04 }}

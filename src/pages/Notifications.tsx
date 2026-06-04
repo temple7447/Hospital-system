@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listNotifications, markNotificationRead, markAllNotificationsRead, deleteNotification } from '@/lib/services';
 import type { Notification, NotificationType } from '@/types';
 
 const TYPE_CFG: Record<NotificationType, { icon: React.ElementType; bg: string; text: string; label: string }> = {
@@ -36,8 +36,10 @@ const Notifications: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [typeFilter, setTypeFilter] = useState<NotificationType | 'all'>('all');
 
-  const load = () => {
-    if (user) setNotifications(db.notifications.getByUser(user.id));
+  const load = async () => {
+    if (!user) return;
+    const data = await listNotifications().catch(() => []);
+    setNotifications(data);
   };
 
   useEffect(() => { load(); }, [user]);
@@ -52,17 +54,18 @@ const Notifications: React.FC = () => {
     });
   }, [notifications, filter, typeFilter]);
 
-  const markRead = (id: string) => {
-    db.notifications.markRead(id);
+  const markRead = async (id: string) => {
+    await markNotificationRead(id).catch(() => {});
     load();
   };
 
-  const markAllRead = () => {
-    if (user) { db.notifications.markAllRead(user.id); load(); }
+  const markAllRead = async () => {
+    await markAllNotificationsRead().catch(() => {});
+    load();
   };
 
-  const deleteNotif = (id: string) => {
-    db.notifications.delete(id);
+  const deleteNotif = async (id: string) => {
+    await deleteNotification(id).catch(() => {});
     load();
   };
 

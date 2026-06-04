@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hospital, ChevronRight, ChevronLeft, CheckCircle2,
   User, Mail, Phone, Calendar, Droplets, AlertCircle,
-  MapPin, Users, Loader2, Eye, EyeOff,
+  MapPin, Users, Loader2,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { createPatient } from '@/lib/services';
 import type { BloodType } from '@/types';
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -48,9 +47,7 @@ const Register: React.FC = () => {
   const [customCondition, setCustomCondition] = useState('');
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const set = (field: keyof FormState, val: string) => setForm(f => ({ ...f, [field]: val }));
@@ -76,7 +73,7 @@ const Register: React.FC = () => {
     try {
       const allAllergies = form.allergies.filter(a => a !== 'None');
       const allConditions = form.chronicConditions.filter(c => c !== 'None');
-      db.patients.create({
+      await createPatient({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim().toLowerCase(),
@@ -90,11 +87,15 @@ const Register: React.FC = () => {
         city: form.city.trim(),
         emergencyContactName: form.emergencyContactName.trim(),
         emergencyContactPhone: form.emergencyContactPhone.trim(),
+        patientNumber: `PAT-${Date.now()}`,
+        insuranceProvider: '',
+        insuranceNumber: '',
+        status: 'active',
+        registeredAt: new Date().toISOString(),
       });
       setDone(true);
-      setTimeout(async () => {
-        await login(form.email.trim().toLowerCase());
-        navigate('/dashboard', { replace: true });
+      setTimeout(() => {
+        navigate('/login', { state: { registered: form.email.trim().toLowerCase() } });
       }, 1800);
     } catch {
       setError('Registration failed. This email may already be registered.');
@@ -254,15 +255,9 @@ const Register: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Password note */}
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-start gap-3">
-                  <div className="relative mt-0.5" onClick={() => setShowPassword(p => !p)}>
-                    {showPassword ? <EyeOff className="w-4 h-4 text-blue-500 cursor-pointer" /> : <Eye className="w-4 h-4 text-blue-500 cursor-pointer" />}
-                  </div>
-                  <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                    In demo mode, any email becomes your login — no password needed. Your email is your credential.
-                  </p>
-                </div>
+                <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                  Registration creates a patient record. Use your credentials to log in after registration.
+                </p>
               </motion.div>
             )}
 

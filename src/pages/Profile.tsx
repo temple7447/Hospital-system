@@ -7,9 +7,9 @@ import {
   AlertTriangle, FileText,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { getPatient, updatePatient, getStaff, updateStaff, listDepartments, listStaff } from '@/lib/services';
 import { cn } from '@/utils/cn';
-import type { Staff, Patient } from '@/types';
+import type { Staff, Patient, Department } from '@/types';
 
 type ProfileMode = 'view' | 'edit';
 
@@ -57,14 +57,14 @@ const InputField: React.FC<{
 );
 
 // ─── Staff Profile ─────────────────────────────────────────────────────────────
-const StaffProfile: React.FC<{ staff: Staff; mode: ProfileMode; onSave: (data: Partial<Staff>) => void }> = ({ staff, mode, onSave }) => {
+const StaffProfile: React.FC<{ staff: Staff; deptName?: string; mode: ProfileMode; onSave: (data: Partial<Staff>) => void }> = ({ staff, deptName, mode, onSave }) => {
   const [form, setForm] = useState({
     firstName: staff.firstName,
     lastName: staff.lastName,
     phone: staff.phone,
     address: staff.address ?? '',
   });
-  const dept = db.departments.getById(staff.departmentId ?? '');
+  const dept = deptName ? { name: deptName } : null;
 
   const handleSave = () => onSave(form);
 
@@ -147,7 +147,7 @@ const StaffProfile: React.FC<{ staff: Staff; mode: ProfileMode; onSave: (data: P
 };
 
 // ─── Patient Profile ───────────────────────────────────────────────────────────
-const PatientProfile: React.FC<{ patient: Patient; mode: ProfileMode; onSave: (data: Partial<Patient>) => void }> = ({ patient, mode, onSave }) => {
+const PatientProfile: React.FC<{ patient: Patient; assignedDoctorName?: string; mode: ProfileMode; onSave: (data: Partial<Patient>) => void }> = ({ patient, assignedDoctorName, mode, onSave }) => {
   const [form, setForm] = useState({
     firstName: patient.firstName,
     lastName: patient.lastName,
@@ -157,7 +157,7 @@ const PatientProfile: React.FC<{ patient: Patient; mode: ProfileMode; onSave: (d
     emergencyContactName: patient.emergencyContactName,
     emergencyContactPhone: patient.emergencyContactPhone,
   });
-  const assignedDoctor = patient.assignedDoctorId ? db.staff.getById(patient.assignedDoctorId) : null;
+  const assignedDoctor = assignedDoctorName ? { firstName: assignedDoctorName, lastName: '' } : null;
   const age = patient.dateOfBirth
     ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 3600 * 1000))
     : null;
@@ -216,7 +216,7 @@ const PatientProfile: React.FC<{ patient: Patient; mode: ProfileMode; onSave: (d
               {patient.bloodType}
             </span>
           } />
-          <Field label="Assigned Doctor" value={assignedDoctor ? `Dr. ${assignedDoctor.firstName} ${assignedDoctor.lastName}` : 'Not assigned'} />
+          <Field label="Assigned Doctor" value={assignedDoctorName ?? 'Not assigned'} />
           <Field label="Insurance" value={patient.insuranceProvider ? `${patient.insuranceProvider} (${patient.insuranceNumber})` : 'None / Self-pay'} />
           <Field label="Status" value={
             <span className={cn('text-xs font-black px-2.5 py-1 rounded-full uppercase', patient.status === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-slate-100 text-slate-500')}>
@@ -263,28 +263,38 @@ const Profile: React.FC = () => {
   const { user } = useAuth();
   const [mode, setMode] = useState<ProfileMode>('view');
   const [record, setRecord] = useState<Staff | Patient | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [allStaff, setAllStaff] = useState<Staff[]>([]);
   const isPatient = user?.role === 'PATIENT';
 
   useEffect(() => {
     if (!user) return;
-    if (isPatient) {
-      setRecord(db.patients.getById(user.id));
-    } else {
-      setRecord(db.staff.getById(user.id));
-    }
+    const loadRecord = isPatient
+      ? getPatient(user.id)
+      : getStaff(user.id);
+    Promise.all([loadRecord, listDepartments(), listStaff()])
+      .then(([rec, depts, staff]) => {
+        setRecord(rec as Staff | Patient);
+        setDepartments(depts);
+        setAllStaff(staff);
+      })
+      .catch(() => {});
   }, [user, isPatient]);
 
-  const handleSave = (data: Partial<Staff | Patient>) => {
+  const handleSave = async (data: Partial<Staff | Patient>) => {
     if (!user || !record) return;
-    if (isPatient) {
-      db.patients.update(user.id, data as Partial<Patient>);
-    } else {
-      db.staff.update(user.id, data as Partial<Staff>);
+    try {
+      if (isPatient) {
+        await updatePatient(user.id, data as Partial<Patient>);
+      } else {
+        await updateStaff(user.id, data as Partial<Staff>);
+      }
+      setRecord(prev => prev ? { ...prev, ...data } : prev);
+      setMode('view');
+      toast.success('Profile updated successfully');
+    } catch {
+      toast.error('Failed to update profile');
     }
-    setRecord(prev => prev ? { ...prev, ...data } : prev);
-    setMode('view');
-    toast.success('Profile updated successfully');
-    db.auditLogs.create({ userId: user.id, userRole: user.role, action: 'UPDATE_PROFILE', resource: isPatient ? 'Patient' : 'Staff', resourceId: user.id, details: 'Updated profile information' });
   };
 
   if (!record || !user) {
@@ -356,8 +366,19 @@ const Profile: React.FC = () => {
 
       {/* Role-specific profile */}
       {isPatient
-        ? <PatientProfile patient={record as Patient} mode={mode} onSave={handleSave} />
-        : <StaffProfile   staff={record as Staff}     mode={mode} onSave={handleSave} />
+        ? <PatientProfile
+            patient={record as Patient}
+            assignedDoctorName={(() => {
+              const s = allStaff.find(x => x.id === (record as Patient).assignedDoctorId);
+              return s ? `Dr. ${s.firstName} ${s.lastName}` : undefined;
+            })()}
+            mode={mode} onSave={handleSave}
+          />
+        : <StaffProfile
+            staff={record as Staff}
+            deptName={departments.find(d => d.id === (record as Staff).departmentId)?.name}
+            mode={mode} onSave={handleSave}
+          />
       }
 
       {/* Account security section */}

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listInvoices } from '@/lib/services';
 import type { Invoice, InvoiceStatus } from '@/types';
 
 const STATUS_CFG: Record<InvoiceStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
@@ -193,10 +193,13 @@ const Bills: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      const all = db.invoices.getByPatient(user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      setInvoices(all);
-    }
+    if (!user) return;
+    listInvoices({ patient_id: user.id })
+      .then(all => {
+        all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        setInvoices(all);
+      })
+      .catch(() => {});
   }, [user]);
 
   const stats = useMemo(() => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -22,32 +22,17 @@ import {
   Loader2,
   Pencil,
   Trash2,
-  Eye
+  Eye,
+  Baby,
+  Droplets,
+  ShieldAlert,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import Modal from '@/components/Modal';
+import { listPatients, createPatient, updatePatient, deletePatient } from '@/lib/services';
+import type { Patient, BloodType } from '@/types';
 
 const FileText = LucideFileText;
-
-interface Patient {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  gender: string;
-  age: number;
-  lastVisit: string;
-  status: 'STABLE' | 'CRITICAL' | 'RECOVERING';
-  avatar?: string;
-}
-
-const patientsData: Patient[] = [
-  { id: '1', name: 'John Cooper', email: 'john.c@example.com', phone: '+1 234 567 890', gender: 'Male', age: 42, lastVisit: '2024-03-15', status: 'STABLE' },
-  { id: '2', name: 'Sarah Miller', email: 's.miller@example.com', phone: '+1 234 567 891', gender: 'Female', age: 29, lastVisit: '2024-03-20', status: 'RECOVERING' },
-  { id: '3', name: 'Robert Wilson', email: 'r.wilson@example.com', phone: '+1 234 567 892', gender: 'Male', age: 65, lastVisit: '2024-03-18', status: 'CRITICAL' },
-  { id: '4', name: 'Emily Davis', email: 'emily.d@example.com', phone: '+1 234 567 893', gender: 'Female', age: 34, lastVisit: '2024-03-22', status: 'STABLE' },
-  { id: '5', name: 'Michael Brown', email: 'm.brown@example.com', phone: '+1 234 567 894', gender: 'Male', age: 51, lastVisit: '2024-03-10', status: 'STABLE' },
-];
 
 const container = {
   hidden: { opacity: 0 },
@@ -64,42 +49,82 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
+const today = () => new Date().toISOString().slice(0, 10);
+
+const calcAge = (dob: string) => {
+  const bd = new Date(dob);
+  const diff = Date.now() - bd.getTime();
+  return Math.floor(diff / 31557600000);
+};
+
+const statusColors: Record<Patient['status'], string> = {
+  active: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20',
+  inactive: 'bg-slate-100 text-slate-500 dark:bg-slate-800',
+  deceased: 'bg-red-50 text-red-600 dark:bg-red-900/20',
+};
+
 const Patients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAddingPatient, setIsAddingPatient] = useState(false);
   const [showAddSuccess, setShowAddSuccess] = useState(false);
-  const [patients, setPatients] = useState<Patient[]>(patientsData);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleAddPatient = (e: React.FormEvent) => {
+  // Add form state
+  const [formData, setFormData] = useState({
+    firstName: '', lastName: '', email: '', phone: '',
+    dateOfBirth: '', gender: '' as Patient['gender'] | '',
+    bloodType: '' as BloodType | '', address: '',
+  });
+
+  // Edit form state
+  const [editData, setEditData] = useState<Patient | null>(null);
+
+  const loadPatients = async () => {
+    const data = await listPatients({ limit: 500 });
+    setPatients(data);
+  };
+
+  useEffect(() => { loadPatients(); }, []);
+
+  const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAddingPatient(true);
-    
-    setTimeout(() => {
-      const newPatient: Patient = {
-        id: String(patients.length + 1),
-        name: 'New Patient',
-        email: 'new@example.com',
-        phone: '+1 234 567 000',
-        gender: 'Male',
-        age: 30,
-        lastVisit: new Date().toISOString().split('T')[0],
-        status: 'STABLE'
-      };
-      setPatients([...patients, newPatient]);
-      setIsAddingPatient(false);
+    try {
+      await createPatient({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender as Patient['gender'],
+        bloodType: formData.bloodType as BloodType,
+        address: formData.address,
+        city: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        allergies: [],
+        chronicConditions: [],
+        patientNumber: `PAT-${Date.now()}`,
+        insuranceProvider: '',
+        insuranceNumber: '',
+        status: 'active',
+        registeredAt: new Date().toISOString(),
+      });
+      await loadPatients();
       setShowAddSuccess(true);
-      
-      setTimeout(() => {
-        setShowAddSuccess(false);
-        setIsAddModalOpen(false);
-      }, 2000);
-    }, 1500);
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', gender: '', bloodType: '', address: '' });
+      setTimeout(() => { setShowAddSuccess(false); setIsAddModalOpen(false); }, 2000);
+    } finally {
+      setIsAddingPatient(false);
+    }
   };
 
   const handleViewPatient = (patient: Patient) => {
@@ -112,21 +137,47 @@ const Patients: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      setPatients(patients.filter(p => p.id !== selectedPatient?.id));
-      setIsDeleting(false);
-      setIsDeleteModalOpen(false);
-      setSelectedPatient(null);
-    }, 1000);
+  const handleEditClick = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setEditData({ ...patient });
+    setIsEditModalOpen(true);
   };
 
-  const filteredPatients = patients.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.id.includes(searchTerm)
-  );
+  const confirmDelete = async () => {
+    if (!selectedPatient) return;
+    setIsDeleting(true);
+    try {
+      await deletePatient(selectedPatient.id);
+      await loadPatients();
+      setIsDeleteModalOpen(false);
+      setSelectedPatient(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editData) return;
+    await updatePatient(editData.id, {
+      firstName: editData.firstName,
+      lastName: editData.lastName,
+      email: editData.email,
+      phone: editData.phone,
+      dateOfBirth: editData.dateOfBirth,
+      gender: editData.gender,
+      bloodType: editData.bloodType,
+      address: editData.address,
+    });
+    await loadPatients();
+    setIsEditModalOpen(false);
+  };
+
+  const filteredPatients = patients.filter(p => {
+    const t = searchTerm.toLowerCase();
+    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+    return fullName.includes(t) || p.email.toLowerCase().includes(t) || p.patientNumber.toLowerCase().includes(t) || p.phone.includes(t);
+  });
 
   return (
     <motion.div 
@@ -160,15 +211,32 @@ const Patients: React.FC = () => {
           <form className="space-y-6" onSubmit={handleAddPatient}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Full Name</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">First Name</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
-                    placeholder="e.g. John Doe" 
+                    placeholder="e.g. John" 
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
+                    value={formData.firstName}
+                    onChange={e => setFormData(f => ({ ...f, firstName: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Last Name</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Doe" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    required 
+                    disabled={isAddingPatient}
+                    value={formData.lastName}
+                    onChange={e => setFormData(f => ({ ...f, lastName: e.target.value }))}
                   />
                 </div>
               </div>
@@ -182,6 +250,8 @@ const Patients: React.FC = () => {
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
+                    value={formData.email}
+                    onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
                   />
                 </div>
               </div>
@@ -195,6 +265,8 @@ const Patients: React.FC = () => {
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
+                    value={formData.phone}
+                    onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
                   />
                 </div>
               </div>
@@ -207,6 +279,8 @@ const Patients: React.FC = () => {
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
+                    value={formData.dateOfBirth}
+                    onChange={e => setFormData(f => ({ ...f, dateOfBirth: e.target.value }))}
                   />
                 </div>
               </div>
@@ -216,6 +290,8 @@ const Patients: React.FC = () => {
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
                   required 
                   disabled={isAddingPatient}
+                  value={formData.gender}
+                  onChange={e => setFormData(f => ({ ...f, gender: e.target.value as Patient['gender'] }))}
                 >
                   <option value="">Select Gender</option>
                   <option value="male">Male</option>
@@ -229,6 +305,8 @@ const Patients: React.FC = () => {
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
                   required 
                   disabled={isAddingPatient}
+                  value={formData.bloodType}
+                  onChange={e => setFormData(f => ({ ...f, bloodType: e.target.value as BloodType }))}
                 >
                   <option value="">Select Group</option>
                   <option value="A+">A+</option>
@@ -241,27 +319,21 @@ const Patients: React.FC = () => {
                   <option value="O-">O-</option>
                 </select>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Residential Address</label>
-              <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="e.g. 123 Healthcare Ave, Medical District" 
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
-                  required 
-                  disabled={isAddingPatient}
-                />
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Address</label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 123 Healthcare Ave" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    required 
+                    disabled={isAddingPatient}
+                    value={formData.address}
+                    onChange={e => setFormData(f => ({ ...f, address: e.target.value }))}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Medical History (Brief)</label>
-              <textarea 
-                placeholder="e.g. Known allergies, chronic conditions..." 
-                className="w-full p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none min-h-[100px] disabled:opacity-50" 
-                disabled={isAddingPatient}
-              />
             </div>
             <div className="flex gap-4 pt-4">
               <button 
@@ -302,11 +374,11 @@ const Patients: React.FC = () => {
           <div className="space-y-6">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-2xl font-black">
-                {selectedPatient.name.split(' ').map(n => n[0]).join('')}
+                {selectedPatient.firstName[0]}{selectedPatient.lastName[0]}
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedPatient.name}</h3>
-                <p className="text-sm font-medium text-slate-500">ID: #{selectedPatient.id.padStart(4, '0')}</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">{`${selectedPatient.firstName} ${selectedPatient.lastName}`}</h3>
+                <p className="text-sm font-medium text-slate-500">ID: #{selectedPatient.patientNumber}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -320,13 +392,19 @@ const Patients: React.FC = () => {
               </div>
               <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
                 <p className="text-xs font-bold text-slate-400 uppercase">Gender / Age</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.gender}, {selectedPatient.age}y</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.gender}, {calcAge(selectedPatient.dateOfBirth)}y</p>
               </div>
               <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-bold text-slate-400 uppercase">Last Visit</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.lastVisit}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase">Blood Type</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.bloodType}</p>
               </div>
             </div>
+            {selectedPatient.address && (
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                {selectedPatient.address}{selectedPatient.city ? `, ${selectedPatient.city}` : ''}
+              </div>
+            )}
             <div className="flex gap-4 pt-4">
               <button 
                 type="button" 
@@ -339,7 +417,7 @@ const Patients: React.FC = () => {
                 type="button" 
                 onClick={() => {
                   setIsViewModalOpen(false);
-                  setIsEditModalOpen(true);
+                  handleEditClick(selectedPatient);
                 }}
                 className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all"
               >
@@ -363,7 +441,7 @@ const Patients: React.FC = () => {
           </div>
           <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Confirm Delete</h3>
           <p className="text-sm text-slate-500 mb-6">
-            Are you sure you want to delete <span className="font-bold text-red-500">{selectedPatient?.name}</span>? This action cannot be undone.
+            Are you sure you want to delete <span className="font-bold text-red-500">{selectedPatient && `${selectedPatient.firstName} ${selectedPatient.lastName}`}</span>? This action cannot be undone.
           </p>
           <div className="flex gap-4">
             <button 
@@ -400,19 +478,24 @@ const Patients: React.FC = () => {
         title="Edit Patient"
         maxWidth="lg"
       >
-        {selectedPatient && (
-          <form className="space-y-6" onSubmit={(e) => {
-            e.preventDefault();
-            setPatients(patients.map(p => p.id === selectedPatient.id ? selectedPatient : p));
-            setIsEditModalOpen(false);
-          }}>
+        {editData && (
+          <form className="space-y-6" onSubmit={handleEditSave}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Full Name</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">First Name</label>
                 <input 
                   type="text" 
-                  value={selectedPatient.name}
-                  onChange={(e) => setSelectedPatient({ ...selectedPatient, name: e.target.value })}
+                  value={editData.firstName}
+                  onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Last Name</label>
+                <input 
+                  type="text" 
+                  value={editData.lastName}
+                  onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
@@ -420,8 +503,8 @@ const Patients: React.FC = () => {
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Email Address</label>
                 <input 
                   type="email" 
-                  value={selectedPatient.email}
-                  onChange={(e) => setSelectedPatient({ ...selectedPatient, email: e.target.value })}
+                  value={editData.email}
+                  onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
@@ -429,21 +512,59 @@ const Patients: React.FC = () => {
                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Phone Number</label>
                 <input 
                   type="tel" 
-                  value={selectedPatient.phone}
-                  onChange={(e) => setSelectedPatient({ ...selectedPatient, phone: e.target.value })}
+                  value={editData.phone}
+                  onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Status</label>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Date of Birth</label>
+                <input 
+                  type="date" 
+                  value={editData.dateOfBirth}
+                  onChange={(e) => setEditData({ ...editData, dateOfBirth: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Gender</label>
                 <select 
-                  value={selectedPatient.status}
-                  onChange={(e) => setSelectedPatient({ ...selectedPatient, status: e.target.value as Patient['status'] })}
+                  value={editData.gender}
+                  onChange={(e) => setEditData({ ...editData, gender: e.target.value as Patient['gender'] })}
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
                 >
-                  <option value="STABLE">STABLE</option>
-                  <option value="CRITICAL">CRITICAL</option>
-                  <option value="RECOVERING">RECOVERING</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Blood Type</label>
+                <select 
+                  value={editData.bloodType}
+                  onChange={(e) => setEditData({ ...editData, bloodType: e.target.value as BloodType })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                >
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Status</label>
+                <select 
+                  value={editData.status}
+                  onChange={(e) => setEditData({ ...editData, status: e.target.value as Patient['status'] })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="deceased">Deceased</option>
                 </select>
               </div>
             </div>
@@ -485,9 +606,9 @@ const Patients: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Patients', value: String(patients.length), change: '+12', icon: UserPlus, color: 'blue' },
-          { label: 'Critical Cases', value: String(patients.filter(p => p.status === 'CRITICAL').length), change: '-2', icon: Activity, color: 'red' },
-          { label: 'Recovering', value: String(patients.filter(p => p.status === 'RECOVERING').length), change: '+8', icon: Heart, color: 'emerald' },
-          { label: 'Today\'s Check-ins', value: '42', change: '+5', icon: Calendar, color: 'purple' },
+          { label: 'Active Patients', value: String(patients.filter(p => p.status === 'active').length), change: '+8', icon: Activity, color: 'emerald' },
+          { label: 'Inactive', value: String(patients.filter(p => p.status === 'inactive').length), change: '-2', icon: Heart, color: 'amber' },
+          { label: 'Today\'s Check-ins', value: String(patients.filter(p => p.registeredAt.startsWith(today())).length), change: '+5', icon: Calendar, color: 'purple' },
         ].map((stat, i) => (
           <motion.div 
             key={i}
@@ -498,8 +619,8 @@ const Patients: React.FC = () => {
               <div className={cn(
                 "p-3 rounded-2xl",
                 stat.color === 'blue' && "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
-                stat.color === 'red' && "bg-red-50 dark:bg-red-900/20 text-red-600",
                 stat.color === 'emerald' && "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600",
+                stat.color === 'amber' && "bg-amber-50 dark:bg-amber-900/20 text-amber-600",
                 stat.color === 'purple' && "bg-purple-50 dark:bg-purple-900/20 text-purple-600",
               )}>
                 <stat.icon className="w-6 h-6" />
@@ -550,7 +671,7 @@ const Patients: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Patient</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contact</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Gender/Age</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Last Visit</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Blood Type</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -568,11 +689,11 @@ const Patients: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-sm">
-                          {patient.name.split(' ').map(n => n[0]).join('')}
+                          {patient.firstName[0]}{patient.lastName[0]}
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-slate-900 dark:text-white">{patient.name}</div>
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ID: #{patient.id.padStart(4, '0')}</div>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white">{`${patient.firstName} ${patient.lastName}`}</div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ID: #{patient.patientNumber}</div>
                         </div>
                       </div>
                     </td>
@@ -589,17 +710,18 @@ const Patients: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-slate-700 dark:text-slate-200">{patient.gender}, {patient.age}y</div>
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-200">{patient.gender}, {calcAge(patient.dateOfBirth)}y</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-slate-700 dark:text-slate-200">{patient.lastVisit}</div>
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-200">
+                        <Droplets className="w-3.5 h-3.5 text-red-400" />
+                        {patient.bloodType}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn(
                         "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                        patient.status === 'STABLE' && "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20",
-                        patient.status === 'CRITICAL' && "bg-red-50 text-red-600 dark:bg-red-900/20",
-                        patient.status === 'RECOVERING' && "bg-blue-50 text-blue-600 dark:bg-blue-900/20",
+                        statusColors[patient.status]
                       )}>
                         {patient.status}
                       </span>
@@ -614,10 +736,7 @@ const Patients: React.FC = () => {
                           <Eye className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => {
-                            setSelectedPatient(patient);
-                            setIsEditModalOpen(true);
-                          }}
+                          onClick={() => handleEditClick(patient)}
                           className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-slate-600 shadow-sm"
                           title="Edit"
                         >

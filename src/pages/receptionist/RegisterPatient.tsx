@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  User, Mail, Phone, MapPin, Heart, AlertTriangle,
-  Shield, ChevronRight, ChevronLeft, CheckCircle2,
+  User, Heart, AlertTriangle,
+  ChevronRight, ChevronLeft, CheckCircle2,
   Plus, X, Calendar, Clipboard,
 } from 'lucide-react';
-import { db } from '@/lib/db';
+import { createPatient } from '@/lib/services';
 import { cn } from '@/utils/cn';
-import { useAuth } from '@/context/AuthContext';
 import type { BloodType } from '@/types';
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'];
@@ -81,11 +80,11 @@ const TagInput: React.FC<{
 };
 
 const RegisterPatient: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(empty());
   const [createdPatient, setCreatedPatient] = useState<{ name: string; number: string } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const set = <K extends keyof FormData>(k: K, v: FormData[K]) =>
     setForm(p => ({ ...p, [k]: v }));
@@ -109,37 +108,33 @@ const RegisterPatient: React.FC = () => {
   const handleNext = () => { if (validateStep()) setStep(s => s + 1); };
   const handleBack = () => setStep(s => s - 1);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep()) return;
-
-    const patient = db.patients.create({
-      firstName: form.firstName, lastName: form.lastName,
-      email: form.email, phone: form.phone,
-      dateOfBirth: form.dateOfBirth, gender: form.gender,
-      address: form.address, city: form.city,
-      bloodType: form.bloodType,
-      allergies: form.allergies,
-      chronicConditions: form.chronicConditions,
-      insuranceProvider: form.insuranceProvider || undefined,
-      insuranceNumber:   form.insuranceNumber   || undefined,
-      emergencyContactName: form.emergencyContactName,
-      emergencyContactPhone: form.emergencyContactPhone,
-    });
-
-    db.auditLogs.create({
-      userId: user!.id, userRole: user!.role,
-      action: 'REGISTER_PATIENT', resource: 'Patient', resourceId: patient.id,
-      details: `Registered new patient ${patient.firstName} ${patient.lastName} (${patient.patientNumber})`,
-    });
-    db.notifications.create({
-      userId: user!.id, type: 'system',
-      title: 'Patient Registered',
-      message: `${patient.firstName} ${patient.lastName} registered as ${patient.patientNumber}`,
-    });
-
-    setCreatedPatient({ name: `${patient.firstName} ${patient.lastName}`, number: patient.patientNumber });
-    toast.success(`Patient ${patient.patientNumber} registered successfully`);
+    setSaving(true);
+    try {
+      const patientId = await createPatient({
+        firstName: form.firstName, lastName: form.lastName,
+        email: form.email, phone: form.phone,
+        dateOfBirth: form.dateOfBirth, gender: form.gender,
+        address: form.address, city: form.city,
+        bloodType: form.bloodType,
+        allergies: form.allergies,
+        chronicConditions: form.chronicConditions,
+        insuranceProvider: form.insuranceProvider || undefined,
+        insuranceNumber:   form.insuranceNumber   || undefined,
+        emergencyContactName: form.emergencyContactName,
+        emergencyContactPhone: form.emergencyContactPhone,
+      });
+      const patientNumber = `P-${patientId.slice(-6).toUpperCase()}`;
+      const name = `${form.firstName} ${form.lastName}`;
+      setCreatedPatient({ name, number: patientNumber });
+      toast.success('Patient registered successfully');
+    } catch {
+      toast.error('Registration failed. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // ─── Success Screen ──────────────────────────────────────────────────────────
@@ -387,9 +382,9 @@ const RegisterPatient: React.FC = () => {
                 Next <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
-              <button type="submit"
-                className="btn-primary px-8 py-3 flex items-center gap-2 text-sm font-bold">
-                <Clipboard className="w-4 h-4" /> Register Patient
+              <button type="submit" disabled={saving}
+                className="btn-primary px-8 py-3 flex items-center gap-2 text-sm font-bold disabled:opacity-50">
+                <Clipboard className="w-4 h-4" /> {saving ? 'Registering…' : 'Register Patient'}
               </button>
             )}
           </div>

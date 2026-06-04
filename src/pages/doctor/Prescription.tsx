@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listPatients, getPatient, listAppointments, createPrescription } from '@/lib/services';
 import type { PrescriptionItem, Patient, Appointment } from '@/types';
 import { toast } from 'sonner';
 
@@ -159,22 +159,25 @@ const WritePrescription: React.FC = () => {
   const [rxNumber, setRxNumber] = useState('');
 
   useEffect(() => {
-    setPatients(db.patients.getAll());
+    listPatients().then(setPatients);
   }, []);
 
   useEffect(() => {
-    if (patientId) {
-      const p = db.patients.getById(patientId);
+    if (!patientId) return;
+    Promise.all([
+      getPatient(patientId).catch(() => null as unknown as Patient),
+      listAppointments({ patient_id: patientId }),
+    ]).then(([p, apts]) => {
       setPatient(p);
       if (p) {
-        const apts = db.appointments.getByPatient(patientId)
+        const filtered = apts
           .filter(a => a.status === 'confirmed' || a.status === 'in_progress' || a.status === 'completed')
           .sort((a, b) => b.date.localeCompare(a.date))
           .slice(0, 5);
-        setAptOptions(apts);
+        setAptOptions(filtered);
         setPatientSearch(`${p.firstName} ${p.lastName}`);
       }
-    }
+    });
   }, [patientId]);
 
   const filteredPatients = patients.filter(p => {
@@ -190,35 +193,27 @@ const WritePrescription: React.FC = () => {
 
   const isValid = patientId && diagnosis.trim() && items.every(it => it.medicine.trim() && it.dosage.trim());
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isValid) { toast.error('Please fill in all required fields'); return; }
     setSaving(true);
-    const rx = db.prescriptions.create({
-      patientId,
-      doctorId: user!.id,
-      appointmentId: linkedAptId || undefined,
-      items,
-      diagnosis: diagnosis.trim(),
-      notes: notes.trim() || undefined,
-      status: 'active',
-      expiresAt: addDays(Number(expiresIn)),
-    });
-    db.notifications.create({
-      userId: patientId,
-      title: 'New Prescription',
-      message: `Dr. ${user!.name.split(' ')[1] || user!.name} has written you a new prescription (${rx.prescriptionNumber}).`,
-      type: 'prescription',
-      relatedId: rx.id,
-    });
-    db.auditLogs.create({
-      userId: user!.id,
-      action: 'CREATE',
-      resource: 'prescription',
-      resourceId: rx.id,
-      details: `Prescription ${rx.prescriptionNumber} written for patient ${patientId}`,
-    });
-    setRxNumber(rx.prescriptionNumber);
-    setTimeout(() => { setSaving(false); setSuccess(true); }, 600);
+    try {
+      const id = await createPrescription({
+        patientId,
+        doctorId: user!.id,
+        appointmentId: linkedAptId || undefined,
+        items,
+        diagnosis: diagnosis.trim(),
+        notes: notes.trim() || undefined,
+        status: 'active',
+        expiresAt: addDays(Number(expiresIn)),
+      });
+      setRxNumber(id);
+      setSuccess(true);
+    } catch {
+      toast.error('Failed to issue prescription');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (success) {

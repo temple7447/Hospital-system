@@ -32,7 +32,18 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  getPatient,
+  listAppointments,
+  listPrescriptions,
+  listConsultationNotes,
+  listVitals,
+  createVital,
+  createConsultationNote,
+  updateConsultationNote,
+  listStaff,
+  listDepartments,
+} from '@/lib/services';
 import type { Patient, Staff, Appointment, Prescription, ConsultationNote, VitalRecord, Department } from '@/types';
 import { toast } from 'sonner';
 
@@ -91,28 +102,33 @@ const AddVitalsModal: React.FC<AddVitalsModalProps> = ({ open, patientId, doctor
 
   useEffect(() => { if (open) setForm({ bp_sys: '', bp_dia: '', hr: '', temp: '', weight: '', height: '', o2: '', rr: '' }); }, [open]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const required = ['bp_sys', 'bp_dia', 'hr', 'temp', 'weight', 'height', 'o2', 'rr'] as const;
     if (required.some(k => !form[k] || isNaN(Number(form[k])))) {
       toast.error('Please fill in all vital fields with valid numbers');
       return;
     }
     setSaving(true);
-    db.vitals.add({
-      patientId,
-      recordedBy: doctorId,
-      bloodPressureSystolic: Number(form.bp_sys),
-      bloodPressureDiastolic: Number(form.bp_dia),
-      heartRate: Number(form.hr),
-      temperature: Number(form.temp),
-      weight: Number(form.weight),
-      height: Number(form.height),
-      oxygenSaturation: Number(form.o2),
-      respiratoryRate: Number(form.rr),
-      recordedAt: new Date().toISOString(),
-    });
-    db.auditLogs.create({ userId: doctorId, action: 'CREATE', resource: 'vitals', resourceId: patientId, details: 'Vitals recorded' });
-    setTimeout(() => { setSaving(false); onSaved(); onClose(); toast.success('Vitals recorded'); }, 400);
+    try {
+      await createVital({
+        patientId,
+        recordedBy: doctorId,
+        bloodPressureSystolic: Number(form.bp_sys),
+        bloodPressureDiastolic: Number(form.bp_dia),
+        heartRate: Number(form.hr),
+        temperature: Number(form.temp),
+        weight: Number(form.weight),
+        height: Number(form.height),
+        oxygenSaturation: Number(form.o2),
+        respiratoryRate: Number(form.rr),
+        recordedAt: new Date().toISOString(),
+      });
+      onSaved();
+      onClose();
+      toast.success('Vitals recorded');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -193,20 +209,25 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
 
   const linked = appointments.filter(a => a.status === 'confirmed' || a.status === 'in_progress' || a.status === 'completed').slice(0, 10);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!soap.subjective.trim() || !soap.assessment.trim()) {
       toast.error('Subjective and Assessment are required');
       return;
     }
     setSaving(true);
-    const note = db.consultationNotes.create({
-      patientId,
-      doctorId,
-      appointmentId: aptId || `standalone-${Date.now()}`,
-      ...soap,
-    });
-    db.auditLogs.create({ userId: doctorId, action: 'CREATE', resource: 'consultation_note', resourceId: note.id, details: 'SOAP note created' });
-    setTimeout(() => { setSaving(false); onSaved(); onClose(); toast.success('Note saved'); }, 400);
+    try {
+      await createConsultationNote({
+        patientId,
+        doctorId,
+        appointmentId: aptId || `standalone-${Date.now()}`,
+        ...soap,
+      });
+      onSaved();
+      onClose();
+      toast.success('Note saved');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!open) return null;
@@ -292,28 +313,33 @@ const PatientRecord: React.FC = () => {
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
   const [expandedRxId, setExpandedRxId] = useState<string | null>(null);
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!patientId) return;
-    const p = db.patients.getById(patientId);
+    const [p, apts, rxs, ns, vs, staffList, depts] = await Promise.all([
+      getPatient(patientId).catch(() => null as unknown as Patient),
+      listAppointments({ patient_id: patientId }),
+      listPrescriptions({ patient_id: patientId }),
+      listConsultationNotes({ patient_id: patientId }),
+      listVitals({ patient_id: patientId }),
+      listStaff(),
+      listDepartments(),
+    ]);
     setPatient(p);
-    if (p) {
-      if (p.assignedDoctorId) {
-        const doc = db.staff.getById(p.assignedDoctorId);
-        setAssignedDoc(doc);
-        if (doc?.departmentId) setDept(db.departments.getById(doc.departmentId));
+    setAllStaff(staffList);
+    if (p?.assignedDoctorId) {
+      const doc = staffList.find(s => s.id === p.assignedDoctorId) ?? null;
+      setAssignedDoc(doc);
+      if (doc?.departmentId) {
+        const d = depts.find(dep => dep.id === doc.departmentId) ?? null;
+        setDept(d);
       }
     }
-    const apts = db.appointments.getByPatient(patientId);
     apts.sort((a, b) => b.date.localeCompare(a.date));
     setAppointments(apts);
-    const rxs = db.prescriptions.getByPatient(patientId);
     rxs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     setPrescriptions(rxs);
-    const ns = db.consultationNotes.getByPatient(patientId);
     setNotes(ns);
-    const vs = db.vitals.getByPatient(patientId);
     setVitals(vs);
-    setAllStaff(db.staff.getAll());
   };
 
   useEffect(() => { loadData(); }, [patientId]);

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Save, CheckCircle2, Loader2, Calendar } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listStaff, updateStaff } from '@/lib/services';
 import { toast } from 'sonner';
 import type { WeekDay, Staff } from '@/types';
 
@@ -34,14 +34,16 @@ const Availability: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    const s = db.staff.getById(user.id);
-    if (s) {
-      setStaff(s);
-      setWorkingDays(new Set(s.workingDays));
-      setStartTime(s.workingHours.start);
-      setEndTime(s.workingHours.end);
-    }
-  }, [user]);
+    listStaff().then(staffList => {
+      const s = staffList.find(st => st.id === user.id) ?? null;
+      if (s) {
+        setStaff(s);
+        setWorkingDays(new Set(s.workingDays));
+        setStartTime(s.workingHours.start);
+        setEndTime(s.workingHours.end);
+      }
+    });
+  }, [user?.id]);
 
   const toggleDay = (day: WeekDay) => {
     setWorkingDays(prev => {
@@ -51,24 +53,22 @@ const Availability: React.FC = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user) return;
     if (workingDays.size === 0) { toast.error('Select at least one working day'); return; }
     if (startTime >= endTime)   { toast.error('End time must be after start time'); return; }
     setSaving(true);
-    setTimeout(() => {
-      db.staff.update(user.id, {
+    try {
+      await updateStaff(user.id, {
         workingDays:  Array.from(workingDays) as WeekDay[],
         workingHours: { start: startTime, end: endTime },
       });
-      db.auditLogs.create({
-        userId: user.id, userRole: user.role,
-        action: 'UPDATE', resource: 'staff', resourceId: user.id,
-        details: 'Updated working hours and availability',
-      });
-      setSaving(false);
       toast.success('Availability saved');
-    }, 400);
+    } catch {
+      toast.error('Failed to save availability');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const startSlot = TIME_SLOTS.indexOf(startTime);

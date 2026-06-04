@@ -1,14 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   BedDouble, Search, Filter, Save, X, Edit3,
   CheckCircle2, AlertTriangle, Wrench, Clock, ChevronDown,
 } from 'lucide-react';
-import { db } from '@/lib/db';
 import { cn } from '@/utils/cn';
-import type { Room, RoomType, RoomStatus } from '@/types';
+import type { Room, RoomType, RoomStatus, Department } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { listRooms, updateRoom, listDepartments } from '@/lib/services';
 
 const ROOM_TYPES: RoomType[] = ['general', 'private', 'icu', 'emergency', 'operation', 'consultation'];
 const ROOM_STATUSES: RoomStatus[] = ['available', 'full', 'maintenance', 'reserved'];
@@ -32,10 +32,10 @@ const statusMeta: Record<RoomStatus, { label: string; color: string; bg: string;
 // ─── Edit Modal ────────────────────────────────────────────────────────────────
 const EditModal: React.FC<{
   room: Room;
+  departments: Department[];
   onClose: () => void;
   onSave: (data: Partial<Room>) => void;
-}> = ({ room, onClose, onSave }) => {
-  const departments = db.departments.getAll();
+}> = ({ room, departments, onClose, onSave }) => {
   const [form, setForm] = useState({
     roomNumber:   room.roomNumber,
     type:         room.type,
@@ -148,8 +148,8 @@ const EditModal: React.FC<{
 };
 
 // ─── Room Card ─────────────────────────────────────────────────────────────────
-const RoomCard: React.FC<{ room: Room; onEdit: (r: Room) => void }> = ({ room, onEdit }) => {
-  const dept   = db.departments.getById(room.departmentId);
+const RoomCard: React.FC<{ room: Room; departments: Department[]; onEdit: (r: Room) => void }> = ({ room, departments, onEdit }) => {
+  const dept   = departments.find(d => d.id === room.departmentId) ?? null;
   const type   = typeMeta[room.type] ?? typeMeta['general'];
   const status = statusMeta[room.status] ?? statusMeta['available'];
   const StatusIcon = status.icon;
@@ -220,15 +220,21 @@ const RoomCard: React.FC<{ room: Room; onEdit: (r: Room) => void }> = ({ room, o
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 const RoomsPage: React.FC = () => {
   const { user } = useAuth();
-  const [rooms, setRooms] = useState<Room[]>(() => db.rooms.getAll());
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deptFilter, setDeptFilter] = useState<string>('all');
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
 
-  const departments = db.departments.getAll();
-  const refresh = () => setRooms(db.rooms.getAll());
+  const refresh = useCallback(async () => {
+    const [r, d] = await Promise.all([listRooms(), listDepartments()]);
+    setRooms(r);
+    setDepartments(d);
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
 
   const stats = useMemo(() => ({
     total:       rooms.length,
@@ -255,12 +261,11 @@ const RoomsPage: React.FC = () => {
     return Array.from(map.entries()).sort(([a], [b]) => a - b);
   }, [filtered]);
 
-  const handleSave = (data: Partial<Room>) => {
+  const handleSave = async (data: Partial<Room>) => {
     if (!editingRoom) return;
-    db.rooms.update(editingRoom.id, data);
-    db.auditLogs.create({ userId: user!.id, userRole: user!.role, action: 'UPDATE_ROOM', resource: 'Room', resourceId: editingRoom.id, details: `Updated Room ${editingRoom.roomNumber} — status: ${data.status}` });
+    await updateRoom(editingRoom.id, data);
     toast.success(`Room ${editingRoom.roomNumber} updated`);
-    refresh();
+    await refresh();
     setEditingRoom(null);
   };
 
@@ -338,7 +343,7 @@ const RoomsPage: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
               {floorRooms.map(room => (
-                <RoomCard key={room.id} room={room} onEdit={r => setEditingRoom(r)} />
+                <RoomCard key={room.id} room={room} departments={departments} onEdit={r => setEditingRoom(r)} />
               ))}
             </div>
           </div>
@@ -348,7 +353,7 @@ const RoomsPage: React.FC = () => {
       {/* Edit modal */}
       <AnimatePresence>
         {editingRoom && (
-          <EditModal room={editingRoom} onClose={() => setEditingRoom(null)} onSave={handleSave} />
+          <EditModal room={editingRoom} departments={departments} onClose={() => setEditingRoom(null)} onSave={handleSave} />
         )}
       </AnimatePresence>
     </motion.div>

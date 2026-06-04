@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, UserPlus, CheckCircle2, Loader2, X, Clock,
@@ -6,7 +6,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  listPatients,
+  listStaff,
+  listAppointments,
+  listQueue,
+  createQueueEntry,
+  updateAppointment,
+} from '@/lib/services';
 import { toast } from 'sonner';
 import type { Patient, Appointment, Staff, QueueEntry } from '@/types';
 
@@ -42,29 +49,41 @@ const TokenCard: React.FC<{ entry: QueueEntry; patient: Patient | undefined; onC
 
 const CheckIn: React.FC = () => {
   const { user } = useAuth();
-  const [patients, setPatients]     = useState<Patient[]>([]);
-  const [doctors, setDoctors]       = useState<Staff[]>([]);
-  const [todayApts, setTodayApts]   = useState<Appointment[]>([]);
-  const [queue, setQueue]           = useState<QueueEntry[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [doctors, setDoctors]   = useState<Staff[]>([]);
+  const [todayApts, setTodayApts] = useState<Appointment[]>([]);
+  const [queue, setQueue]       = useState<QueueEntry[]>([]);
 
   const [patientSearch, setPatientSearch] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedApt, setSelectedApt]     = useState<string>('walkin');
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-  const [priority, setPriority]     = useState<Priority>('normal');
-  const [estWait, setEstWait]       = useState(15);
+  const [priority, setPriority]   = useState<Priority>('normal');
+  const [estWait, setEstWait]     = useState(15);
   const [submitting, setSubmitting] = useState(false);
   const [issuedEntry, setIssuedEntry] = useState<QueueEntry | null>(null);
 
-  const load = () => {
-    setPatients(db.patients.getAll());
-    setDoctors(db.staff.getDoctors());
-    setTodayApts(db.appointments.getToday());
-    setQueue(db.queue.getAll().filter(q =>
-      q.status === 'waiting' || q.status === 'called' || q.status === 'in_progress'));
-  };
+  const today = new Date().toISOString().split('T')[0];
 
-  useEffect(() => { load(); }, []);
+  const load = useCallback(async () => {
+    try {
+      const [pts, staff, apts, queueEntries] = await Promise.all([
+        listPatients(),
+        listStaff({ role: 'DOCTOR' }),
+        listAppointments({ date: today }),
+        listQueue(),
+      ]);
+      setPatients(pts);
+      setDoctors(staff);
+      setTodayApts(apts);
+      setQueue(queueEntries.filter(q =>
+        q.status === 'waiting' || q.status === 'called' || q.status === 'in_progress'));
+    } catch {
+      // silently ignore
+    }
+  }, [today]);
+
+  useEffect(() => { load(); }, [load]);
 
   const searchResults = useMemo(() => {
     if (!patientSearch.trim() || selectedPatient) return [];
@@ -88,7 +107,7 @@ const CheckIn: React.FC = () => {
     setSelectedApt('walkin');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedPatient) { toast.error('Select a patient first'); return; }
     const doctorId = selectedApt !== 'walkin'
       ? (todayApts.find(a => a.id === selectedApt)?.doctorId ?? selectedDoctor)
@@ -96,8 +115,8 @@ const CheckIn: React.FC = () => {
     if (!doctorId) { toast.error('Select a doctor'); return; }
 
     setSubmitting(true);
-    setTimeout(() => {
-      const entry = db.queue.add({
+    try {
+      const result = await createQueueEntry({
         patientId:     selectedPatient.id,
         doctorId,
         appointmentId: selectedApt !== 'walkin' ? selectedApt : undefined,
@@ -105,26 +124,24 @@ const CheckIn: React.FC = () => {
         estimatedWait: estWait,
       });
 
-      db.notifications.create({
-        userId:    selectedPatient.id,
-        title:     'Check-In Confirmed',
-        message:   `Your token is ${entry.tokenNumber}. Estimated wait: ~${estWait} minutes.`,
-        type:      'appointment',
-        relatedId: entry.id,
-      });
-
       if (selectedApt !== 'walkin') {
-        db.appointments.update(selectedApt, { status: 'in_progress' });
+        await updateAppointment(selectedApt, { status: 'in_progress' }).catch(() => {});
       }
 
-      db.auditLogs.create({
-        userId: user!.id, userRole: user!.role,
-        action: 'CREATE', resource: 'queue_entry', resourceId: entry.id,
-        details: `Checked in ${selectedPatient.firstName} ${selectedPatient.lastName} — token ${entry.tokenNumber}`,
-      });
+      // Build a local entry to show the token card
+      const newEntry: QueueEntry = {
+        id: result.id,
+        tokenNumber: result.tokenNumber,
+        patientId: selectedPatient.id,
+        doctorId,
+        appointmentId: selectedApt !== 'walkin' ? selectedApt : undefined,
+        priority,
+        estimatedWait: estWait,
+        status: 'waiting',
+        checkedInAt: new Date().toISOString(),
+      };
 
-      setIssuedEntry(entry);
-      setSubmitting(false);
+      setIssuedEntry(newEntry);
       setSelectedPatient(null);
       setPatientSearch('');
       setSelectedApt('walkin');
@@ -132,8 +149,12 @@ const CheckIn: React.FC = () => {
       setPriority('normal');
       setEstWait(15);
       load();
-      toast.success(`Token ${entry.tokenNumber} issued`);
-    }, 400);
+      toast.success(`Token ${result.tokenNumber} issued`);
+    } catch {
+      toast.error('Failed to issue token');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const activeQueue = [...queue].sort((a, b) => a.checkedInAt.localeCompare(b.checkedInAt));

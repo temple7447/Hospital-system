@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,7 +8,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { useApi } from '@/hooks/useApi';
+import {
+  getPatientStats,
+  listAppointments,
+  listPrescriptions,
+  listVitals,
+  listStaff,
+} from '@/lib/services';
 import type { Appointment, Prescription, Staff, VitalRecord } from '@/types';
 
 const PatientDashboard: React.FC = () => {
@@ -19,22 +26,28 @@ const PatientDashboard: React.FC = () => {
   const [vitals, setVitals] = useState<VitalRecord[]>([]);
   const [doctors, setDoctors] = useState<Staff[]>([]);
 
+  const { data: stats } = useApi(getPatientStats);
+
   useEffect(() => {
     if (!user) return;
-    setApts(db.appointments.getByPatient(user.id));
-    setRxs(db.prescriptions.getActiveByPatient(user.id));
-    setVitals(db.vitals.getByPatient(user.id).sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)));
-    setDoctors(db.staff.getDoctors());
+    Promise.all([
+      listAppointments({ patient_id: user.id }),
+      listPrescriptions({ patient_id: user.id, status: 'active' }),
+      listVitals({ patient_id: user.id }),
+      listStaff({ role: 'DOCTOR' }),
+    ]).then(([aptList, rxList, vitalList, staffList]) => {
+      setApts(aptList);
+      setRxs(rxList);
+      setVitals(vitalList.slice().sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)));
+      setDoctors(staffList);
+    });
   }, [user]);
-
-  const stats = useMemo(() => user ? db.stats.patient(user.id) : null, [user]);
 
   const today = new Date().toISOString().split('T')[0];
 
-  const nextApt = useMemo(() =>
-    apts.filter(a => a.date >= today && (a.status === 'scheduled' || a.status === 'confirmed'))
-      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))[0] ?? null,
-    [apts, today]);
+  const nextApt = apts
+    .filter(a => a.date >= today && (a.status === 'scheduled' || a.status === 'confirmed'))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))[0] ?? null;
 
   const nextDoctor = nextApt ? doctors.find(d => d.id === nextApt.doctorId) : null;
 

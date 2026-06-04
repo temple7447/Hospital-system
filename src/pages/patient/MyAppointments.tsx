@@ -7,7 +7,12 @@ import {
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { db } from '@/lib/db';
+import {
+  listAppointments,
+  updateAppointment,
+  listStaff,
+  listDepartments,
+} from '@/lib/services';
 import type { Appointment, AppointmentStatus, Staff, Department } from '@/types';
 import { toast } from 'sonner';
 
@@ -35,10 +40,9 @@ interface CancelModalProps {
   apt: Appointment | null;
   onClose: () => void;
   onCancelled: () => void;
-  userId: string;
 }
 
-const CancelModal: React.FC<CancelModalProps> = ({ apt, onClose, onCancelled, userId }) => {
+const CancelModal: React.FC<CancelModalProps> = ({ apt, onClose, onCancelled }) => {
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -46,20 +50,21 @@ const CancelModal: React.FC<CancelModalProps> = ({ apt, onClose, onCancelled, us
 
   if (!apt) return null;
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     setSaving(true);
-    db.appointments.cancel(apt.id, reason || 'Cancelled by patient');
-    db.notifications.create({
-      userId,
-      title: 'Appointment Cancelled',
-      message: `Your appointment on ${fmtDate(apt.date)} at ${apt.time} has been cancelled.`,
-      type: 'appointment',
-      relatedId: apt.id,
-    });
-    setTimeout(() => {
-      setSaving(false); onCancelled(); onClose();
+    try {
+      await updateAppointment(apt.id, {
+        status: 'cancelled',
+        cancelledReason: reason || 'Cancelled by patient',
+      });
       toast.success('Appointment cancelled');
-    }, 400);
+      onCancelled();
+      onClose();
+    } catch {
+      toast.error('Failed to cancel appointment');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -213,11 +218,20 @@ const MyAppointments: React.FC = () => {
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const load = () => {
-    if (user) {
-      setAppointments(db.appointments.getByPatient(user.id).sort((a, b) => b.date.localeCompare(a.date)));
-      setDoctors(db.staff.getDoctors());
-      setDepts(db.departments.getAll());
+  const load = async () => {
+    if (!user) return;
+    try {
+      const [apts, staff, departments] = await Promise.all([
+        listAppointments({ patient_id: user.id }),
+        listStaff({ role: 'DOCTOR' }),
+        listDepartments(),
+      ]);
+      apts.sort((a, b) => b.date.localeCompare(a.date));
+      setAppointments(apts);
+      setDoctors(staff);
+      setDepts(departments);
+    } catch {
+      // silently ignore
     }
   };
 
@@ -239,7 +253,7 @@ const MyAppointments: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <CancelModal apt={cancelTarget} onClose={() => setCancelTarget(null)} onCancelled={load} userId={user!.id} />
+      <CancelModal apt={cancelTarget} onClose={() => setCancelTarget(null)} onCancelled={load} />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

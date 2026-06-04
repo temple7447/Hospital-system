@@ -1,21 +1,28 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Pill, Search, AlertTriangle, Plus, Package } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listInventory, updateInventoryItem } from '@/lib/services';
 import type { InventoryItem } from '@/types';
 
 const DrugInventory: React.FC = () => {
-  const { user } = useAuth();
-  const [items, setItems] = useState<InventoryItem[]>(() => db.inventory.getByCategory('medicine'));
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'good'>('all');
   const [restocking, setRestocking] = useState<string | null>(null);
   const [restockQty, setRestockQty] = useState('');
 
-  const refresh = () => setItems(db.inventory.getByCategory('medicine'));
+  const load = useCallback(async () => {
+    try {
+      const inv = await listInventory({ category: 'medicine' });
+      setItems(inv);
+    } catch {
+      // silently ignore
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() => {
     let list = items;
@@ -30,19 +37,15 @@ const DrugInventory: React.FC = () => {
 
   const lowCount = useMemo(() => items.filter(i => i.quantity <= i.minQuantity).length, [items]);
 
-  const handleRestock = (id: string) => {
-    if (!user) return;
+  const handleRestock = async (item: InventoryItem) => {
     const qty = Number(restockQty);
     if (!qty || qty <= 0) { toast.error('Enter a valid quantity'); return; }
-    const updated = db.inventory.restock(id, qty);
-    if (updated) {
-      db.auditLogs.create({
-        userId: user.id, userRole: user.role,
-        action: 'RESTOCK_INVENTORY', resource: 'InventoryItem', resourceId: id,
-        details: `Restocked ${updated.name} +${qty} ${updated.unit}`,
-      });
-      toast.success(`Restocked ${updated.name}`);
-      refresh();
+    try {
+      await updateInventoryItem(item.id, { quantity: item.quantity + qty });
+      toast.success(`Restocked ${item.name}`);
+      load();
+    } catch {
+      toast.error('Failed to restock item');
     }
     setRestocking(null);
     setRestockQty('');
@@ -119,7 +122,7 @@ const DrugInventory: React.FC = () => {
                           <input type="number" autoFocus value={restockQty} onChange={e => setRestockQty(e.target.value)}
                             placeholder="Qty"
                             className="w-20 input-field py-1.5 text-xs text-center" />
-                          <button onClick={() => handleRestock(item.id)}
+                          <button onClick={() => handleRestock(item)}
                             className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-black hover:bg-emerald-700">Add</button>
                           <button onClick={() => { setRestocking(null); setRestockQty(''); }}
                             className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-black hover:bg-slate-200">Cancel</button>

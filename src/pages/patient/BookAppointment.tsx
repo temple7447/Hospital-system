@@ -17,7 +17,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import {
+  listDepartments,
+  listStaff,
+  listAppointments,
+  createAppointment,
+} from '@/lib/services';
 import type { AppointmentType, Department, Staff } from '@/types';
 import { toast } from 'sonner';
 
@@ -82,6 +87,7 @@ const BookAppointment: React.FC = () => {
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [allDoctors, setAllDoctors] = useState<Staff[]>([]);
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
 
   const [deptId, setDeptId] = useState('');
   const [doctorId, setDoctorId] = useState('');
@@ -93,9 +99,17 @@ const BookAppointment: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    setDepartments(db.departments.getAll());
-    setAllDoctors(db.staff.getDoctors().filter(d => d.status === 'active'));
+    listDepartments().then(setDepartments).catch(() => {});
+    listStaff({ role: 'DOCTOR', status: 'active' }).then(setAllDoctors).catch(() => {});
   }, []);
+
+  // When doctor + date change, fetch booked slots
+  useEffect(() => {
+    if (!doctorId || !date) { setBookedTimes([]); return; }
+    listAppointments({ doctor_id: doctorId, date })
+      .then(apts => setBookedTimes(apts.filter(a => a.status !== 'cancelled').map(a => a.time)))
+      .catch(() => setBookedTimes([]));
+  }, [doctorId, date]);
 
   const deptDoctors = useMemo(() =>
     allDoctors.filter(d => d.departmentId === deptId),
@@ -110,11 +124,8 @@ const BookAppointment: React.FC = () => {
     const dayName = dayNameOf(date);
     if (!selectedDoctor.workingDays.includes(dayName as any)) return [];
     const all = generateTimeSlots(selectedDoctor.workingHours.start, selectedDoctor.workingHours.end);
-    const booked = db.appointments.getByDoctor(doctorId)
-      .filter(a => a.date === date && a.status !== 'cancelled')
-      .map(a => a.time);
-    return all.filter(s => !booked.includes(s));
-  }, [selectedDoctor, date, doctorId]);
+    return all.filter(s => !bookedTimes.includes(s));
+  }, [selectedDoctor, date, bookedTimes]);
 
   // Calendar state
   const [calMonth, setCalMonth] = useState(() => {
@@ -144,7 +155,7 @@ const BookAppointment: React.FC = () => {
     if (!user) return;
     setSaving(true);
     try {
-      const apt = db.appointments.create({
+      const aptId = await createAppointment({
         patientId: user.id,
         doctorId,
         departmentId: deptId,
@@ -155,30 +166,10 @@ const BookAppointment: React.FC = () => {
         status: 'scheduled',
         reason: reason.trim(),
       });
-      db.notifications.create({
-        userId: user.id,
-        title: 'Appointment Booked',
-        message: `Your appointment on ${date} at ${formatTime(slot)} has been scheduled.`,
-        type: 'appointment',
-        relatedId: apt.id,
-      });
-      if (selectedDoctor) {
-        db.notifications.create({
-          userId: selectedDoctor.id,
-          title: 'New Appointment',
-          message: `New appointment scheduled for ${date} at ${formatTime(slot)}.`,
-          type: 'appointment',
-          relatedId: apt.id,
-        });
-      }
-      db.auditLogs.create({
-        userId: user.id,
-        action: 'CREATE',
-        resource: 'appointment',
-        resourceId: apt.id,
-        details: `Patient self-booked appointment for ${date} at ${slot}`,
-      });
-      setBookedAptNumber(apt.appointmentNumber);
+      // Fetch the created appointment to get its appointmentNumber
+      const apts = await listAppointments({ patient_id: user.id });
+      const created = apts.find(a => a.id === aptId);
+      setBookedAptNumber(created?.appointmentNumber ?? aptId);
       setSuccess(true);
     } catch {
       toast.error('Failed to book appointment. Please try again.');

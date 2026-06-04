@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
   Hospital, Lock, Mail, ChevronRight, Activity,
-  ShieldCheck, Heart, Stethoscope, AlertCircle, User, Zap,
+  ShieldCheck, Heart, Stethoscope, AlertCircle, CheckCircle2, User, Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DEMO_ACCOUNTS = [
-  { label: 'Admin',        name: 'James Carter',       email: 'admin@careflow.com',           role: 'ADMIN',          color: 'from-violet-500 to-purple-600' },
-  { label: 'Doctor',       name: 'Dr. Sarah Mitchell', email: 'dr.mitchell@careflow.com',     role: 'DOCTOR',         color: 'from-blue-500 to-blue-700' },
-  { label: 'Receptionist', name: 'Anna Martinez',      email: 'anna@careflow.com',             role: 'RECEPTIONIST',   color: 'from-emerald-500 to-teal-600' },
-  { label: 'Patient',      name: 'John Anderson',      email: 'john.anderson@email.com',       role: 'PATIENT',        color: 'from-amber-500 to-orange-600' },
-  { label: 'Nurse',        name: 'Maria Santos',       email: 'maria@careflow.com',            role: 'NURSE',          color: 'from-pink-500 to-rose-600' },
-  { label: 'Pharmacist',   name: 'Daniel Patel',       email: 'daniel.pharma@careflow.com',   role: 'PHARMACIST',     color: 'from-cyan-500 to-sky-600' },
-  { label: 'Lab Tech',     name: 'Aaron Foster',       email: 'aaron.lab@careflow.com',       role: 'LAB_TECHNICIAN', color: 'from-lime-500 to-green-600' },
-  { label: 'Radiologist',  name: 'Marcus Bennett',     email: 'marcus.rad@careflow.com',      role: 'RADIOLOGIST',    color: 'from-indigo-500 to-violet-600' },
+  { label: 'Admin',        name: 'System Admin',      email: 'admin',          role: 'ADMIN',          pwd: 'admin123', color: 'from-violet-500 to-purple-600' },
+  { label: 'Doctor',       name: 'Dr. John Smith',    email: 'doctor1',        role: 'DOCTOR',         pwd: 'admin123', color: 'from-blue-500 to-blue-700' },
+  { label: 'Receptionist', name: 'Mike Johnson',      email: 'reception',      role: 'RECEPTIONIST',   pwd: 'admin123', color: 'from-emerald-500 to-teal-600' },
+  { label: 'Nurse',        name: 'Emily Brown',       email: 'nurse1',         role: 'NURSE',          pwd: 'admin123', color: 'from-pink-500 to-rose-600' },
+  { label: 'Pharmacist',   name: 'Daniel Patel',      email: 'pharmacist1',    role: 'PHARMACIST',     pwd: 'admin123', color: 'from-cyan-500 to-sky-600' },
+  { label: 'Lab Tech',     name: 'Aaron Foster',      email: 'labtech1',       role: 'LAB_TECHNICIAN', pwd: 'admin123', color: 'from-lime-500 to-green-600' },
+  { label: 'Radiologist',  name: 'Marcus Bennett',    email: 'radiologist1',   role: 'RADIOLOGIST',    pwd: 'admin123', color: 'from-indigo-500 to-violet-600' },
+  { label: 'Patient',      name: 'John Anderson',     email: 'john.anderson@email.com', role: 'PATIENT', pwd: '', color: 'from-amber-500 to-orange-600' },
 ];
 
 const features = [
@@ -30,17 +30,26 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/dashboard';
+
+  useEffect(() => {
+    const reg = (location.state as { registered?: string })?.registered;
+    if (reg) {
+      setRegisteredEmail(reg);
+      setEmail(reg);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
     try {
-      await login(email);
+      await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
@@ -49,12 +58,13 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = async (demoEmail: string) => {
+  const handleDemoLogin = async (demoEmail: string, demoPwd: string) => {
     setError('');
     setEmail(demoEmail);
+    setPassword(demoPwd);
     setIsSubmitting(true);
     try {
-      await login(demoEmail);
+      await login(demoEmail, demoPwd);
       navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.');
@@ -144,6 +154,14 @@ const LoginPage: React.FC = () => {
             <p className="text-base text-slate-500 dark:text-slate-400 font-medium">
               Sign in with your credentials or use a demo account below.
             </p>
+            {registeredEmail && (
+              <div className="mt-4 flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                  Account created for {registeredEmail}. Sign in below.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Demo Accounts */}
@@ -154,18 +172,18 @@ const LoginPage: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => handleDemoLogin(acc.email)}
-                  disabled={isSubmitting}
+                  <button
+                    key={acc.email}
+                    type="button"
+                    onClick={() => handleDemoLogin(acc.email, acc.pwd)}
+                    disabled={isSubmitting}
                   className="group relative flex flex-col items-start p-3 rounded-2xl border-2 border-slate-100 dark:border-slate-800 hover:border-blue-500/40 bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all duration-200 text-left disabled:opacity-50"
                 >
                   <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${acc.color} flex items-center justify-center mb-2 shadow-sm`}>
                     <User className="w-3.5 h-3.5 text-white" />
                   </div>
                   <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none mb-0.5">{acc.label}</span>
-                  <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate w-full">{acc.name}</span>
+                  <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate w-full">{acc.pwd ? `${acc.email} / ${acc.pwd}` : acc.name}</span>
                 </button>
               ))}
             </div>
@@ -195,19 +213,19 @@ const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
-                Email Address
+                Username / Email
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(''); }}
                   className="input-field pl-12 py-4 text-base"
-                  placeholder="name@careflow.com"
+                  placeholder="username or email"
                 />
               </div>
             </div>
@@ -234,7 +252,7 @@ const LoginPage: React.FC = () => {
                 />
               </div>
               <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1 font-medium">
-                Any password works in demo mode — email determines your role.
+                Credentials are validated against the backend server.
               </p>
             </div>
 

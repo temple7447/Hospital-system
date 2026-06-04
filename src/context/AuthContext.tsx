@@ -1,11 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Role } from '@/types/auth';
 import type { User, AuthState } from '@/types/auth';
-import { KEYS, getAll } from '@/lib/storage';
-import type { Staff, Patient } from '@/types';
+import { KEYS } from '@/lib/storage';
+import { login as apiLogin, getMe, logout as apiLogout } from '@/lib/services';
+import { getToken, setToken, ApiError } from '@/lib/api';
+import { syncAll } from '@/lib/dataSync';
 
 interface AuthContextType extends AuthState {
-  login: (email: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   hasRole: (roles: Role[]) => boolean;
 }
@@ -20,63 +22,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    const storedUser = localStorage.getItem(KEYS.USER);
-    if (storedUser) {
-      setState({ user: JSON.parse(storedUser), isAuthenticated: true, isLoading: false });
-    } else {
+    const init = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          const user = await getMe();
+          setState({ user, isAuthenticated: true, isLoading: false });
+          syncAll();
+          return;
+        } catch {
+          setToken('');
+        }
+      }
+
+      const storedUser = localStorage.getItem(KEYS.USER);
+      if (storedUser) {
+        setState({ user: JSON.parse(storedUser), isAuthenticated: true, isLoading: false });
+      } else {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+    init();
+  }, []);
+
+  const login = useCallback(async (username: string, password: string) => {
+    setState(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      const result = await apiLogin(username, password);
+      localStorage.setItem(KEYS.USER, JSON.stringify(result.user));
+      setState({ user: result.user, isAuthenticated: true, isLoading: false });
+      syncAll();
+      return;
+    } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }));
+      if (err instanceof ApiError) {
+        throw new Error(err.message || 'Invalid credentials');
+      }
+      throw new Error('Cannot reach server. Make sure the backend is running on port 3000.');
     }
   }, []);
 
-  const login = async (email: string) => {
-    setState(prev => ({ ...prev, isLoading: true }));
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // Look up staff first
-    const staffList = getAll<Staff>(KEYS.STAFF);
-    const staffMatch = staffList.find(s => s.email.toLowerCase() === normalizedEmail);
-
-    if (staffMatch) {
-      const user: User = {
-        id: staffMatch.id,
-        name: `${staffMatch.firstName} ${staffMatch.lastName}`,
-        email: staffMatch.email,
-        role: staffMatch.role as Role,
-      };
-      localStorage.setItem(KEYS.USER, JSON.stringify(user));
-      setState({ user, isAuthenticated: true, isLoading: false });
-      return;
-    }
-
-    // Look up patients
-    const patientList = getAll<Patient>(KEYS.PATIENTS);
-    const patientMatch = patientList.find(p => p.email.toLowerCase() === normalizedEmail);
-
-    if (patientMatch) {
-      const user: User = {
-        id: patientMatch.id,
-        name: `${patientMatch.firstName} ${patientMatch.lastName}`,
-        email: patientMatch.email,
-        role: 'PATIENT',
-      };
-      localStorage.setItem(KEYS.USER, JSON.stringify(user));
-      setState({ user, isAuthenticated: true, isLoading: false });
-      return;
-    }
-
-    setState(prev => ({ ...prev, isLoading: false }));
-    throw new Error('No account found with this email address.');
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
+    apiLogout();
     localStorage.removeItem(KEYS.USER);
     setState({ user: null, isAuthenticated: false, isLoading: false });
-  };
+  }, []);
 
-  const hasRole = (roles: Role[]) =>
-    state.user ? roles.includes(state.user.role) : false;
+  const hasRole = useCallback((roles: Role[]) =>
+    state.user ? roles.includes(state.user.role) : false,
+  [state.user]);
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>

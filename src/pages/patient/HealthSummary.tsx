@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/db';
+import { listVitals } from '@/lib/services';
 import type { VitalRecord } from '@/types';
 
 function fmtDate(d: string) {
@@ -68,9 +68,10 @@ const HealthSummary: React.FC = () => {
   const [vitals, setVitals] = useState<VitalRecord[]>([]);
 
   useEffect(() => {
-    if (user) {
-      setVitals(db.vitals.getByPatient(user.id).reverse()); // oldest first for charts
-    }
+    if (!user) return;
+    listVitals({ patient_id: user.id })
+      .then(vs => setVitals([...vs].reverse())) // oldest first for charts
+      .catch(() => {});
   }, [user]);
 
   const chartData = useMemo(() =>
