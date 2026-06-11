@@ -13,7 +13,7 @@ export interface StaffListParams {
 
 export async function listStaff(params?: StaffListParams): Promise<Staff[]> {
   const sp = new URLSearchParams();
-  if (params?.role) sp.set('role', params.role);
+  if (params?.role) sp.set('role', params.role.toLowerCase());
   if (params?.department_id) sp.set('department_id', params.department_id);
   if (params?.status) sp.set('status', params.status);
   if (params?.search) sp.set('search', params.search);
@@ -40,4 +40,39 @@ export async function updateStaff(id: string, data: Partial<Staff>): Promise<voi
 
 export async function deleteStaff(id: string): Promise<void> {
   await api.delete(`/staff/${id}`);
+}
+
+export interface OnboardStaffPayload {
+  username: string;
+  password: string;
+  role: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  department_id?: string;
+  specialization?: string;
+  license_number?: string;
+  working_days?: string[];
+  working_hours_start?: string;
+  working_hours_end?: string;
+  date_joined?: string;
+  status?: string;
+}
+
+export interface OnboardStaffResult {
+  user_id: string;
+  staff_id: string;
+  staff_number: string;
+  username: string;
+  role: string;
+  full_name: string;
+}
+
+export async function onboardStaff(data: OnboardStaffPayload): Promise<OnboardStaffResult> {
+  return api.post<OnboardStaffResult>('/admin/onboard-staff', data);
+}
+
+export async function resetStaffPassword(staffId: string, newPassword: string): Promise<void> {
+  await api.put(`/admin/staff/${staffId}/reset-password`, { new_password: newPassword });
 }

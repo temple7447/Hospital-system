@@ -87,7 +87,7 @@ const NurseTasks: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-8">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Nursing Tasks</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Nursing Tasks</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Medication administration, vitals & assessments</p>
       </div>
 
@@ -100,7 +100,7 @@ const NurseTasks: React.FC = () => {
       <div className="flex flex-wrap gap-2">
         {STATUS_FILTERS.map(f => (
           <button key={f.value} onClick={() => setFilter(f.value)}
-            className={cn('px-4 py-2 rounded-xl text-xs font-black transition-all',
+            className={cn('px-4 py-2 rounded-lg text-xs font-semibold transition-all',
               filter === f.value ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200')}>
             {f.label}
           </button>
@@ -108,7 +108,7 @@ const NurseTasks: React.FC = () => {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="glass-card rounded-3xl p-16 text-center text-slate-400 font-medium">No tasks match filter.</div>
+        <div className="glass-card rounded-lg p-16 text-center text-slate-400 font-medium">No tasks match filter.</div>
       ) : (
         <div className="space-y-3">
           {filtered.map(task => {
@@ -120,16 +120,16 @@ const NurseTasks: React.FC = () => {
 
             return (
               <motion.div key={task.id} layout
-                className={cn('glass-card rounded-3xl overflow-hidden',
+                className={cn('glass-card rounded-lg overflow-hidden',
                   task.status === 'completed' && 'opacity-60',
                   overdue && 'ring-2 ring-amber-400')}>
                 <button onClick={() => setExpanded(isExpanded ? null : task.id)}
                   className="w-full p-4 flex items-center gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors text-left">
-                  <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', cfg.color)}>
+                  <div className={cn('w-11 h-11 rounded-md flex items-center justify-center shrink-0', cfg.color)}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-900 dark:text-white truncate">{task.description}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white truncate">{task.description}</p>
                     <p className="text-xs text-slate-500 font-medium truncate">
                       {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {cfg.label}
                     </p>
@@ -146,8 +146,8 @@ const NurseTasks: React.FC = () => {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                     className="px-4 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
                     {task.notes && (
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Notes</p>
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Notes</p>
                         <p className="text-sm text-slate-700 dark:text-slate-300">{task.notes}</p>
                       </div>
                     )}
@@ -159,16 +159,16 @@ const NurseTasks: React.FC = () => {
                         <div className="flex gap-2">
                           {task.status === 'pending' && (
                             <button onClick={() => start(task.id)}
-                              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-colors">
+                              className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors">
                               Start
                             </button>
                           )}
                           <button onClick={() => complete(task)}
-                            className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 transition-colors">
+                            className="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition-colors">
                             Mark Complete
                           </button>
                           <button onClick={() => skip(task)}
-                            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-xl text-xs font-black hover:bg-slate-200 transition-colors">
+                            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors">
                             Skip
                           </button>
                         </div>
@@ -186,15 +186,15 @@ const NurseTasks: React.FC = () => {
 };
 
 const Stat: React.FC<{ label: string; value: number; icon: React.ElementType; color: 'amber' | 'blue' | 'emerald' }> = ({ label, value, icon: Icon, color }) => (
-  <div className="glass-card p-4 rounded-2xl">
-    <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-2',
+  <div className="glass-card p-4 rounded-md">
+    <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center mb-2',
       color === 'amber'   && 'bg-amber-50 dark:bg-amber-900/20 text-amber-600',
       color === 'blue'    && 'bg-blue-50 dark:bg-blue-900/20 text-blue-600',
       color === 'emerald' && 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600',
     )}>
       <Icon className="w-4 h-4" />
     </div>
-    <p className="text-xl font-black text-slate-900 dark:text-white">{value}</p>
+    <p className="text-xl font-semibold text-slate-900 dark:text-white">{value}</p>
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
   </div>
 );
@@ -206,7 +206,7 @@ const StatusPill: React.FC<{ status: NursingTaskStatus }> = ({ status }) => {
     completed:   { color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20', label: 'Done' },
     skipped:     { color: 'bg-slate-100 text-slate-500 dark:bg-slate-800',     label: 'Skipped' },
   }[status];
-  return <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', cfg.color)}>{cfg.label}</span>;
+  return <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', cfg.color)}>{cfg.label}</span>;
 };
 
 export default NurseTasks;

@@ -85,7 +85,7 @@ export function DataTable<T>({
   };
 
   return (
-    <div className={cn("glass-card rounded-3xl overflow-hidden", className)}>
+    <div className={cn("glass-card rounded-lg overflow-hidden", className)}>
       {searchable && (
         <div className="p-4 border-b border-slate-100 dark:border-slate-800">
           <div className="relative">
@@ -98,7 +98,7 @@ export function DataTable<T>({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-11 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-11 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-none rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>

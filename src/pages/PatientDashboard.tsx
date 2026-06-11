@@ -70,7 +70,7 @@ const PatientDashboard: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">
             Welcome back, {user?.name.split(' ')[0]}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
@@ -78,7 +78,7 @@ const PatientDashboard: React.FC = () => {
           </p>
         </div>
         <button onClick={() => navigate('/patient/book')}
-          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start">
+          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start">
           <Calendar className="w-4 h-4" /> Book Appointment
         </button>
       </motion.div>
@@ -95,9 +95,9 @@ const PatientDashboard: React.FC = () => {
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.04 }}
             onClick={() => navigate(s.path)}
-            className="glass-card p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all group">
+            className="glass-card p-5 rounded-md cursor-pointer hover:shadow-sm transition-all group">
             <div className="flex items-center justify-between mb-3">
-              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center',
+              <div className={cn('w-10 h-10 rounded-md flex items-center justify-center',
                 s.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20',
                 s.color === 'emerald'&& 'bg-emerald-50 dark:bg-emerald-900/20',
                 s.color === 'amber'  && 'bg-amber-50 dark:bg-amber-900/20',
@@ -112,7 +112,7 @@ const PatientDashboard: React.FC = () => {
               </div>
               <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{s.label}</p>
           </motion.div>
         ))}
@@ -122,7 +122,7 @@ const PatientDashboard: React.FC = () => {
       {hasExpiringSoon && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
           onClick={() => navigate('/patient/prescriptions')}
-          className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl cursor-pointer hover:bg-amber-100 transition-all">
+          className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md cursor-pointer hover:bg-amber-100 transition-all">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
           <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
             You have prescriptions expiring within 7 days — view them now.
@@ -136,18 +136,18 @@ const PatientDashboard: React.FC = () => {
           {/* Next appointment hero */}
           {nextApt ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-7 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden">
+              className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-7 text-white  shadow-blue-500/20 relative overflow-hidden">
               <div className="relative z-10">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-wider">
+                <span className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-semibold uppercase tracking-wider">
                   Next Appointment
                 </span>
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-md bg-white/15 border border-white/20 flex items-center justify-center">
                       <Stethoscope className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black">
+                      <h3 className="text-xl font-semibold">
                         {nextDoctor ? `Dr. ${nextDoctor.firstName} ${nextDoctor.lastName}` : 'Your Doctor'}
                       </h3>
                       <p className="text-blue-200 font-medium text-sm">
@@ -157,20 +157,20 @@ const PatientDashboard: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-6">
                     <div>
-                      <p className="text-blue-200 text-[10px] font-black uppercase tracking-widest">Date</p>
-                      <p className="font-black text-lg">{fmtDate(nextApt.date)}</p>
+                      <p className="text-blue-200 text-[10px] font-semibold uppercase tracking-widest">Date</p>
+                      <p className="font-semibold text-lg">{fmtDate(nextApt.date)}</p>
                     </div>
                     <div>
-                      <p className="text-blue-200 text-[10px] font-black uppercase tracking-widest">Time</p>
-                      <p className="font-black text-lg">{nextApt.time}</p>
+                      <p className="text-blue-200 text-[10px] font-semibold uppercase tracking-widest">Time</p>
+                      <p className="font-semibold text-lg">{nextApt.time}</p>
                     </div>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center gap-3">
-                  <span className="px-2.5 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase tracking-wider capitalize">
+                  <span className="px-2.5 py-1 bg-white/20 rounded-lg text-[10px] font-semibold uppercase tracking-wider capitalize">
                     {nextApt.type.replace('_', ' ')}
                   </span>
-                  <span className="px-2.5 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                  <span className="px-2.5 py-1 bg-white/20 rounded-lg text-[10px] font-semibold uppercase tracking-wider">
                     {nextApt.appointmentNumber}
                   </span>
                 </div>
@@ -179,11 +179,11 @@ const PatientDashboard: React.FC = () => {
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-              className="glass-card p-8 rounded-3xl text-center">
+              className="glass-card p-8 rounded-lg text-center">
               <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-400 font-bold mb-4">No upcoming appointments</p>
               <button onClick={() => navigate('/patient/book')}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-blue-700 transition-all">
                 Book Now
               </button>
             </motion.div>
@@ -191,11 +191,11 @@ const PatientDashboard: React.FC = () => {
 
           {/* Active prescriptions */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="glass-card rounded-3xl overflow-hidden">
+            className="glass-card rounded-lg overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-black text-slate-900 dark:text-white">Active Medications</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white">Active Medications</h3>
               <button onClick={() => navigate('/patient/prescriptions')}
-                className="text-xs font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest">
+                className="text-xs font-semibold text-blue-600 hover:text-blue-500 uppercase tracking-widest">
                 View All
               </button>
             </div>
@@ -211,22 +211,22 @@ const PatientDashboard: React.FC = () => {
                   const expiringSoon = days <= 7 && days > 0;
                   return (
                     <div key={rx.id} className="flex items-center gap-4 px-6 py-4">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
                         <Pill className="w-4 h-4 text-emerald-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black text-slate-900 dark:text-white">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
                           {rx.items[0]?.medicine ?? 'Prescription'}
                           {rx.items.length > 1 && <span className="text-slate-400 font-bold"> +{rx.items.length - 1} more</span>}
                         </p>
                         <p className="text-xs text-slate-400 font-bold">{rx.prescriptionNumber}</p>
                       </div>
                       {expiringSoon ? (
-                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600">
+                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600">
                           {days}d left
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
+                        <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
                           Active
                         </span>
                       )}
@@ -242,9 +242,9 @@ const PatientDashboard: React.FC = () => {
         <div className="space-y-4">
           {/* Latest vitals */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="glass-card p-5 rounded-3xl">
+            className="glass-card p-5 rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-black text-slate-900 dark:text-white text-sm">Latest Vitals</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Latest Vitals</h3>
               {latestVital && (
                 <span className="text-[10px] text-slate-400 font-bold">
                   {new Date(latestVital.recordedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -259,7 +259,7 @@ const PatientDashboard: React.FC = () => {
                   { label: 'Temperature',    value: latestVital.temperature ? `${latestVital.temperature}°C`       : null, icon: Thermometer, color: 'amber' },
                   { label: 'Weight',         value: latestVital.weight      ? `${latestVital.weight} kg`           : null, icon: Activity,    color: 'purple' },
                 ].filter(v => v.value).map(v => (
-                  <div key={v.label} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <div key={v.label} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <v.icon className={cn('w-4 h-4',
                         v.color === 'red'   && 'text-red-500',
@@ -269,7 +269,7 @@ const PatientDashboard: React.FC = () => {
                       )} />
                       <span className="text-xs font-bold text-slate-500">{v.label}</span>
                     </div>
-                    <span className="text-sm font-black text-slate-900 dark:text-white">{v.value}</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{v.value}</span>
                   </div>
                 ))}
               </div>
@@ -283,8 +283,8 @@ const PatientDashboard: React.FC = () => {
 
           {/* Quick links */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="glass-card p-5 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-3">My Health</h3>
+            className="glass-card p-5 rounded-lg">
+            <h3 className="font-semibold text-slate-900 dark:text-white text-sm mb-3">My Health</h3>
             <div className="space-y-1">
               {[
                 { label: 'My Appointments', icon: Calendar,    path: '/patient/appointments' },
@@ -294,7 +294,7 @@ const PatientDashboard: React.FC = () => {
                 { label: 'My Bills',        icon: Receipt,     path: '/patient/bills' },
               ].map(l => (
                 <button key={l.path} onClick={() => navigate(l.path)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group text-left">
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group text-left">
                   <l.icon className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
                   <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-blue-600 transition-colors flex-1">
                     {l.label}

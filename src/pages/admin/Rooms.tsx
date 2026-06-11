@@ -64,11 +64,11 @@ const EditModal: React.FC<{
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg"
+        className="relative bg-white dark:bg-slate-900 rounded-lg  w-full max-w-lg"
       >
         <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-900 dark:text-white">Edit Room {room.roomNumber}</h2>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Edit Room {room.roomNumber}</h2>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -76,23 +76,23 @@ const EditModal: React.FC<{
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Room Number</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Room Number</label>
               <input type="text" value={form.roomNumber} onChange={e => set('roomNumber', e.target.value)} className="input-field py-2.5 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Floor</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Floor</label>
               <input type="number" min={1} value={form.floor} onChange={e => set('floor', Number(e.target.value))} className="input-field py-2.5 text-sm" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Room Type</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Room Type</label>
             <div className="grid grid-cols-3 gap-2">
               {ROOM_TYPES.map(t => {
                 const meta = typeMeta[t];
                 return (
                   <button key={t} type="button" onClick={() => set('type', t)}
-                    className={cn('py-2 rounded-xl text-xs font-black border-2 transition-all capitalize', form.type === t ? `${meta.bg} ${meta.color} border-current` : 'border-slate-100 dark:border-slate-800 text-slate-400 hover:border-slate-300')}>
+                    className={cn('py-2 rounded-lg text-xs font-semibold border-2 transition-all capitalize', form.type === t ? `${meta.bg} ${meta.color} border-current` : 'border-slate-100 dark:border-slate-800 text-slate-400 hover:border-slate-300')}>
                     {meta.label}
                   </button>
                 );
@@ -101,7 +101,7 @@ const EditModal: React.FC<{
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Department</label>
             <select value={form.departmentId} onChange={e => set('departmentId', e.target.value)} className="input-field py-2.5 text-sm">
               {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
@@ -109,23 +109,23 @@ const EditModal: React.FC<{
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Total Capacity</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Total Capacity</label>
               <input type="number" min={1} value={form.capacity} onChange={e => set('capacity', Number(e.target.value))} className="input-field py-2.5 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Occupied Beds</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Occupied Beds</label>
               <input type="number" min={0} max={form.capacity} value={form.occupiedBeds} onChange={e => set('occupiedBeds', Number(e.target.value))} className="input-field py-2.5 text-sm" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">Status</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Status</label>
             <div className="grid grid-cols-2 gap-2">
               {ROOM_STATUSES.map(s => {
                 const meta = statusMeta[s];
                 return (
                   <button key={s} type="button" onClick={() => set('status', s)}
-                    className={cn('py-2.5 rounded-xl text-xs font-black border-2 transition-all', form.status === s ? `${meta.bg} ${meta.color} border-current` : 'border-slate-100 dark:border-slate-800 text-slate-400 hover:border-slate-300')}>
+                    className={cn('py-2.5 rounded-lg text-xs font-semibold border-2 transition-all', form.status === s ? `${meta.bg} ${meta.color} border-current` : 'border-slate-100 dark:border-slate-800 text-slate-400 hover:border-slate-300')}>
                     {meta.label}
                   </button>
                 );
@@ -134,7 +134,7 @@ const EditModal: React.FC<{
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-slate-300 transition-all">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-md border-2 border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-slate-300 transition-all">
               Cancel
             </button>
             <button type="submit" className="flex-1 btn-primary py-3 flex items-center justify-center gap-2 text-sm font-bold">
@@ -163,21 +163,21 @@ const RoomCard: React.FC<{ room: Room; departments: Department[]; onEdit: (r: Ro
     'bg-emerald-500';
 
   return (
-    <motion.div whileHover={{ y: -3 }} className="glass-card rounded-2xl p-5 group transition-all duration-200">
+    <motion.div whileHover={{ y: -3 }} className="glass-card rounded-md p-5 group transition-all duration-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl font-black text-slate-900 dark:text-white">
+            <span className="text-2xl font-semibold text-slate-900 dark:text-white">
               {room.roomNumber}
             </span>
           </div>
-          <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide', type.bg, type.color)}>
+          <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide', type.bg, type.color)}>
             {type.label}
           </span>
         </div>
         <button onClick={() => onEdit(room)}
-          className="p-1.5 rounded-xl text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all opacity-0 group-hover:opacity-100">
+          className="p-1.5 rounded-lg text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all opacity-0 group-hover:opacity-100">
           <Edit3 className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -193,7 +193,7 @@ const RoomCard: React.FC<{ room: Room; departments: Department[]; onEdit: (r: Ro
       <div className="mb-3">
         <div className="flex justify-between mb-1.5">
           <span className="text-xs font-bold text-slate-500">Beds</span>
-          <span className="text-xs font-black text-slate-900 dark:text-white">
+          <span className="text-xs font-semibold text-slate-900 dark:text-white">
             {room.occupiedBeds}/{room.capacity}
           </span>
         </div>
@@ -209,9 +209,9 @@ const RoomCard: React.FC<{ room: Room; departments: Department[]; onEdit: (r: Ro
       </div>
 
       {/* Status */}
-      <div className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl', status.bg)}>
+      <div className={cn('flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg', status.bg)}>
         <StatusIcon className={cn('w-3 h-3', status.color)} />
-        <span className={cn('text-[11px] font-black', status.color)}>{status.label}</span>
+        <span className={cn('text-[11px] font-semibold', status.color)}>{status.label}</span>
       </div>
     </motion.div>
   );
@@ -290,18 +290,18 @@ const RoomsPage: React.FC = () => {
           { label: 'Full',         value: stats.full,         color: 'bg-red-50 dark:bg-red-900/20 text-red-600',        icon: AlertTriangle },
           { label: 'Maintenance',  value: stats.maintenance,  color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600',  icon: Wrench },
         ].map(({ label, value, color, icon: Icon }) => (
-          <div key={label} className="glass-card p-5 rounded-3xl">
-            <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center mb-3', color)}>
+          <div key={label} className="glass-card p-5 rounded-lg">
+            <div className={cn('w-10 h-10 rounded-md flex items-center justify-center mb-3', color)}>
               <Icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{value}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{value}</p>
             <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">{label}</p>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="glass-card rounded-3xl p-5">
+      <div className="glass-card rounded-lg p-5">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -330,14 +330,14 @@ const RoomsPage: React.FC = () => {
 
       {/* Rooms by floor */}
       {byFloor.length === 0 ? (
-        <div className="glass-card rounded-3xl p-16 text-center text-slate-400 font-medium">
+        <div className="glass-card rounded-lg p-16 text-center text-slate-400 font-medium">
           No rooms match your filters.
         </div>
       ) : (
         byFloor.map(([floor, floorRooms]) => (
           <div key={floor}>
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">{floorLabel(floor)}</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{floorLabel(floor)}</h2>
               <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
               <span className="text-xs font-bold text-slate-400">{floorRooms.length} rooms</span>
             </div>

@@ -17,9 +17,9 @@ const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 
 const Section: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode }> = ({ title, icon: Icon, children }) => (
-  <div className="glass-card rounded-3xl overflow-hidden">
+  <div className="glass-card rounded-lg overflow-hidden">
     <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
-      <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+      <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
       </div>
       <h3 className="font-bold text-slate-900 dark:text-white text-sm">{title}</h3>
@@ -99,7 +99,7 @@ const StaffProfile: React.FC<{ staff: Staff; deptName?: string; mode: ProfileMod
           <Field label="Address"     value={staff.address} />
           <Field label="Date Joined" value={new Date(staff.dateJoined).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} />
           <Field label="Status"      value={
-            <span className={cn('text-xs font-black px-2.5 py-1 rounded-full uppercase', staff.status === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : staff.status === 'on_leave' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20' : 'bg-red-50 text-red-600 dark:bg-red-900/20')}>
+            <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full uppercase', staff.status === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : staff.status === 'on_leave' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20' : 'bg-red-50 text-red-600 dark:bg-red-900/20')}>
               {staff.status.replace('_', ' ')}
             </span>
           } />
@@ -134,7 +134,7 @@ const StaffProfile: React.FC<{ staff: Staff; deptName?: string; mode: ProfileMod
             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Working Days</p>
             <div className="flex flex-wrap gap-2">
               {DAYS.map(day => (
-                <span key={day} className={cn('px-3 py-1 rounded-xl text-xs font-bold capitalize', staff.workingDays.includes(day) ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400')}>
+                <span key={day} className={cn('px-3 py-1 rounded-lg text-xs font-bold capitalize', staff.workingDays.includes(day) ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400')}>
                   {day.slice(0, 3)}
                 </span>
               ))}
@@ -212,14 +212,14 @@ const PatientProfile: React.FC<{ patient: Patient; assignedDoctorName?: string; 
       <Section title="Medical Information" icon={Heart}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Field label="Blood Type" value={
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-black">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-semibold">
               {patient.bloodType}
             </span>
           } />
           <Field label="Assigned Doctor" value={assignedDoctorName ?? 'Not assigned'} />
           <Field label="Insurance" value={patient.insuranceProvider ? `${patient.insuranceProvider} (${patient.insuranceNumber})` : 'None / Self-pay'} />
           <Field label="Status" value={
-            <span className={cn('text-xs font-black px-2.5 py-1 rounded-full uppercase', patient.status === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-slate-100 text-slate-500')}>
+            <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full uppercase', patient.status === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-slate-100 text-slate-500')}>
               {patient.status}
             </span>
           } />
@@ -230,7 +230,7 @@ const PatientProfile: React.FC<{ patient: Patient; assignedDoctorName?: string; 
             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Chronic Conditions</p>
             <div className="flex flex-wrap gap-2">
               {patient.chronicConditions.map(c => (
-                <span key={c} className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold">{c}</span>
+                <span key={c} className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-lg text-xs font-bold">{c}</span>
               ))}
             </div>
           </div>
@@ -241,7 +241,7 @@ const PatientProfile: React.FC<{ patient: Patient; assignedDoctorName?: string; 
             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Allergies</p>
             <div className="flex flex-wrap gap-2">
               {patient.allergies.map(a => (
-                <span key={a} className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold">{a}</span>
+                <span key={a} className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold">{a}</span>
               ))}
             </div>
           </div>
@@ -323,35 +323,35 @@ const Profile: React.FC = () => {
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">View and manage your personal information</p>
         </div>
         {mode === 'view' ? (
-          <button onClick={() => setMode('edit')} className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:border-blue-500/40 hover:text-blue-600 transition-all shadow-sm">
+          <button onClick={() => setMode('edit')} className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold text-slate-700 dark:text-slate-300 hover:border-blue-500/40 hover:text-blue-600 transition-all shadow-sm">
             <Edit3 className="w-4 h-4" /> Edit Profile
           </button>
         ) : (
-          <button onClick={() => setMode('view')} className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold text-slate-500 hover:text-red-500 transition-all shadow-sm">
+          <button onClick={() => setMode('view')} className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold text-slate-500 hover:text-red-500 transition-all shadow-sm">
             <X className="w-4 h-4" /> Cancel
           </button>
         )}
       </div>
 
       {/* Avatar card */}
-      <div className="glass-card rounded-3xl p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <div className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${roleColors[user.role] ?? 'from-blue-500 to-blue-700'} flex items-center justify-center text-white text-3xl font-black shadow-xl flex-shrink-0`}>
+      <div className="glass-card rounded-lg p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <div className={`w-24 h-24 rounded-lg bg-gradient-to-br ${roleColors[user.role] ?? 'from-blue-500 to-blue-700'} flex items-center justify-center text-white text-3xl font-semibold  flex-shrink-0`}>
           {initials}
         </div>
         <div className="text-center sm:text-left">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">{user.name}</h2>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">{user.name}</h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">{user.email}</p>
           <div className="flex items-center justify-center sm:justify-start gap-2 mt-3">
-            <span className={cn('text-xs font-black px-3 py-1.5 rounded-xl uppercase tracking-wider text-white bg-gradient-to-r', roleColors[user.role] ?? 'from-blue-500 to-blue-600')}>
+            <span className={cn('text-xs font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wider text-white bg-gradient-to-r', roleColors[user.role] ?? 'from-blue-500 to-blue-600')}>
               {user.role}
             </span>
             {!isPatient && (record as Staff).staffNumber && (
-              <span className="text-xs font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl">
+              <span className="text-xs font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg">
                 {(record as Staff).staffNumber}
               </span>
             )}
             {isPatient && (record as Patient).patientNumber && (
-              <span className="text-xs font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl">
+              <span className="text-xs font-bold px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg">
                 {(record as Patient).patientNumber}
               </span>
             )}

@@ -23,7 +23,7 @@ export interface Department {
 }
 
 // ─── Staff ────────────────────────────────────────────────────────────────────
-export type StaffRole = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'NURSE' | 'PHARMACIST' | 'LAB_TECHNICIAN' | 'RADIOLOGIST';
+export type StaffRole = string;
 export type StaffStatus = 'active' | 'inactive' | 'on_leave';
 export type WeekDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 

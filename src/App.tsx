@@ -13,6 +13,8 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
 import StaffPage from './pages/admin/Staff';
+import StaffProfilePage from './pages/admin/StaffProfile';
+import PatientDetailPage from './pages/admin/PatientDetail';
 import DepartmentsPage from './pages/admin/Departments';
 import RoomsPage from './pages/admin/Rooms';
 import RegisterPatientPage from './pages/receptionist/RegisterPatient';
@@ -66,7 +68,7 @@ function App() {
             {/* Public */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             {/* Protected — dashboard layout wraps all these */}
@@ -79,6 +81,12 @@ function App() {
             <Route path="/patients" element={
               <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'RECEPTIONIST']}>
                 <DashboardLayout><Patients /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/patients/:id" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'RECEPTIONIST']}>
+                <DashboardLayout><PatientDetailPage /></DashboardLayout>
               </ProtectedRoute>
             } />
 
@@ -109,6 +117,12 @@ function App() {
             <Route path="/admin/staff" element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <DashboardLayout><StaffPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/admin/staff/:id" element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <DashboardLayout><StaffProfilePage /></DashboardLayout>
               </ProtectedRoute>
             } />
 

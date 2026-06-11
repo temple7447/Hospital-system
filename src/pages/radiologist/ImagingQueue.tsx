@@ -84,11 +84,11 @@ const ImagingQueue: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-8">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Imaging Queue</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Imaging Queue</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">{filtered.length} pending studies</p>
       </div>
 
-      <div className="glass-card rounded-3xl p-5 flex flex-col sm:flex-row gap-3">
+      <div className="glass-card rounded-lg p-5 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" placeholder="Search by lab number, study, or patient…" value={search}
@@ -104,7 +104,7 @@ const ImagingQueue: React.FC = () => {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="glass-card rounded-3xl p-16 text-center text-slate-400 font-medium">No imaging studies match filter.</div>
+        <div className="glass-card rounded-lg p-16 text-center text-slate-400 font-medium">No imaging studies match filter.</div>
       ) : (
         <div className="space-y-3">
           {filtered.map(o => {
@@ -114,22 +114,22 @@ const ImagingQueue: React.FC = () => {
             const st  = STATUS_CFG[o.status];
 
             return (
-              <motion.div key={o.id} layout className="glass-card rounded-2xl p-4 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 flex items-center justify-center shrink-0">
+              <motion.div key={o.id} layout className="glass-card rounded-md p-4 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 flex items-center justify-center shrink-0">
                   <ScanLine className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-900 dark:text-white truncate">{o.labNumber}</p>
+                  <p className="font-semibold text-slate-900 dark:text-white truncate">{o.labNumber}</p>
                   <p className="text-xs text-slate-500 font-medium truncate">{o.tests.join(', ')}</p>
                   <p className="text-[10px] text-slate-400 font-bold mt-0.5 truncate">
                     {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'}
                     {doctor && ` · ordered by Dr. ${doctor.firstName} ${doctor.lastName}`}
                   </p>
                 </div>
-                <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', pri.color)}>
+                <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', pri.color)}>
                   {pri.label}
                 </span>
-                <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', st.color)}>
+                <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide shrink-0', st.color)}>
                   {st.label}
                 </span>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 shrink-0">
@@ -138,13 +138,13 @@ const ImagingQueue: React.FC = () => {
                 </div>
                 {o.status !== 'processing' && (
                   <button onClick={() => advance(o)}
-                    className="px-3 py-1.5 bg-violet-50 dark:bg-violet-900/20 text-violet-600 rounded-lg text-xs font-black hover:bg-violet-100 transition-colors flex items-center gap-1 shrink-0">
+                    className="px-3 py-1.5 bg-violet-50 dark:bg-violet-900/20 text-violet-600 rounded-lg text-xs font-semibold hover:bg-violet-100 transition-colors flex items-center gap-1 shrink-0">
                     <Activity className="w-3.5 h-3.5" />
                     {o.status === 'ordered' ? 'Schedule' : 'Start'}
                   </button>
                 )}
                 <Link to={`/radiology/report?id=${o.id}`}
-                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-lg text-xs font-black hover:bg-indigo-100 transition-colors flex items-center gap-1 shrink-0">
+                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition-colors flex items-center gap-1 shrink-0">
                   Write Report <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </motion.div>

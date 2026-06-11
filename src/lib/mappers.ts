@@ -17,14 +17,42 @@ export interface BackendUser {
   phone?: string;
 }
 
+// Maps every backend role to one of the 7 dashboard categories used for route access control
 const ROLE_MAP: Record<string, Role> = {
-  admin: 'ADMIN',
-  doctor: 'DOCTOR',
-  nurse: 'NURSE',
-  receptionist: 'RECEPTIONIST',
-  pharmacist: 'PHARMACIST',
-  lab_technician: 'LAB_TECHNICIAN',
+  // Administration
+  admin: 'ADMIN', chief_medical_officer: 'ADMIN', medical_director: 'ADMIN',
+  medical_superintendent: 'ADMIN', coo: 'ADMIN', cfo: 'ADMIN',
+  hr_manager: 'ADMIN', quality_manager: 'ADMIN', legal_compliance_officer: 'ADMIN',
+  // Doctors & Specialists (all get DOCTOR dashboard)
+  doctor: 'DOCTOR', surgeon: 'DOCTOR', trauma_surgeon: 'DOCTOR',
+  anesthesiologist: 'DOCTOR', intensivist: 'DOCTOR', emergency_physician: 'DOCTOR',
+  pediatrician: 'DOCTOR', cardiologist: 'DOCTOR', neurologist: 'DOCTOR',
+  oncologist: 'DOCTOR', gynecologist: 'DOCTOR', psychiatrist: 'DOCTOR',
+  pathologist: 'DOCTOR', resident_doctor: 'DOCTOR', intern: 'DOCTOR',
+  // Nursing (all get NURSE dashboard)
+  chief_nursing_officer: 'NURSE', nurse_manager: 'NURSE', nurse: 'NURSE',
+  nurse_practitioner: 'NURSE', icu_nurse: 'NURSE', er_nurse: 'NURSE',
+  or_nurse: 'NURSE', midwife: 'NURSE', nursing_assistant: 'NURSE',
+  infection_control_nurse: 'NURSE',
+  // Reception & Admin Support
+  receptionist: 'RECEPTIONIST', admissions_officer: 'RECEPTIONIST',
+  medical_records_clerk: 'RECEPTIONIST', billing_specialist: 'RECEPTIONIST',
+  patient_relations_officer: 'RECEPTIONIST',
+  // Pharmacy
+  pharmacist: 'PHARMACIST', pharmacy_technician: 'PHARMACIST',
+  // Lab & Diagnostics
+  lab_technician: 'LAB_TECHNICIAN', radiologic_technologist: 'LAB_TECHNICIAN',
+  phlebotomist: 'LAB_TECHNICIAN', ecg_technician: 'LAB_TECHNICIAN',
+  sonographer: 'LAB_TECHNICIAN', surgical_technologist: 'LAB_TECHNICIAN',
+  sterilization_technician: 'LAB_TECHNICIAN',
+  // Radiology
   radiologist: 'RADIOLOGIST',
+  // Therapy & Support (use closest dashboard)
+  respiratory_therapist: 'NURSE', physical_therapist: 'NURSE',
+  occupational_therapist: 'NURSE', speech_therapist: 'NURSE',
+  social_worker: 'RECEPTIONIST', nutritionist: 'NURSE',
+  paramedic: 'DOCTOR', patient_care_assistant: 'NURSE',
+  // Patient portal
   patient: 'PATIENT',
 };
 
@@ -33,7 +61,7 @@ export function mapBackendUser(user: BackendUser): User {
     id: user.id,
     name: user.full_name,
     email: user.username,
-    role: ROLE_MAP[user.role] || 'DOCTOR',
+    role: ROLE_MAP[user.role] ?? 'DOCTOR',
   };
 }
 
@@ -330,7 +358,13 @@ export interface BackendStaff {
 
 export function mapBackendStaff(s: BackendStaff): Staff {
   let workingDays: string[] = [];
-  try { if (s.working_days) workingDays = JSON.parse(s.working_days); } catch { /* ignore */ }
+  try {
+    if (s.working_days) {
+      let parsed = JSON.parse(s.working_days);
+      if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+      if (Array.isArray(parsed)) workingDays = parsed;
+    }
+  } catch { /* ignore */ }
 
   return {
     id: s.id,
@@ -379,8 +413,7 @@ export function toBackendStaff(data: Partial<Staff>): Record<string, unknown> {
 }
 
 function mapRole(role: string): string {
-  const map: Record<string, string> = { admin: 'ADMIN', doctor: 'DOCTOR', nurse: 'NURSE', receptionist: 'RECEPTIONIST', pharmacist: 'PHARMACIST', lab_technician: 'LAB_TECHNICIAN', radiologist: 'RADIOLOGIST' };
-  return map[role] || 'DOCTOR';
+  return (role || 'doctor').toUpperCase();
 }
 
 // ─── Departments ──────────────────────────────────────────────
@@ -488,8 +521,27 @@ export interface BackendLabOrder {
 export function mapBackendLabOrder(l: BackendLabOrder): LabOrder {
   let tests: string[] = [];
   let results: LabResult[] | undefined;
-  try { tests = JSON.parse(l.tests); } catch { tests = [l.tests]; }
-  try { if (l.results) results = JSON.parse(l.results); } catch { /* ignore */ }
+  try {
+    const parsed = JSON.parse(l.tests);
+    tests = Array.isArray(parsed)
+      ? parsed.map((t: unknown) =>
+          typeof t === 'string' ? t : (t as { name?: string; code?: string })?.name ?? JSON.stringify(t)
+        )
+      : [l.tests];
+  } catch { tests = [l.tests]; }
+  try {
+    if (l.results) {
+      const parsed = JSON.parse(l.results);
+      if (Array.isArray(parsed)) {
+        results = parsed.map((r: LabResult) => ({
+          ...r,
+          testName: typeof r.testName === 'string'
+            ? r.testName
+            : (r.testName as unknown as { name?: string })?.name ?? String(r.testName),
+        }));
+      }
+    }
+  } catch { /* ignore */ }
 
   return {
     id: l.id,

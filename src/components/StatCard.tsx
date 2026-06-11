@@ -20,14 +20,14 @@ const colorMap = {
 
 export function StatCard({ label, value, change, icon: Icon, color = 'blue', className }: StatCardProps) {
   return (
-    <div className={cn("glass-card p-6 rounded-3xl", className)}>
+    <div className={cn("glass-card p-6 rounded-lg", className)}>
       <div className="flex items-center justify-between mb-4">
-        <div className={cn("p-3 rounded-2xl", colorMap[color])}>
+        <div className={cn("p-3 rounded-md", colorMap[color])}>
           <Icon className="w-6 h-6" />
         </div>
         {change && (
           <span className={cn(
-            "text-[10px] font-black px-2 py-1 rounded-lg",
+            "text-[10px] font-semibold px-2 py-1 rounded-lg",
             change.startsWith('+') || change === '65%' || change === 'Good' || change === 'Available'
               ? "bg-emerald-50 text-emerald-600" 
               : "bg-red-50 text-red-600"
@@ -36,7 +36,7 @@ export function StatCard({ label, value, change, icon: Icon, color = 'blue', cla
           </span>
         )}
       </div>
-      <h3 className="text-2xl font-black text-slate-900 dark:text-white">{value}</h3>
+      <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">{value}</h3>
       <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{label}</p>
     </div>
   );

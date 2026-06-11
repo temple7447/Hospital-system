@@ -101,7 +101,7 @@ const Reports: React.FC = () => {
     <div className="space-y-8">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Hospital performance overview</p>
       </motion.div>
 
@@ -111,9 +111,9 @@ const Reports: React.FC = () => {
         {KPI.map((k, i) => (
           <motion.div key={k.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.05 }}
-            className="glass-card p-5 rounded-2xl">
+            className="glass-card p-5 rounded-md">
             <div className="flex items-center justify-between mb-3">
-              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center',
+              <div className={cn('w-10 h-10 rounded-md flex items-center justify-center',
                 k.color === 'emerald' && 'bg-emerald-50 dark:bg-emerald-900/20',
                 k.color === 'blue'    && 'bg-blue-50 dark:bg-blue-900/20',
                 k.color === 'violet'  && 'bg-violet-50 dark:bg-violet-900/20',
@@ -126,9 +126,9 @@ const Reports: React.FC = () => {
                   k.color === 'amber'   && 'text-amber-600',
                 )} />
               </div>
-              <span className="text-xs font-black text-emerald-600">{k.change}</span>
+              <span className="text-xs font-semibold text-emerald-600">{k.change}</span>
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{k.value}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{k.value}</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{k.label}</p>
           </motion.div>
         ))}
@@ -137,8 +137,8 @@ const Reports: React.FC = () => {
       {/* Revenue trend + Patient growth */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="glass-card p-6 rounded-3xl">
-          <h3 className="font-black text-slate-900 dark:text-white mb-1">Revenue Trend</h3>
+          className="glass-card p-6 rounded-lg">
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Revenue Trend</h3>
           <p className="text-xs text-slate-400 font-bold mb-5">Last 6 months</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
@@ -163,8 +163,8 @@ const Reports: React.FC = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="glass-card p-6 rounded-3xl">
-          <h3 className="font-black text-slate-900 dark:text-white mb-1">New Patient Registrations</h3>
+          className="glass-card p-6 rounded-lg">
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">New Patient Registrations</h3>
           <p className="text-xs text-slate-400 font-bold mb-5">Last 6 months</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
@@ -183,8 +183,8 @@ const Reports: React.FC = () => {
       {/* Appointment breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="glass-card p-6 rounded-3xl">
-          <h3 className="font-black text-slate-900 dark:text-white mb-1">Appointment Status</h3>
+          className="glass-card p-6 rounded-lg">
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Appointment Status</h3>
           <p className="text-xs text-slate-400 font-bold mb-5">All time breakdown</p>
           <div className="h-52 flex items-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -205,15 +205,15 @@ const Reports: React.FC = () => {
               <div key={s.name} className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
                 <span className="text-xs text-slate-500 font-bold">{s.name}</span>
-                <span className="ml-auto text-xs font-black text-slate-900 dark:text-white">{s.value}</span>
+                <span className="ml-auto text-xs font-semibold text-slate-900 dark:text-white">{s.value}</span>
               </div>
             ))}
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="glass-card p-6 rounded-3xl">
-          <h3 className="font-black text-slate-900 dark:text-white mb-1">Appointments by Type</h3>
+          className="glass-card p-6 rounded-lg">
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Appointments by Type</h3>
           <p className="text-xs text-slate-400 font-bold mb-5">Top visit reasons</p>
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
@@ -232,8 +232,8 @@ const Reports: React.FC = () => {
 
       {/* Summary table */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-        className="glass-card p-6 rounded-3xl">
-        <h3 className="font-black text-slate-900 dark:text-white mb-5">Quick Stats</h3>
+        className="glass-card p-6 rounded-lg">
+        <h3 className="font-semibold text-slate-900 dark:text-white mb-5">Quick Stats</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
             { label: 'Staff',      value: stats?.totalStaff ?? '—',        icon: Activity,     color: 'blue' },
@@ -243,8 +243,8 @@ const Reports: React.FC = () => {
             { label: 'Pending Bills', value: stats?.pendingInvoices ?? '—', icon: Clock,        color: 'orange' },
             { label: 'Low Stock',  value: stats?.lowStockItems ?? '—',      icon: XCircle,      color: 'red' },
           ].map(s => (
-            <div key={s.label} className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-              <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
+            <div key={s.label} className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
+              <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{s.label}</p>
             </div>
           ))}

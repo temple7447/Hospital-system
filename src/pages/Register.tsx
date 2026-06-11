@@ -108,10 +108,10 @@ const Register: React.FC = () => {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 font-sans">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-5">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="w-24 h-24 bg-emerald-500 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/40">
+            className="w-24 h-24 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto  shadow-emerald-500/40">
             <CheckCircle2 className="w-12 h-12 text-white" />
           </motion.div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white">Welcome to CareFlow!</h2>
+          <h2 className="text-3xl font-semibold text-slate-900 dark:text-white">Welcome to CareFlow!</h2>
           <p className="text-slate-500 font-medium">Account created. Logging you in…</p>
           <div className="w-8 h-8 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mx-auto" />
         </motion.div>
@@ -132,11 +132,11 @@ const Register: React.FC = () => {
 
         <div className="relative z-10 flex flex-col justify-center px-16 text-white w-full">
           <Link to="/" className="flex items-center gap-3 mb-16">
-            <div className="p-3 bg-white/10 rounded-2xl border border-white/20"><Hospital className="w-7 h-7 text-white" /></div>
-            <span className="text-3xl font-black tracking-tighter">CareFlow</span>
+            <div className="p-3 bg-white/10 rounded-md border border-white/20"><Hospital className="w-7 h-7 text-white" /></div>
+            <span className="text-3xl font-semibold tracking-tight">CareFlow</span>
           </Link>
 
-          <h2 className="text-5xl font-black leading-tight mb-6">
+          <h2 className="text-5xl font-semibold leading-tight mb-6">
             Your Health,<br />
             <span className="text-blue-200">Your Records</span>
           </h2>
@@ -169,12 +169,12 @@ const Register: React.FC = () => {
 
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="p-2.5 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/30"><Hospital className="w-6 h-6 text-white" /></div>
-            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">CareFlow</span>
+            <div className="p-2.5 bg-blue-600 rounded-lg shadow-sm shadow-blue-500/30"><Hospital className="w-6 h-6 text-white" /></div>
+            <span className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">CareFlow</span>
           </div>
 
           <div className="mb-8">
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Create Account</h1>
+            <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Create Account</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Patient self-registration · Free</p>
           </div>
 
@@ -184,14 +184,14 @@ const Register: React.FC = () => {
               <div key={i} className="flex-1">
                 <div className={cn('h-1.5 rounded-full transition-all duration-300',
                   i < step ? 'bg-emerald-500' : i === step ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700')} />
-                <p className={cn('text-[9px] font-black uppercase tracking-widest mt-1',
+                <p className={cn('text-[9px] font-semibold uppercase tracking-widest mt-1',
                   i === step ? 'text-blue-600' : 'text-slate-400')}>{s}</p>
               </div>
             ))}
           </div>
 
           {error && (
-            <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
+            <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
               <p className="text-sm font-bold text-red-600 dark:text-red-400">{error}</p>
             </div>
@@ -203,51 +203,51 @@ const Register: React.FC = () => {
               <motion.div key="step0" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">First Name</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">First Name</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input type="text" value={form.firstName} onChange={e => set('firstName', e.target.value)}
-                        placeholder="Jane" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                        placeholder="Jane" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Name</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Last Name</label>
                     <input type="text" value={form.lastName} onChange={e => set('lastName', e.target.value)}
-                      placeholder="Doe" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      placeholder="Doe" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
-                      placeholder="jane@example.com" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      placeholder="jane@example.com" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Phone</label>
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)}
-                      placeholder="+1 (555) 000-0000" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      placeholder="+1 (555) 000-0000" className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date of Birth</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Date of Birth</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input type="date" value={form.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gender</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Gender</label>
                     <select value={form.gender} onChange={e => set('gender', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                       <option value="other">Other</option>
@@ -265,13 +265,13 @@ const Register: React.FC = () => {
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                     <Droplets className="w-3.5 h-3.5" /> Blood Type
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {BLOOD_TYPES.map(bt => (
                       <button key={bt} onClick={() => set('bloodType', bt)}
-                        className={cn('px-4 py-2 rounded-xl text-xs font-black border-2 transition-all',
+                        className={cn('px-4 py-2 rounded-lg text-xs font-semibold border-2 transition-all',
                           form.bloodType === bt
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700'
                             : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-500 hover:border-blue-300')}>
@@ -282,11 +282,11 @@ const Register: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Allergies</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Allergies</label>
                   <div className="flex flex-wrap gap-2">
                     {COMMON_ALLERGIES.map(a => (
                       <button key={a} onClick={() => toggleChip('allergies', a)}
-                        className={cn('px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all',
+                        className={cn('px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all',
                           form.allergies.includes(a)
                             ? 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-600'
                             : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-500 hover:border-slate-300')}>
@@ -298,18 +298,18 @@ const Register: React.FC = () => {
                     <input type="text" value={customAllergy} onChange={e => setCustomAllergy(e.target.value)}
                       placeholder="Other allergy…"
                       onKeyDown={e => { if (e.key === 'Enter' && customAllergy.trim()) { toggleChip('allergies', customAllergy.trim()); setCustomAllergy(''); } }}
-                      className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500" />
                     <button onClick={() => { if (customAllergy.trim()) { toggleChip('allergies', customAllergy.trim()); setCustomAllergy(''); } }}
-                      className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all">Add</button>
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all">Add</button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Chronic Conditions</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Chronic Conditions</label>
                   <div className="flex flex-wrap gap-2">
                     {COMMON_CONDITIONS.map(c => (
                       <button key={c} onClick={() => toggleChip('chronicConditions', c)}
-                        className={cn('px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all',
+                        className={cn('px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all',
                           form.chronicConditions.includes(c)
                             ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20 text-amber-700'
                             : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-500 hover:border-slate-300')}>
@@ -321,9 +321,9 @@ const Register: React.FC = () => {
                     <input type="text" value={customCondition} onChange={e => setCustomCondition(e.target.value)}
                       placeholder="Other condition…"
                       onKeyDown={e => { if (e.key === 'Enter' && customCondition.trim()) { toggleChip('chronicConditions', customCondition.trim()); setCustomCondition(''); } }}
-                      className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500" />
                     <button onClick={() => { if (customCondition.trim()) { toggleChip('chronicConditions', customCondition.trim()); setCustomCondition(''); } }}
-                      className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all">Add</button>
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all">Add</button>
                   </div>
                 </div>
               </motion.div>
@@ -333,34 +333,34 @@ const Register: React.FC = () => {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Street Address</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Street Address</label>
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input type="text" value={form.address} onChange={e => set('address', e.target.value)}
                       placeholder="123 Main Street"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">City</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">City</label>
                   <input type="text" value={form.city} onChange={e => set('city', e.target.value)}
                     placeholder="New York"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                 </div>
 
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" /> Emergency Contact
                   </p>
                   <input type="text" value={form.emergencyContactName} onChange={e => set('emergencyContactName', e.target.value)}
                     placeholder="Contact full name"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input type="tel" value={form.emergencyContactPhone} onChange={e => set('emergencyContactPhone', e.target.value)}
                       placeholder="Contact phone number"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   </div>
                 </div>
               </motion.div>
@@ -370,18 +370,18 @@ const Register: React.FC = () => {
           {/* Navigation */}
           <div className="flex gap-3 mt-8">
             <button onClick={() => step === 0 ? navigate('/login') : setStep(s => s - 1)}
-              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
               <ChevronLeft className="w-4 h-4" />
               {step === 0 ? 'Sign In' : 'Back'}
             </button>
             {step < 2 ? (
               <button onClick={() => setStep(s => s + 1)} disabled={!canNext}
-                className="flex-2 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                className="flex-2 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 Next <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <button onClick={handleSubmit} disabled={saving || !canNext}
-                className="flex-2 py-3.5 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                className="flex-2 py-3.5 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</> : 'Create Account'}
               </button>
             )}
@@ -389,7 +389,7 @@ const Register: React.FC = () => {
 
           <p className="text-center text-xs text-slate-400 font-medium mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="font-black text-blue-600 hover:underline underline-offset-4">Sign in</Link>
+            <Link to="/login" className="font-semibold text-blue-600 hover:underline underline-offset-4">Sign in</Link>
           </p>
         </motion.div>
       </div>

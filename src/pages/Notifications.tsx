@@ -75,9 +75,9 @@ const Notifications: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Notifications</h1>
+            <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Notifications</h1>
             {unreadCount > 0 && (
-              <span className="px-2.5 py-0.5 bg-blue-600 text-white rounded-full text-xs font-black">
+              <span className="px-2.5 py-0.5 bg-blue-600 text-white rounded-full text-xs font-semibold">
                 {unreadCount}
               </span>
             )}
@@ -88,7 +88,7 @@ const Notifications: React.FC = () => {
         </div>
         {unreadCount > 0 && (
           <button onClick={markAllRead}
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all">
             <CheckCheck className="w-4 h-4" /> Mark All Read
           </button>
         )}
@@ -97,10 +97,10 @@ const Notifications: React.FC = () => {
       {/* Filter row */}
       <div className="flex flex-wrap gap-3">
         {/* Read/unread toggle */}
-        <div className="flex bg-slate-100 dark:bg-slate-800 rounded-2xl p-1 gap-1">
+        <div className="flex bg-slate-100 dark:bg-slate-800 rounded-md p-1 gap-1">
           {(['all', 'unread'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={cn('px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
+              className={cn('px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
                 filter === f ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500')}>
               {f === 'all' ? 'All' : `Unread${unreadCount > 0 ? ` (${unreadCount})` : ''}`}
             </button>
@@ -109,7 +109,7 @@ const Notifications: React.FC = () => {
 
         {/* Type filter */}
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value as NotificationType | 'all')}
-          className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
+          className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-xs font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
           <option value="all">All Types</option>
           {(Object.keys(TYPE_CFG) as NotificationType[]).map(t => (
             <option key={t} value={t}>{TYPE_CFG[t].label}</option>
@@ -118,7 +118,7 @@ const Notifications: React.FC = () => {
 
         {typeFilter !== 'all' && (
           <button onClick={() => setTypeFilter('all')}
-            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
             <X className="w-3.5 h-3.5" /> Clear
           </button>
         )}
@@ -126,7 +126,7 @@ const Notifications: React.FC = () => {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
+        <div className="glass-card p-16 rounded-lg text-center">
           <Bell className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">
             {filter === 'unread' ? 'All caught up!' : 'No notifications yet'}
@@ -145,17 +145,17 @@ const Notifications: React.FC = () => {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.03 }}
                   className={cn(
-                    'glass-card rounded-2xl p-4 flex items-start gap-4 transition-all',
+                    'glass-card rounded-md p-4 flex items-start gap-4 transition-all',
                     !n.read && 'ring-2 ring-blue-500/20 bg-blue-50/30 dark:bg-blue-900/10'
                   )}
                 >
-                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', cfg.bg)}>
+                  <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', cfg.bg)}>
                     <cfg.icon className={cn('w-5 h-5', cfg.text)} />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className={cn('text-sm font-black leading-snug', n.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white')}>
+                      <p className={cn('text-sm font-semibold leading-snug', n.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white')}>
                         {n.title}
                       </p>
                       <div className="flex items-center gap-1 shrink-0">
@@ -173,7 +173,7 @@ const Notifications: React.FC = () => {
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-relaxed">{n.message}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cfg.bg, cfg.text)}>
+                      <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cfg.bg, cfg.text)}>
                         {cfg.label}
                       </span>
                       <span className="text-[10px] text-slate-400 font-bold">{fmtRelative(n.createdAt)}</span>

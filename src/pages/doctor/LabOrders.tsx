@@ -158,15 +158,15 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={() => !saving && onClose()}>
         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-lg  overflow-hidden max-h-[92vh] flex flex-col"
           onClick={e => e.stopPropagation()}>
 
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white">New Lab Order</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white">New Lab Order</h3>
               <p className="text-xs text-slate-400 font-bold mt-0.5">Order diagnostic tests for a patient</p>
             </div>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
               <X className="w-4 h-4 text-slate-400" />
             </button>
           </div>
@@ -175,20 +175,20 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
 
             {/* Patient search */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Patient</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input type="text" value={patientSearch}
                   onChange={e => { setPatientSearch(e.target.value); if (!e.target.value) { setPatientId(''); setPatient(null); } }}
                   placeholder="Search patient..."
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
               </div>
               {patientSearch && !patient && filteredPatients.length > 0 && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
+                <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                   {filteredPatients.map(p => (
                     <button key={p.id} onClick={() => setPatientId(p.id)}
                       className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-                      <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xs font-black shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xs font-semibold shrink-0">
                         {p.firstName[0]}{p.lastName[0]}
                       </div>
                       {p.firstName} {p.lastName}
@@ -198,12 +198,12 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
                 </div>
               )}
               {patient && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-xs shrink-0">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs shrink-0">
                     {patient.firstName[0]}{patient.lastName[0]}
                   </div>
                   <div>
-                    <p className="font-black text-slate-900 dark:text-white text-sm">{patient.firstName} {patient.lastName}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm">{patient.firstName} {patient.lastName}</p>
                     <p className="text-xs text-slate-400 font-bold">{patient.patientNumber}</p>
                   </div>
                 </div>
@@ -213,9 +213,9 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
             {/* Appointment link */}
             {aptOptions.length > 0 && (
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Link to Appointment (optional)</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Link to Appointment (optional)</label>
                 <select value={aptId} onChange={e => setAptId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                   <option value="">No link</option>
                   {aptOptions.map(a => (
                     <option key={a.id} value={a.id}>{a.date} — {a.type.replace('_', ' ')} ({a.status})</option>
@@ -226,16 +226,16 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
 
             {/* Test selection */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tests</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Tests</label>
               <div className="relative">
                 <FlaskConical className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input type="text" value={testSearch} onChange={e => setTestSearch(e.target.value)}
                   placeholder="Search or type a test name..."
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
               </div>
 
               {testSearch && filteredTests.length > 0 && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-md">
+                <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                   {filteredTests.map(t => (
                     <button key={t} onClick={() => { toggleTest(t); setTestSearch(''); }}
                       className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -254,7 +254,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
               {selectedTests.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {selectedTests.map(t => (
-                    <span key={t} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold">
+                    <span key={t} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
                       {t}
                       <button onClick={() => toggleTest(t)} className="hover:text-red-500 transition-colors"><X className="w-3 h-3" /></button>
                     </span>
@@ -265,12 +265,12 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
 
             {/* Priority */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Priority</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Priority</label>
               <div className="flex gap-2">
                 {(['routine', 'urgent', 'stat'] as const).map(p => (
                   <button key={p} onClick={() => setPriority(p)}
                     className={cn(
-                      'flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2',
+                      'flex-1 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all border-2',
                       priority === p
                         ? p === 'stat' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600'
                           : p === 'urgent' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20 text-amber-600'
@@ -286,20 +286,20 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
 
             {/* Notes */}
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Notes</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Clinical Notes</label>
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                 placeholder="Clinical context or special instructions..."
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none resize-none font-medium" />
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none resize-none font-medium" />
             </div>
           </div>
 
           <div className="px-6 pb-6 flex gap-3 shrink-0 border-t border-slate-100 dark:border-slate-800 pt-4">
             <button onClick={onClose} disabled={saving}
-              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
               Cancel
             </button>
             <button onClick={handleSubmit} disabled={saving || !patientId || selectedTests.length === 0}
-              className="flex-2 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              className="flex-2 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Ordering...</> : 'Place Order'}
             </button>
           </div>
@@ -367,15 +367,15 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, do
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => !saving && onClose()}>
           <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-lg  overflow-hidden max-h-[92vh] flex flex-col"
             onClick={e => e.stopPropagation()}>
 
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div>
-                <h3 className="font-black text-slate-900 dark:text-white">Enter Results</h3>
+                <h3 className="font-semibold text-slate-900 dark:text-white">Enter Results</h3>
                 <p className="text-xs text-slate-400 font-bold mt-0.5">{order.labNumber} · {order.tests.length} test{order.tests.length !== 1 ? 's' : ''}</p>
               </div>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                 <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
@@ -383,30 +383,30 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, do
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
               {/* Column headers */}
               <div className="grid grid-cols-12 gap-2 px-1">
-                <div className="col-span-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Test</div>
-                <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Value</div>
-                <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Unit</div>
-                <div className="col-span-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Reference</div>
-                <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Flag</div>
+                <div className="col-span-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Test</div>
+                <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Value</div>
+                <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Unit</div>
+                <div className="col-span-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Reference</div>
+                <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Flag</div>
               </div>
 
               {results.map((r, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                <div key={i} className="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
                   <div className="col-span-3">
-                    <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{r.testName}</p>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-white leading-tight">{r.testName}</p>
                   </div>
                   <input type="text" value={r.value} onChange={e => updateResult(i, 'value', e.target.value)}
                     placeholder="e.g. 120"
-                    className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
+                    className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
                   <input type="text" value={r.unit} onChange={e => updateResult(i, 'unit', e.target.value)}
                     placeholder="e.g. mg/dL"
-                    className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   <input type="text" value={r.referenceRange} onChange={e => updateResult(i, 'referenceRange', e.target.value)}
                     placeholder="e.g. 70-100"
-                    className="col-span-3 px-3 py-2 bg-white dark:bg-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    className="col-span-3 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                   <select value={r.flag} onChange={e => updateResult(i, 'flag', e.target.value)}
                     className={cn(
-                      'col-span-2 px-2 py-2 rounded-xl text-xs font-black outline-none cursor-pointer',
+                      'col-span-2 px-2 py-2 rounded-lg text-xs font-semibold outline-none cursor-pointer',
                       r.flag === 'normal' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700'
                         : r.flag === 'abnormal' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700'
                         : 'bg-red-50 dark:bg-red-900/30 text-red-700'
@@ -421,11 +421,11 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, do
 
             <div className="px-6 pb-6 flex gap-3 shrink-0 border-t border-slate-100 dark:border-slate-800 pt-4">
               <button onClick={onClose} disabled={saving}
-                className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+                className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
                 Cancel
               </button>
               <button onClick={handleSave} disabled={saving || !canSave}
-                className="flex-2 py-3.5 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                className="flex-2 py-3.5 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : 'Save Results'}
               </button>
             </div>
@@ -453,24 +453,24 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, patient, expanded, onToggl
   const hasAbnormal = order.results?.some(r => r.flag === 'abnormal');
 
   return (
-    <div className="glass-card rounded-3xl overflow-hidden">
-      <button className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all" onClick={onToggle}>
+    <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
+      <button className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors" onClick={onToggle}>
         <div className="flex items-center gap-4 min-w-0 flex-1">
-          <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center shrink-0', cfg.bg)}>
+          <div className={cn('w-10 h-10 rounded-md flex items-center justify-center shrink-0', cfg.bg)}>
             <cfg.icon className={cn('w-5 h-5', cfg.text)} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-black text-slate-900 dark:text-white">{order.labNumber}</p>
-              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cfg.bg, cfg.text)}>{cfg.label}</span>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{order.labNumber}</p>
+              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cfg.bg, cfg.text)}>{cfg.label}</span>
               {order.priority !== 'routine' && (
-                <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1',
+                <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase flex items-center gap-1',
                   order.priority === 'stat' ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600')}>
                   {order.priority === 'stat' && <Zap className="w-2.5 h-2.5" />}{order.priority}
                 </span>
               )}
-              {hasCritical && <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-red-50 dark:bg-red-900/20 text-red-600">Critical Values</span>}
-              {!hasCritical && hasAbnormal && <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600">Abnormal</span>}
+              {hasCritical && <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-red-50 dark:bg-red-900/20 text-red-600">Critical Values</span>}
+              {!hasCritical && hasAbnormal && <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600">Abnormal</span>}
             </div>
             <p className="text-xs text-slate-400 font-bold truncate">
               {patient ? `${patient.firstName} ${patient.lastName}` : '—'} · {order.tests.length} test{order.tests.length !== 1 ? 's' : ''} · {fmtDateTime(order.orderedAt)}
@@ -490,32 +490,32 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, patient, expanded, onToggl
               {/* Tests list */}
               <div className="flex flex-wrap gap-2">
                 {order.tests.map(t => (
-                  <span key={t} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold">{t}</span>
+                  <span key={t} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold">{t}</span>
                 ))}
               </div>
 
               {order.notes && (
-                <p className="text-xs text-slate-500 italic bg-slate-50 dark:bg-slate-800 px-4 py-3 rounded-xl">{order.notes}</p>
+                <p className="text-xs text-slate-500 italic bg-slate-50 dark:bg-slate-800 px-4 py-3 rounded-lg">{order.notes}</p>
               )}
 
               {/* Results table */}
               {order.results && order.results.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Results</p>
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Results</p>
                   <div className="space-y-1.5">
                     {order.results.map((r, i) => {
                       const fc = FLAG_CFG[r.flag];
                       return (
-                        <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                        <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
                           <div className="min-w-0">
-                            <p className="text-xs font-black text-slate-900 dark:text-white">{r.testName}</p>
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white">{r.testName}</p>
                             <p className="text-xs text-slate-400 font-medium mt-0.5">
                               Ref: {r.referenceRange || '—'}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-sm font-black text-slate-900 dark:text-white">{r.value} {r.unit}</span>
-                            <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', fc.bg, fc.text)}>{fc.label}</span>
+                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{r.value} {r.unit}</span>
+                            <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', fc.bg, fc.text)}>{fc.label}</span>
                           </div>
                         </div>
                       );
@@ -532,18 +532,18 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, patient, expanded, onToggl
                 <div className="flex gap-3 pt-1">
                   {order.status !== 'processing' && cfg.next && (
                     <button onClick={() => onAdvance(order)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-blue-700 transition-all">
                       <ArrowRight className="w-4 h-4" /> {cfg.nextLabel}
                     </button>
                   )}
                   {order.status === 'processing' && (
                     <button onClick={() => onEnterResults(order)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-emerald-700 transition-all">
                       <CheckCircle2 className="w-4 h-4" /> Enter Results
                     </button>
                   )}
                   <button onClick={() => onAdvance({ ...order, status: 'cancelled' })}
-                    className="px-5 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all">
+                    className="px-5 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all">
                     Cancel
                   </button>
                 </div>
@@ -616,36 +616,36 @@ const LabOrders: React.FC = () => {
       <ResultsModal order={resultsTarget} onClose={() => setResultsTarget(null)} onSaved={loadData} doctorId={user!.id} />
 
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Lab Orders</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Order tests and manage diagnostic results</p>
+          <h1 className="text-[15px] font-semibold text-slate-800 dark:text-white">Lab Orders</h1>
+          <p className="text-[13px] text-slate-400 mt-0.5">Order tests and manage diagnostic results</p>
         </div>
         <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start">
-          <Plus className="w-5 h-5" /> New Order
+          className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 text-white text-[13px] font-medium rounded hover:bg-blue-700 transition-colors self-start">
+          <Plus className="w-3.5 h-3.5" /> New Order
         </button>
-      </motion.div>
+      </div>
 
       {/* Stats */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Orders', value: stats.total, icon: FlaskConical, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
           { label: 'In Progress', value: stats.pending, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
           { label: 'Completed', value: stats.completed, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
           { label: 'Critical Values', value: stats.critical, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
-              <s.icon className={cn('w-5 h-5', s.color)} />
+          <div key={s.label} className="border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-4 rounded-lg flex items-center gap-4">
+            <div className={cn('w-9 h-9 rounded flex items-center justify-center shrink-0', s.bg)}>
+              <s.icon className={cn('w-4 h-4', s.color)} />
             </div>
             <div>
-              <p className="text-lg font-black text-slate-900 dark:text-white">{s.value}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+              <p className="text-[17px] font-semibold text-slate-800 dark:text-white">{s.value}</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
@@ -653,10 +653,10 @@ const LabOrders: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search patient, order number or test..."
-            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
         </div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as LabTestStatus | 'all')}
-          className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
+          className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
           <option value="all">All Statuses</option>
           {(Object.keys(STATUS_CFG) as LabTestStatus[]).map(s => (
             <option key={s} value={s}>{STATUS_CFG[s].label}</option>
@@ -664,7 +664,7 @@ const LabOrders: React.FC = () => {
         </select>
         {(search || statusFilter !== 'all') && (
           <button onClick={() => { setSearch(''); setStatusFilter('all'); }}
-            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
+            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
             <X className="w-4 h-4" /> Clear
           </button>
         )}
@@ -672,9 +672,9 @@ const LabOrders: React.FC = () => {
 
       {/* Orders list */}
       {filtered.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
-          <FlaskConical className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-400 font-bold">No lab orders found</p>
+        <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 p-16 text-center">
+          <FlaskConical className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+          <p className="text-[13px] text-slate-400">No lab orders found</p>
         </div>
       ) : (
         <div className="space-y-3">

@@ -2,9 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { Role } from '@/types/auth';
 import type { User, AuthState } from '@/types/auth';
 import { KEYS } from '@/lib/storage';
-import { login as apiLogin, getMe, logout as apiLogout } from '@/lib/services';
+import { login as apiLogin, getMe } from '@/lib/services';
 import { getToken, setToken, ApiError } from '@/lib/api';
-import { syncAll } from '@/lib/dataSync';
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;
@@ -45,26 +44,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     init();
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setToken('');
+      localStorage.removeItem(KEYS.USER);
+      setState({ user: null, isAuthenticated: false, isLoading: false });
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
   const login = useCallback(async (username: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true }));
 
     try {
       const result = await apiLogin(username, password);
+      setToken(result.token);
       localStorage.setItem(KEYS.USER, JSON.stringify(result.user));
       setState({ user: result.user, isAuthenticated: true, isLoading: false });
-      syncAll();
       return;
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }));
-      if (err instanceof ApiError) {
-        throw new Error(err.message || 'Invalid credentials');
+      if (err instanceof ApiError && err.status === 401) {
+        throw new Error('Invalid username or password.');
       }
-      throw new Error('Cannot reach server. Make sure the backend is running on port 3000.');
+      if (err instanceof ApiError) {
+        throw new Error(err.message);
+      }
+      throw new Error('Cannot reach the server. Please make sure the backend is running.');
     }
   }, []);
 
   const logout = useCallback(() => {
-    apiLogout();
+    setToken('');
     localStorage.removeItem(KEYS.USER);
     setState({ user: null, isAuthenticated: false, isLoading: false });
   }, []);

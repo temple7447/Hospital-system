@@ -151,19 +151,19 @@ const AddVitalsModal: React.FC<AddVitalsModalProps> = ({ open, patientId, doctor
         onClick={() => !saving && onClose()}
       >
         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden"
+          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-lg  overflow-hidden"
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="font-black text-slate-900 dark:text-white">Record Vitals</h3>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Record Vitals</h3>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 gap-3">
               {fields.map(f => (
                 <div key={f.key} className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{f.label}</label>
-                  <div className="flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{f.label}</label>
+                  <div className="flex items-center bg-slate-50 dark:bg-slate-800 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
                     <input
                       type="number"
                       value={form[f.key]}
@@ -171,14 +171,14 @@ const AddVitalsModal: React.FC<AddVitalsModalProps> = ({ open, patientId, doctor
                       placeholder={f.placeholder}
                       className="flex-1 px-3 py-2.5 bg-transparent text-sm outline-none font-bold text-slate-900 dark:text-white"
                     />
-                    <span className="px-2 text-[10px] font-black text-slate-400 border-l border-slate-200 dark:border-slate-700 py-2.5">{f.unit}</span>
+                    <span className="px-2 text-[10px] font-semibold text-slate-400 border-l border-slate-200 dark:border-slate-700 py-2.5">{f.unit}</span>
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex gap-3 mt-5">
-              <button onClick={onClose} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
-              <button onClick={handleSave} disabled={saving} className="flex-2 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              <button onClick={onClose} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+              <button onClick={handleSave} disabled={saving} className="flex-2 py-3 bg-blue-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : 'Save Vitals'}
               </button>
             </div>
@@ -239,19 +239,19 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
         onClick={() => !saving && onClose()}
       >
         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-lg  overflow-hidden max-h-[90vh] flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
-            <h3 className="font-black text-slate-900 dark:text-white">Add Consultation Note (SOAP)</h3>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Add Consultation Note (SOAP)</h3>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
           </div>
           <div className="p-6 space-y-4 overflow-y-auto">
             {linked.length > 0 && (
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Link to Appointment (optional)</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Link to Appointment (optional)</label>
                 <select value={aptId} onChange={e => setAptId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                   <option value="">No appointment link</option>
                   {linked.map(a => (
                     <option key={a.id} value={a.id}>{a.date} · {fmtTime(a.time)} — {a.type.replace('_', ' ')}</option>
@@ -266,7 +266,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
               { key: 'plan',        label: 'P — Plan',        placeholder: 'Treatment plan, medications, follow-up, referrals...' },
             ] as const).map(({ key, label, placeholder, required }) => (
               <div key={key} className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   {label} {required && <span className="text-red-400">*</span>}
                 </label>
                 <textarea
@@ -274,14 +274,14 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
                   onChange={e => setSoap(s => ({ ...s, [key]: e.target.value }))}
                   placeholder={placeholder}
                   rows={2}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 dark:text-slate-300"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none resize-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 dark:text-slate-300"
                 />
               </div>
             ))}
           </div>
           <div className="px-6 pb-6 flex gap-3 shrink-0">
-            <button onClick={onClose} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
-            <button onClick={handleSave} disabled={saving} className="flex-2 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+            <button onClick={onClose} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+            <button onClick={handleSave} disabled={saving} className="flex-2 py-3 bg-blue-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
               {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : 'Save Note'}
             </button>
           </div>
@@ -379,22 +379,22 @@ const PatientRecord: React.FC = () => {
           <ArrowLeft className="w-4 h-4" /> Back to Patients
         </button>
 
-        <div className="glass-card p-6 rounded-3xl">
+        <div className="glass-card p-6 rounded-lg">
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             {/* Avatar + basic */}
             <div className="flex items-start gap-5">
-              <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-black shadow-xl shadow-blue-500/25 shrink-0">
+              <div className="w-20 h-20 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-semibold  shadow-blue-500/25 shrink-0">
                 {getInitials(patient.firstName, patient.lastName)}
               </div>
               <div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white">{patient.firstName} {patient.lastName}</h1>
-                <p className="text-sm text-blue-600 font-black">{patient.patientNumber}</p>
+                <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">{patient.firstName} {patient.lastName}</h1>
+                <p className="text-sm text-blue-600 font-semibold">{patient.patientNumber}</p>
                 <div className="flex flex-wrap items-center gap-3 mt-2">
-                  <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-black text-slate-500 uppercase tracking-wider">{age} yrs · {patient.gender}</span>
-                  <span className={cn('px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider', patient.bloodType === 'unknown' ? 'bg-slate-100 text-slate-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600')}>
+                  <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-500 uppercase tracking-wider">{age} yrs · {patient.gender}</span>
+                  <span className={cn('px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider', patient.bloodType === 'unknown' ? 'bg-slate-100 text-slate-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600')}>
                     {patient.bloodType}
                   </span>
-                  <span className={cn('px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider', patient.status === 'active' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-slate-100 text-slate-400')}>
+                  <span className={cn('px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider', patient.status === 'active' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-slate-100 text-slate-400')}>
                     {patient.status}
                   </span>
                 </div>
@@ -410,10 +410,10 @@ const PatientRecord: React.FC = () => {
                   { icon: Thermometer, label: 'Temp', value: latestVitals.temperature, unit: '°C', color: 'text-amber-500' },
                   { icon: Droplets, label: 'SpO₂', value: latestVitals.oxygenSaturation, unit: '%', color: 'text-cyan-500' },
                 ].map(v => (
-                  <div key={v.label} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-center">
+                  <div key={v.label} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md text-center">
                     <v.icon className={cn('w-4 h-4 mx-auto mb-1', v.color)} />
-                    <p className="text-sm font-black text-slate-900 dark:text-white">{v.value}</p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase">{v.unit}</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{v.value}</p>
+                    <p className="text-[9px] font-semibold text-slate-400 uppercase">{v.unit}</p>
                   </div>
                 ))}
               </div>
@@ -424,19 +424,19 @@ const PatientRecord: React.FC = () => {
           <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => navigate(`/doctor/prescription/new?patientId=${patient.id}`)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition-all"
             >
               <Pill className="w-4 h-4" /> Write Prescription
             </button>
             <button
               onClick={() => setShowNoteModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-black hover:bg-slate-200 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-all"
             >
               <ClipboardList className="w-4 h-4" /> Add Note
             </button>
             <button
               onClick={() => setShowVitalsModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-black hover:bg-slate-200 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-all"
             >
               <Activity className="w-4 h-4" /> Record Vitals
             </button>
@@ -445,13 +445,13 @@ const PatientRecord: React.FC = () => {
       </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl w-fit">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-md w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
               activeTab === t.id ? 'bg-white dark:bg-slate-900 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             )}
           >
@@ -467,8 +467,8 @@ const PatientRecord: React.FC = () => {
           <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left: personal + medical */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Personal Information</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Personal Information</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { icon: Calendar, label: 'Date of Birth', value: `${fmtDate(patient.dateOfBirth)} (${age} yrs)` },
@@ -478,11 +478,11 @@ const PatientRecord: React.FC = () => {
                     { icon: MapPin, label: 'Address', value: `${patient.address}, ${patient.city}` },
                   ].map(({ icon: Icon, label, value }) => (
                     <div key={label} className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0">
                         <Icon className="w-4 h-4 text-slate-400" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{label}</p>
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
                         <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">{value}</p>
                       </div>
                     </div>
@@ -490,27 +490,27 @@ const PatientRecord: React.FC = () => {
                 </div>
               </div>
 
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Medical Information</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Medical Information</h3>
                 <div className="space-y-4">
                   {patient.allergies.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3 text-red-400" /> Allergies
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {patient.allergies.map(a => (
-                          <span key={a} className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl text-xs font-black">{a}</span>
+                          <span key={a} className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg text-xs font-semibold">{a}</span>
                         ))}
                       </div>
                     </div>
                   )}
                   {patient.chronicConditions.length > 0 && (
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Chronic Conditions</p>
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Chronic Conditions</p>
                       <div className="flex flex-wrap gap-2">
                         {patient.chronicConditions.map(c => (
-                          <span key={c} className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 rounded-xl text-xs font-black">{c}</span>
+                          <span key={c} className="px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 rounded-lg text-xs font-semibold">{c}</span>
                         ))}
                       </div>
                     </div>
@@ -518,12 +518,12 @@ const PatientRecord: React.FC = () => {
                   {patient.insuranceProvider && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Insurance Provider</p>
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Insurance Provider</p>
                         <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{patient.insuranceProvider}</p>
                       </div>
                       {patient.insuranceNumber && (
                         <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Policy Number</p>
+                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Policy Number</p>
                           <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{patient.insuranceNumber}</p>
                         </div>
                       )}
@@ -536,8 +536,8 @@ const PatientRecord: React.FC = () => {
               </div>
 
               {/* Recent appointments */}
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Recent Visits</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Recent Visits</h3>
                 {appointments.length === 0 ? (
                   <p className="text-sm text-slate-400">No appointments yet</p>
                 ) : (
@@ -545,7 +545,7 @@ const PatientRecord: React.FC = () => {
                     {appointments.slice(0, 5).map(apt => {
                       const doc = allStaff.find(s => s.id === apt.doctorId);
                       return (
-                        <div key={apt.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                        <div key={apt.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md">
                           <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-blue-600 mt-0.5 shrink-0" />
                             <div>
@@ -553,7 +553,7 @@ const PatientRecord: React.FC = () => {
                               <p className="text-[10px] text-slate-400 font-bold">{doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'} · {apt.type.replace('_', ' ')}</p>
                             </div>
                           </div>
-                          <span className={cn('px-2 py-1 rounded-lg text-[9px] font-black uppercase', STATUS_CLR[apt.status] || 'bg-slate-100 text-slate-500')}>
+                          <span className={cn('px-2 py-1 rounded-lg text-[9px] font-semibold uppercase', STATUS_CLR[apt.status] || 'bg-slate-100 text-slate-500')}>
                             {apt.status.replace('_', ' ')}
                           </span>
                         </div>
@@ -566,8 +566,8 @@ const PatientRecord: React.FC = () => {
 
             {/* Right: emergency + assigned doctor */}
             <div className="space-y-6">
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Emergency Contact</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Emergency Contact</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <User className="w-4 h-4 text-slate-400" />
@@ -581,14 +581,14 @@ const PatientRecord: React.FC = () => {
               </div>
 
               {assignedDoc && (
-                <div className="glass-card p-6 rounded-3xl">
-                  <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Assigned Doctor</h3>
+                <div className="glass-card p-6 rounded-lg">
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Assigned Doctor</h3>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black shadow-md shadow-blue-500/20">
+                    <div className="w-12 h-12 rounded-md bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm shadow-blue-500/20">
                       {getInitials(assignedDoc.firstName, assignedDoc.lastName)}
                     </div>
                     <div>
-                      <p className="font-black text-slate-900 dark:text-white">Dr. {assignedDoc.firstName} {assignedDoc.lastName}</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">Dr. {assignedDoc.firstName} {assignedDoc.lastName}</p>
                       <p className="text-xs text-blue-600 font-bold mt-0.5">{assignedDoc.specialization || 'General'}</p>
                       {dept && <p className="text-[10px] text-slate-400 font-bold">{dept.name}</p>}
                     </div>
@@ -596,8 +596,8 @@ const PatientRecord: React.FC = () => {
                 </div>
               )}
 
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Record Summary</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Record Summary</h3>
                 <div className="space-y-3">
                   {[
                     { label: 'Total Visits', value: appointments.filter(a => a.status === 'completed').length },
@@ -608,7 +608,7 @@ const PatientRecord: React.FC = () => {
                   ].map(({ label, value }) => (
                     <div key={label} className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-400">{label}</span>
-                      <span className="text-sm font-black text-slate-900 dark:text-white">{value}</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -622,14 +622,14 @@ const PatientRecord: React.FC = () => {
           <motion.div key="vitals" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
             <div className="flex items-center justify-between">
               <p className="text-sm font-bold text-slate-500">{vitals.length} record{vitals.length !== 1 ? 's' : ''}</p>
-              <button onClick={() => setShowVitalsModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all">
+              <button onClick={() => setShowVitalsModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-all">
                 <Plus className="w-4 h-4" /> Record Vitals
               </button>
             </div>
 
             {vitals.length >= 2 && (
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-6">Blood Pressure & Heart Rate</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-6">Blood Pressure & Heart Rate</h3>
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
@@ -646,18 +646,18 @@ const PatientRecord: React.FC = () => {
             )}
 
             {vitals.length === 0 ? (
-              <div className="glass-card p-16 rounded-3xl text-center">
+              <div className="glass-card p-16 rounded-lg text-center">
                 <Activity className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-400 font-bold">No vitals recorded yet</p>
               </div>
             ) : (
-              <div className="glass-card rounded-3xl overflow-hidden">
+              <div className="glass-card rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800">
                         {['Date', 'BP', 'HR', 'Temp', 'Weight', 'Height', 'SpO₂', 'RR'].map(h => (
-                          <th key={h} className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                          <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -689,14 +689,14 @@ const PatientRecord: React.FC = () => {
               <p className="text-sm font-bold text-slate-500">{prescriptions.length} prescription{prescriptions.length !== 1 ? 's' : ''}</p>
               <button
                 onClick={() => navigate(`/doctor/prescription/new?patientId=${patient.id}`)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-all"
               >
                 <Plus className="w-4 h-4" /> Write Prescription
               </button>
             </div>
 
             {prescriptions.length === 0 ? (
-              <div className="glass-card p-16 rounded-3xl text-center">
+              <div className="glass-card p-16 rounded-lg text-center">
                 <Pill className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-400 font-bold">No prescriptions yet</p>
               </div>
@@ -705,17 +705,17 @@ const PatientRecord: React.FC = () => {
                 const doc = allStaff.find(s => s.id === rx.doctorId);
                 const expanded = expandedRxId === rx.id;
                 return (
-                  <div key={rx.id} className="glass-card rounded-3xl overflow-hidden">
+                  <div key={rx.id} className="glass-card rounded-lg overflow-hidden">
                     <button
                       className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all"
                       onClick={() => setExpandedRxId(expanded ? null : rx.id)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={cn('px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider', rx.status === 'active' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400')}>
+                        <div className={cn('px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider', rx.status === 'active' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400')}>
                           {rx.status}
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-slate-900 dark:text-white">{rx.prescriptionNumber}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{rx.prescriptionNumber}</p>
                           <p className="text-xs text-slate-400 font-bold">{fmtDate(rx.createdAt)} · {rx.items.length} medicine{rx.items.length !== 1 ? 's' : ''} · {doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'}</p>
                         </div>
                       </div>
@@ -726,15 +726,15 @@ const PatientRecord: React.FC = () => {
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
                             <div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Diagnosis</p>
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Diagnosis</p>
                               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{rx.diagnosis}</p>
                             </div>
                             <div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Medicines</p>
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Medicines</p>
                               <div className="space-y-2">
                                 {rx.items.map((item, i) => (
-                                  <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                    <p className="text-sm font-black text-slate-900 dark:text-white">{item.medicine}</p>
+                                  <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.medicine}</p>
                                     <p className="text-xs text-slate-500 mt-0.5">{item.dosage} · {item.frequency} · {item.duration}</p>
                                     {item.instructions && <p className="text-xs text-blue-600 mt-0.5 italic">{item.instructions}</p>}
                                   </div>
@@ -743,11 +743,11 @@ const PatientRecord: React.FC = () => {
                             </div>
                             <div className="flex gap-6">
                               <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Issued</p>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Issued</p>
                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{fmtDate(rx.createdAt)}</p>
                               </div>
                               <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expires</p>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Expires</p>
                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{fmtDate(rx.expiresAt)}</p>
                               </div>
                             </div>
@@ -767,13 +767,13 @@ const PatientRecord: React.FC = () => {
           <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-bold text-slate-500">{notes.length} note{notes.length !== 1 ? 's' : ''}</p>
-              <button onClick={() => setShowNoteModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all">
+              <button onClick={() => setShowNoteModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-all">
                 <Plus className="w-4 h-4" /> Add Note
               </button>
             </div>
 
             {notes.length === 0 ? (
-              <div className="glass-card p-16 rounded-3xl text-center">
+              <div className="glass-card p-16 rounded-lg text-center">
                 <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-400 font-bold">No consultation notes yet</p>
               </div>
@@ -782,17 +782,17 @@ const PatientRecord: React.FC = () => {
                 const doc = allStaff.find(s => s.id === note.doctorId);
                 const expanded = expandedNoteId === note.id;
                 return (
-                  <div key={note.id} className="glass-card rounded-3xl overflow-hidden">
+                  <div key={note.id} className="glass-card rounded-lg overflow-hidden">
                     <button
                       className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all"
                       onClick={() => setExpandedNoteId(expanded ? null : note.id)}
                     >
                       <div className="flex items-center gap-4 text-left">
-                        <div className="w-10 h-10 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-md bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
                           <FileText className="w-5 h-5 text-violet-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-black text-slate-900 dark:text-white">{fmtDate(note.createdAt)}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{fmtDate(note.createdAt)}</p>
                           <p className="text-xs text-slate-400 font-bold">{doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'} · {note.assessment.slice(0, 60)}{note.assessment.length > 60 ? '...' : ''}</p>
                         </div>
                       </div>
@@ -808,8 +808,8 @@ const PatientRecord: React.FC = () => {
                               { label: 'A — Assessment', value: note.assessment, color: 'border-amber-400' },
                               { label: 'P — Plan', value: note.plan, color: 'border-violet-400' },
                             ].map(({ label, value, color }) => (
-                              <div key={label} className={cn('p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border-l-4', color)}>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{label}</p>
+                              <div key={label} className={cn('p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border-l-4', color)}>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
                                 <p className="text-sm text-slate-700 dark:text-slate-300">{value || <span className="text-slate-300 italic">Not recorded</span>}</p>
                               </div>
                             ))}

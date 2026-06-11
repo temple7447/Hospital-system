@@ -1,24 +1,59 @@
 {
   "permissions": {
     "allow": [
+      "Read(//Users/temple/Documents/System/Hospital-backend/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/migrations/**)",
       "Read(//Users/temple/Documents/System/Hospital-backend/src/routes/**)",
       "Read(//Users/temple/Documents/System/Hospital-backend/src/config/**)",
-      "Read(//Users/temple/Documents/System/Hospital-backend/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/controllers/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/models/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/middleware/**)",
+      "Read(//Users/temple/Documents/System/Hospital-backend/src/utils/**)",
+      "Write(//Users/temple/Documents/System/Hospital-backend/**)",
+      "Write(//Users/temple/Documents/System/Hospital-backend/src/**)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(npm install)",
+      "Bash(npm run dev)",
+      "Bash(npm run start)",
+      "Bash(npm run migrate)",
+      "Bash(npm run seed)",
       "Bash(node migrations/run.js)",
       "Bash(node seed.js)",
-      "Bash(node -e ' *)",
       "Bash(node src/index.js)",
-      "Bash(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(npx prisma migrate dev)",
+      "Bash(npx prisma generate)",
+      "Bash(npx prisma studio)",
+      "Bash(npx prisma db push)",
+      "Bash(npx vite dev)",
+      "Bash(npx vite build)",
+      "Bash(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin123\"}' -w '\\nHTTP %{http_code}')",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(curl -s -X OPTIONS http://localhost:3000/* -H 'Origin: http://localhost:5173' -v)",
       "Bash(kill %1)",
+      "Bash(pkill -f 'node src/index.js')",
+      "Bash(pkill -f 'vite')",
       "Bash(mkdir -p /tmp/careflow-work)",
-      "Bash(export CLAUDE_CODE_TMPDIR)",
-      "Bash(echo \"set\")",
-      "Bash(curl -s -X POST http://localhost:3000/auth/login -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{\"username\":\"admin\",\"password\":\"admin123\"}' -w '\\\\nHTTP %{http_code}')",
-      "Bash(npx vite *)"
+      "Bash(ls -la /Users/temple/Documents/System/Hospital-backend)",
+      "Bash(ls -la src/routes src/controllers src/models)",
+      "Bash(export CLAUDE_CODE_TMPDIR=/tmp/careflow-work)",
+      "Bash(echo $CLAUDE_CODE_TMPDIR)",
+      "Bash(node -e ' *)"
     ],
     "additionalDirectories": [
+      "/Users/temple/Documents/System/Hospital-backend",
+      "/Users/temple/Documents/System/Hospital-backend/src",
       "/Users/temple/Documents/System/Hospital-backend/migrations",
-      "/Users/temple/Documents/System/Hospital-backend"
+      "/Users/temple/Documents/System/Hospital-backend/prisma",
+      "/tmp/careflow-work"
+    ],
+    "tools": [
+      "bash",
+      "read_file",
+      "write_file",
+      "list_dir",
+      "edit_file"
     ]
   }
 }

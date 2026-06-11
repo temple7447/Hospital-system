@@ -91,17 +91,17 @@ const LogEntry: React.FC<LogEntryProps> = ({ log, actorName, actorRole }) => {
   return (
     <div className="flex items-start gap-4 py-3.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
       {/* Action icon */}
-      <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5', actionCfg.bg)}>
+      <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5', actionCfg.bg)}>
         <actionCfg.icon className={cn('w-3.5 h-3.5', actionCfg.text)} />
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', actionCfg.bg, actionCfg.text)}>
+          <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', actionCfg.bg, actionCfg.text)}>
             {actionCfg.label}
           </span>
-          <span className="text-xs font-black text-slate-700 dark:text-slate-300">{resourceLabel}</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{resourceLabel}</span>
           {log.resourceId && (
             <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
               {log.resourceId.slice(0, 8)}
@@ -115,7 +115,7 @@ const LogEntry: React.FC<LogEntryProps> = ({ log, actorName, actorRole }) => {
             <span className="text-[10px] font-bold text-slate-400">{actorName}</span>
           </div>
           {actorRole && (
-            <span className="text-[10px] font-black uppercase text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-semibold uppercase text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded">
               {actorRole}
             </span>
           )}
@@ -210,13 +210,13 @@ const AuditLogs: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Audit Logs</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Audit Logs</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
             {filtered.length} event{filtered.length !== 1 ? 's' : ''} · {logs.length} total
           </p>
         </div>
         <button onClick={handleExport}
-          className="flex items-center gap-2 bg-slate-800 dark:bg-slate-700 text-white px-5 py-3 rounded-2xl font-bold hover:bg-slate-700 transition-all active:scale-95 self-start">
+          className="flex items-center gap-2 bg-slate-800 dark:bg-slate-700 text-white px-5 py-3 rounded-md font-bold hover:bg-slate-700 transition-all  self-start">
           <Download className="w-4 h-4" /> Export CSV
         </button>
       </motion.div>
@@ -227,12 +227,12 @@ const AuditLogs: React.FC = () => {
           const cfg = getActionCfg(action);
           const count = logs.filter(l => l.action.toUpperCase() === action).length;
           return (
-            <div key={action} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-              <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', cfg.bg)}>
+            <div key={action} className="glass-card p-5 rounded-md flex items-center gap-4">
+              <div className={cn('w-11 h-11 rounded-md flex items-center justify-center shrink-0', cfg.bg)}>
                 <cfg.icon className={cn('w-5 h-5', cfg.text)} />
               </div>
               <div>
-                <p className="text-lg font-black text-slate-900 dark:text-white">{count}</p>
+                <p className="text-lg font-semibold text-slate-900 dark:text-white">{count}</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{cfg.label}</p>
               </div>
             </div>
@@ -247,9 +247,9 @@ const AuditLogs: React.FC = () => {
           {DATE_RANGES.map(r => (
             <button key={r.value} onClick={() => setDateRange(r.value)}
               className={cn(
-                'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
+                'px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
                 dateRange === r.value
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                  ? 'bg-blue-600 text-white '
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-300'
               )}>
               {r.label}
@@ -262,24 +262,24 @@ const AuditLogs: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search user, action or details..."
-              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
           </div>
 
           <select value={actionFilter} onChange={e => setActionFilter(e.target.value)}
-            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
+            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
             <option value="all">All Actions</option>
             {Object.keys(ACTION_CFG).map(a => <option key={a} value={a}>{ACTION_CFG[a].label}</option>)}
           </select>
 
           <select value={resourceFilter} onChange={e => setResourceFilter(e.target.value)}
-            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
+            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
             <option value="all">All Resources</option>
             {allResources.map(r => <option key={r} value={r}>{RESOURCE_LABELS[r] ?? r}</option>)}
           </select>
 
           {(search || actionFilter !== 'all' || resourceFilter !== 'all') && (
             <button onClick={() => { setSearch(''); setActionFilter('all'); setResourceFilter('all'); }}
-              className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
+              className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
               <X className="w-4 h-4" /> Clear
             </button>
           )}
@@ -288,7 +288,7 @@ const AuditLogs: React.FC = () => {
 
       {/* Log timeline */}
       {grouped.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
+        <div className="glass-card p-16 rounded-lg text-center">
           <ShieldCheck className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">No audit events found</p>
           <p className="text-slate-400 text-xs mt-1">Try expanding the date range</p>
@@ -301,13 +301,13 @@ const AuditLogs: React.FC = () => {
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm font-black text-slate-600 dark:text-slate-300">{fmtDate(date)}</span>
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{fmtDate(date)}</span>
                 </div>
                 <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{dateLogs.length} event{dateLogs.length !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{dateLogs.length} event{dateLogs.length !== 1 ? 's' : ''}</span>
               </div>
 
-              <div className="glass-card rounded-3xl px-5 divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="glass-card rounded-lg px-5 divide-y divide-slate-100 dark:divide-slate-800">
                 {dateLogs.map(log => (
                   <LogEntry
                     key={log.id}

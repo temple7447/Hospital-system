@@ -48,19 +48,19 @@ const BillCard: React.FC<BillCardProps> = ({ invoice, expanded, onToggle }) => {
   const MethodIcon = invoice.paymentMethod ? (METHOD_ICONS[invoice.paymentMethod] ?? Receipt) : null;
 
   return (
-    <div className="glass-card rounded-3xl overflow-hidden">
+    <div className="glass-card rounded-lg overflow-hidden">
       <button
         className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all"
         onClick={onToggle}
       >
         <div className="flex items-center gap-4 min-w-0">
-          <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center shrink-0', cfg.bg)}>
+          <div className={cn('w-10 h-10 rounded-md flex items-center justify-center shrink-0', cfg.bg)}>
             <cfg.icon className={cn('w-5 h-5', cfg.text)} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-black text-slate-900 dark:text-white">{invoice.invoiceNumber}</p>
-              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cfg.bg, cfg.text)}>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{invoice.invoiceNumber}</p>
+              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cfg.bg, cfg.text)}>
                 {cfg.label}
               </span>
             </div>
@@ -73,7 +73,7 @@ const BillCard: React.FC<BillCardProps> = ({ invoice, expanded, onToggle }) => {
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-base font-black text-slate-900 dark:text-white">{fmtMoney(invoice.total)}</span>
+          <span className="text-base font-semibold text-slate-900 dark:text-white">{fmtMoney(invoice.total)}</span>
           {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
         </div>
       </button>
@@ -117,16 +117,16 @@ const BillCard: React.FC<BillCardProps> = ({ invoice, expanded, onToggle }) => {
                   </div>
                 )}
                 <div className="flex justify-between pt-1">
-                  <span className="text-sm font-black text-slate-900 dark:text-white">Total</span>
-                  <span className="text-sm font-black text-blue-600">{fmtMoney(invoice.total)}</span>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-white">Total</span>
+                  <span className="text-sm font-semibold text-blue-600">{fmtMoney(invoice.total)}</span>
                 </div>
               </div>
 
               {invoice.status === 'paid' && (
-                <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl">
+                <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-md">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">
+                    <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                       Paid {invoice.paidAt ? fmtDate(invoice.paidAt) : ''}
                     </span>
                   </div>
@@ -140,7 +140,7 @@ const BillCard: React.FC<BillCardProps> = ({ invoice, expanded, onToggle }) => {
               )}
 
               {(invoice.status === 'pending' || isOverdue(invoice)) && (
-                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-800">
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
                   <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
                     {isOverdue(invoice)
                       ? 'This invoice is overdue. Please contact reception to settle your balance.'
@@ -174,7 +174,7 @@ const BillCard: React.FC<BillCardProps> = ({ invoice, expanded, onToggle }) => {
                   a.download = `${invoice.invoiceNumber}.txt`;
                   a.click();
                 }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
               >
                 <Download className="w-4 h-4" /> Download Receipt
               </button>
@@ -223,7 +223,7 @@ const Bills: React.FC = () => {
   return (
     <div className="space-y-8">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">My Bills</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">My Bills</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Your invoices and payment history</p>
       </motion.div>
 
@@ -240,12 +240,12 @@ const Bills: React.FC = () => {
           { label: 'Overdue', value: stats.overdueCount, icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
           { label: 'Total Invoices', value: stats.invoiceCount, icon: Receipt, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
+          <div key={s.label} className="glass-card p-5 rounded-md flex items-center gap-4">
+            <div className={cn('w-11 h-11 rounded-md flex items-center justify-center shrink-0', s.bg)}>
               <s.icon className={cn('w-5 h-5', s.color)} />
             </div>
             <div>
-              <p className="text-lg font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -259,9 +259,9 @@ const Bills: React.FC = () => {
             key={s}
             onClick={() => setStatusFilter(s)}
             className={cn(
-              'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
+              'px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
               statusFilter === s
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                ? 'bg-blue-600 text-white '
                 : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-300'
             )}
           >
@@ -272,7 +272,7 @@ const Bills: React.FC = () => {
 
       {/* Bills list */}
       {filtered.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
+        <div className="glass-card p-16 rounded-lg text-center">
           <Receipt className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">
             {invoices.length === 0 ? 'No bills yet' : 'No bills match this filter'}
@@ -297,12 +297,12 @@ const Bills: React.FC = () => {
       )}
 
       {invoices.length === 0 && (
-        <div className="glass-card p-6 rounded-3xl flex items-start gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+        <div className="glass-card p-6 rounded-lg flex items-start gap-4">
+          <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
             <Receipt className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <p className="font-black text-slate-900 dark:text-white text-sm">No bills on record</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm">No bills on record</p>
             <p className="text-xs text-slate-400 font-medium mt-1">
               Invoices from your visits will appear here once generated by reception.
             </p>

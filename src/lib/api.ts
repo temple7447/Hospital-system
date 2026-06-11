@@ -50,6 +50,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({ error: response.statusText }));
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
     throw new ApiError(response.status, data.error || `Request failed: ${response.status}`);
   }
 

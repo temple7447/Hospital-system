@@ -76,7 +76,7 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
       <div className="glass-card rounded-[2rem] overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm">Arrival Queue</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white uppercase tracking-wider text-sm">Arrival Queue</h3>
             <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px] font-bold">{filteredArrivals.length} Waiting</span>
           </div>
           <div className="relative">
@@ -86,7 +86,7 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
               placeholder="Search arrivals..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 w-48 transition-all" 
+              className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-none rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 w-48 transition-all" 
             />
           </div>
         </div>
@@ -99,7 +99,7 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
               className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 font-bold">
+                <div className="w-12 h-12 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 font-bold">
                   {arrival.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div>
@@ -118,7 +118,7 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
                   <div className="text-[10px] text-slate-400 font-medium">Expected {arrival.time}</div>
                 </div>
                 <span className={cn(
-                  "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+                  "px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider",
                   arrival.status === 'Arrived' && "bg-emerald-50 text-emerald-600",
                   arrival.status === 'In Transit' && "bg-blue-50 text-blue-600",
                   arrival.status === 'Delayed' && "bg-amber-50 text-amber-600",
@@ -126,13 +126,13 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
                   {arrival.status}
                 </span>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => handleView(arrival)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl text-slate-400 hover:text-blue-600" title="View">
+                  <button onClick={() => handleView(arrival)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-blue-600" title="View">
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleEdit(arrival)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl text-slate-400 hover:text-slate-600" title="Edit">
+                  <button onClick={() => handleEdit(arrival)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-600" title="Edit">
                     <Pencil className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(arrival)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl text-slate-400 hover:text-red-600" title="Delete">
+                  <button onClick={() => handleDelete(arrival)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-red-600" title="Delete">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -147,27 +147,27 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
         {selectedArrival && (
           <div className="space-y-6">
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xl font-black">
+              <div className="w-16 h-16 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xl font-semibold">
                 {selectedArrival.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedArrival.name}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{selectedArrival.name}</h3>
                 <p className="text-sm font-medium text-slate-500">{selectedArrival.idP}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-bold text-slate-400 uppercase">Expected Time</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedArrival.time}</p>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-bold text-slate-400 uppercase">Doctor</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedArrival.dr}</p>
               </div>
             </div>
             <div className="flex gap-4 pt-4">
-              <button onClick={() => setIsViewModalOpen(false)} className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase text-[10px]">Close</button>
-              <button onClick={() => { setIsViewModalOpen(false); setIsEditModalOpen(true); }} className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px]">Edit</button>
+              <button onClick={() => setIsViewModalOpen(false)} className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold uppercase text-[10px]">Close</button>
+              <button onClick={() => { setIsViewModalOpen(false); setIsEditModalOpen(true); }} className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-md font-semibold uppercase text-[10px]">Edit</button>
             </div>
           </div>
         )}
@@ -179,11 +179,11 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <Trash2 className="w-8 h-8 text-red-600" />
           </div>
-          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Confirm Remove</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Confirm Remove</h3>
           <p className="text-sm text-slate-500 mb-6">Remove <span className="font-bold text-red-500">{selectedArrival?.name}</span> from queue?</p>
           <div className="flex gap-4">
-            <button onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting} className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-2xl font-black uppercase text-[10px]">Cancel</button>
-            <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2">
+            <button onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting} className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold uppercase text-[10px]">Cancel</button>
+            <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 px-6 py-4 bg-red-600 text-white rounded-md font-semibold uppercase text-[10px] flex items-center justify-center gap-2">
               {isDeleting ? 'Removing...' : 'Remove'}
             </button>
           </div>
@@ -200,20 +200,20 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
           }}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase">Patient Name</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase">Patient Name</label>
                 <input 
                   type="text" 
                   value={selectedArrival.name}
                   onChange={(e) => setSelectedArrival({...selectedArrival, name: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase">Status</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase">Status</label>
                 <select 
                   value={selectedArrival.status}
                   onChange={(e) => setSelectedArrival({...selectedArrival, status: e.target.value as Arrival['status']})}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm"
                 >
                   <option value="Arrived">Arrived</option>
                   <option value="In Transit">In Transit</option>
@@ -222,8 +222,8 @@ export function ArrivalQueue({ arrivals: initialArrivals, onView, onEdit, onDele
               </div>
             </div>
             <div className="flex gap-4 pt-4">
-              <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-2xl font-black uppercase text-[10px]">Cancel</button>
-              <button type="submit" className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px]">Save Changes</button>
+              <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold uppercase text-[10px]">Cancel</button>
+              <button type="submit" className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-md font-semibold uppercase text-[10px]">Save Changes</button>
             </div>
           </form>
         )}

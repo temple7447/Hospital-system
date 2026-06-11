@@ -55,15 +55,15 @@ const NurseDashboard: React.FC = () => {
   return (
     <div className="space-y-8 pb-8">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Welcome, {user.name.split(' ')[0]}</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Welcome, {user.name.split(' ')[0]}</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Nursing shift overview</p>
       </motion.div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {KPI.map((k, i) => (
           <motion.div key={k.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="glass-card p-5 rounded-3xl">
-            <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center mb-3',
+            className="glass-card p-5 rounded-lg">
+            <div className={cn('w-10 h-10 rounded-md flex items-center justify-center mb-3',
               k.color === 'blue'    && 'bg-blue-50 dark:bg-blue-900/20 text-blue-600',
               k.color === 'violet'  && 'bg-violet-50 dark:bg-violet-900/20 text-violet-600',
               k.color === 'emerald' && 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600',
@@ -71,20 +71,20 @@ const NurseDashboard: React.FC = () => {
             )}>
               <k.icon className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{k.value}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{k.value}</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{k.label}</p>
           </motion.div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-card rounded-3xl p-6">
+        <div className="lg:col-span-2 glass-card rounded-lg p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white">Pending Tasks</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white">Pending Tasks</h3>
               <p className="text-xs text-slate-400 font-bold">Next up on your shift</p>
             </div>
-            <Link to="/nurse/tasks" className="text-xs font-black text-blue-600 hover:text-blue-700">View all →</Link>
+            <Link to="/nurse/tasks" className="text-xs font-semibold text-blue-600 hover:text-blue-700">View all →</Link>
           </div>
           {pending.length === 0 ? (
             <div className="text-center py-12 text-slate-400 font-medium text-sm">All tasks completed. Great work!</div>
@@ -95,8 +95,8 @@ const NurseDashboard: React.FC = () => {
                 const cfg = TASK_CFG[t.type];
                 return (
                   <Link key={t.id} to={`/nurse/tasks?id=${t.id}`}
-                    className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', cfg.color)}>
+                    className="flex items-center gap-4 p-3 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                    <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', cfg.color)}>
                       <Activity className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -117,8 +117,8 @@ const NurseDashboard: React.FC = () => {
           )}
         </div>
 
-        <div className="glass-card rounded-3xl p-6">
-          <h3 className="font-black text-slate-900 dark:text-white mb-1">Completed Today</h3>
+        <div className="glass-card rounded-lg p-6">
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Completed Today</h3>
           <p className="text-xs text-slate-400 font-bold mb-5">Recent activity</p>
           {completed.length === 0 ? (
             <p className="text-xs text-slate-400 font-medium">No completed tasks yet</p>
@@ -139,10 +139,10 @@ const NurseDashboard: React.FC = () => {
           )}
 
           <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 space-y-2">
-            <Link to="/nurse/patients" className="block py-2.5 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-xl text-xs font-black text-center hover:bg-blue-100 transition-colors">
+            <Link to="/nurse/patients" className="block py-2.5 px-4 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg text-xs font-semibold text-center hover:bg-blue-100 transition-colors">
               View Patients
             </Link>
-            <Link to="/nurse/vitals" className="block py-2.5 px-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-xl text-xs font-black text-center hover:bg-emerald-100 transition-colors">
+            <Link to="/nurse/vitals" className="block py-2.5 px-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-lg text-xs font-semibold text-center hover:bg-emerald-100 transition-colors">
               Record Vitals
             </Link>
           </div>

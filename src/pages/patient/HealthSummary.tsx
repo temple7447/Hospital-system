@@ -103,7 +103,7 @@ const HealthSummary: React.FC = () => {
     <div className="space-y-8">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Health Summary</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Health Summary</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
           {vitals.length > 0
             ? `${vitals.length} readings · latest ${fmtDate(vitals[vitals.length - 1].recordedAt)}`
@@ -113,7 +113,7 @@ const HealthSummary: React.FC = () => {
 
       {vitals.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="glass-card p-16 rounded-3xl text-center">
+          className="glass-card p-16 rounded-lg text-center">
           <Activity className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">No vital records yet</p>
           <p className="text-slate-400 text-sm mt-1">Ask your doctor to record vitals during your next visit.</p>
@@ -123,10 +123,10 @@ const HealthSummary: React.FC = () => {
           {/* Risk flags */}
           {riskFlags.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-              className="p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
+              className="p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
-                <h3 className="font-black text-red-700 dark:text-red-400">Risk Indicators</h3>
+                <h3 className="font-semibold text-red-700 dark:text-red-400">Risk Indicators</h3>
               </div>
               <ul className="space-y-1.5">
                 {riskFlags.map((f, i) => (
@@ -151,9 +151,9 @@ const HealthSummary: React.FC = () => {
               return (
                 <motion.div key={m.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + i * 0.04 }}
-                  className={cn('glass-card p-5 rounded-2xl', abnorm && 'ring-2 ring-red-400/30')}>
+                  className={cn('glass-card p-5 rounded-md', abnorm && 'ring-2 ring-red-400/30')}>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                    <div className="w-10 h-10 rounded-md flex items-center justify-center"
                       style={{ backgroundColor: `${m.color}20` }}>
                       <m.icon className="w-5 h-5" style={{ color: m.color }} />
                     </div>
@@ -161,17 +161,17 @@ const HealthSummary: React.FC = () => {
                       <Trend className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <p className="text-2xl font-black text-slate-900 dark:text-white">
+                  <p className="text-2xl font-semibold text-slate-900 dark:text-white">
                     {val} <span className="text-sm font-bold text-slate-400">{m.unit}</span>
                   </p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{m.label}</p>
                   {abnorm && (
-                    <span className="inline-block mt-2 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-red-50 dark:bg-red-900/20 text-red-600">
+                    <span className="inline-block mt-2 px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-red-50 dark:bg-red-900/20 text-red-600">
                       Out of range
                     </span>
                   )}
                   {!abnorm && m.normal[1] !== Infinity && (
-                    <span className="inline-block mt-2 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
+                    <span className="inline-block mt-2 px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
                       Normal
                     </span>
                   )}
@@ -191,8 +191,8 @@ const HealthSummary: React.FC = () => {
               ].map((c, i) => (
                 <motion.div key={c.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 + i * 0.06 }}
-                  className="glass-card p-6 rounded-3xl">
-                  <h3 className="font-black text-slate-900 dark:text-white mb-1">{c.title}</h3>
+                  className="glass-card p-6 rounded-lg">
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">{c.title}</h3>
                   <p className="text-xs text-slate-400 font-bold mb-5">
                     Normal: {c.refLow}–{c.refHigh} {c.unit}
                   </p>

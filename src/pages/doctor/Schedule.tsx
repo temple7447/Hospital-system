@@ -108,13 +108,13 @@ const AptBlock: React.FC<AptBlockProps> = ({ apt, patient, onClick }) => {
       animate={{ opacity: 1, scale: 1 }}
       onClick={onClick}
       className={cn(
-        'absolute left-1 right-1 rounded-xl border-l-4 px-2 py-1 text-left overflow-hidden transition-all hover:brightness-95 hover:scale-[1.01] active:scale-[0.99] z-10',
+        'absolute left-1 right-1 rounded-lg border-l-4 px-2 py-1 text-left overflow-hidden transition-all hover:brightness-95 hover:scale-[1.01] active:scale-[0.99] z-10',
         cfg.bg, cfg.border,
         apt.status === 'cancelled' && 'opacity-50'
       )}
       style={{ top: `${top}px`, height: `${height}px` }}
     >
-      <p className={cn('text-[10px] font-black uppercase tracking-wider leading-none', cfg.text)}>
+      <p className={cn('text-[10px] font-semibold uppercase tracking-wider leading-none', cfg.text)}>
         {formatTime(apt.time)}
       </p>
       <p className={cn('text-xs font-bold mt-0.5 truncate', cfg.text)}>
@@ -157,11 +157,11 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 40 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 flex flex-col shadow-2xl lg:static lg:shadow-none lg:border lg:rounded-3xl"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 z-50 flex flex-col  lg:static lg:shadow-none lg:border lg:rounded-lg"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-black text-slate-900 dark:text-white">Appointment Details</h3>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+              <h3 className="font-semibold text-slate-900 dark:text-white">Appointment Details</h3>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                 <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
@@ -169,11 +169,11 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
               {/* Patient */}
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-500/20">
+                <div className="w-14 h-14 rounded-md bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-lg ">
                   {patient ? getInitials(patient.firstName, patient.lastName) : '?'}
                 </div>
                 <div>
-                  <p className="font-black text-slate-900 dark:text-white">
+                  <p className="font-semibold text-slate-900 dark:text-white">
                     {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient'}
                   </p>
                   {patient && (
@@ -183,8 +183,8 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
               </div>
 
               {/* Status Badge */}
-              <div className={cn('px-4 py-2 rounded-2xl border-l-4 flex items-center gap-2', STATUS_CFG[apt.status].bg, STATUS_CFG[apt.status].border)}>
-                <span className={cn('text-xs font-black uppercase tracking-wider', STATUS_CFG[apt.status].text)}>
+              <div className={cn('px-4 py-2 rounded-md border-l-4 flex items-center gap-2', STATUS_CFG[apt.status].bg, STATUS_CFG[apt.status].border)}>
+                <span className={cn('text-xs font-semibold uppercase tracking-wider', STATUS_CFG[apt.status].text)}>
                   {STATUS_CFG[apt.status].label}
                 </span>
               </div>
@@ -197,8 +197,8 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
                   { label: 'Duration', value: `${apt.duration} min`, icon: Activity },
                   { label: 'Department', value: dept?.name || '—', icon: Building2 },
                 ].map(({ label, value, icon: Icon }) => (
-                  <div key={label} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <div key={label} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                       <Icon className="w-3 h-3" /> {label}
                     </p>
                     <p className="text-xs font-bold text-slate-900 dark:text-white">{value}</p>
@@ -206,24 +206,24 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
                 ))}
               </div>
 
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <FileText className="w-3 h-3" /> Reason
                 </p>
                 <p className="text-sm text-slate-700 dark:text-slate-300">{apt.reason}</p>
               </div>
 
               {apt.cancelledReason && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                  <p className="text-[10px] font-black text-red-500 uppercase tracking-wider mb-1">Cancellation Reason</p>
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <p className="text-[10px] font-semibold text-red-500 uppercase tracking-wider mb-1">Cancellation Reason</p>
                   <p className="text-sm text-slate-700 dark:text-slate-300">{apt.cancelledReason}</p>
                 </div>
               )}
 
               {/* Patient medical info */}
               {patient && (patient.allergies.length > 0 || patient.chronicConditions.length > 0) && (
-                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl space-y-2">
-                  <p className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Medical Flags</p>
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg space-y-2">
+                  <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider">Medical Flags</p>
                   {patient.allergies.length > 0 && (
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold mb-1">Allergies</p>
@@ -251,11 +251,11 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
             {/* Status actions */}
             {apt.status !== 'cancelled' && apt.status !== 'completed' && apt.status !== 'no_show' && (
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">Update Status</p>
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Update Status</p>
                 {apt.status === 'scheduled' && (
                   <button
                     onClick={() => onStatusChange(apt, 'confirmed')}
-                    className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-2xl text-xs font-black hover:bg-emerald-100 transition-all"
+                    className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-md text-xs font-semibold hover:bg-emerald-100 transition-all"
                   >
                     <CheckCircle2 className="w-4 h-4" /> Confirm Appointment
                   </button>
@@ -263,7 +263,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
                 {apt.status === 'confirmed' && (
                   <button
                     onClick={() => onStatusChange(apt, 'in_progress')}
-                    className="w-full flex items-center gap-2 px-4 py-3 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 rounded-2xl text-xs font-black hover:bg-violet-100 transition-all"
+                    className="w-full flex items-center gap-2 px-4 py-3 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 rounded-md text-xs font-semibold hover:bg-violet-100 transition-all"
                   >
                     <PlayCircle className="w-4 h-4" /> Start Consultation
                   </button>
@@ -271,20 +271,20 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
                 {apt.status === 'in_progress' && (
                   <button
                     onClick={() => onStatusChange(apt, 'completed')}
-                    className="w-full flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl text-xs font-black hover:bg-slate-200 transition-all"
+                    className="w-full flex items-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md text-xs font-semibold hover:bg-slate-200 transition-all"
                   >
                     <CheckCheck className="w-4 h-4" /> Complete
                   </button>
                 )}
                 <button
                   onClick={() => onStatusChange(apt, 'no_show')}
-                  className="w-full flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-2xl text-xs font-black hover:bg-amber-100 transition-all"
+                  className="w-full flex items-center gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-md text-xs font-semibold hover:bg-amber-100 transition-all"
                 >
                   <AlertCircle className="w-4 h-4" /> Mark No Show
                 </button>
                 <button
                   onClick={() => onStatusChange(apt, 'cancelled')}
-                  className="w-full flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-2xl text-xs font-black hover:bg-red-100 transition-all"
+                  className="w-full flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-md text-xs font-semibold hover:bg-red-100 transition-all"
                 >
                   <XCircle className="w-4 h-4" /> Cancel
                 </button>
@@ -401,22 +401,22 @@ const Schedule: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">My Schedule</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">My Schedule</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Weekly appointment calendar</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={goToday}
-            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-slate-200 transition-all"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold uppercase tracking-wider hover:bg-slate-200 transition-all"
           >
             Today
           </button>
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-1">
-            <button onClick={prevWeek} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-1">
+            <button onClick={prevWeek} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
               <ChevronLeft className="w-4 h-4 text-slate-500" />
             </button>
-            <span className="px-3 text-sm font-black text-slate-900 dark:text-white min-w-[180px] text-center">{weekLabel}</span>
-            <button onClick={nextWeek} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+            <span className="px-3 text-sm font-semibold text-slate-900 dark:text-white min-w-[180px] text-center">{weekLabel}</span>
+            <button onClick={nextWeek} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
               <ChevronRight className="w-4 h-4 text-slate-500" />
             </button>
           </div>
@@ -431,12 +431,12 @@ const Schedule: React.FC = () => {
           { label: "Today's", value: stats.todayTotal, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20', icon: Clock },
           { label: "Today Done", value: stats.todayDone, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-800', icon: CheckCircle2 },
         ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl flex items-center gap-3">
-            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', s.bg)}>
+          <div key={s.label} className="glass-card p-4 rounded-md flex items-center gap-3">
+            <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', s.bg)}>
               <s.icon className={cn('w-5 h-5', s.color)} />
             </div>
             <div>
-              <p className="text-xl font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -449,7 +449,7 @@ const Schedule: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="flex-1 glass-card rounded-3xl overflow-hidden"
+          className="flex-1 glass-card rounded-lg overflow-hidden"
         >
           {/* Day headers */}
           <div className="grid border-b border-slate-200 dark:border-slate-800" style={{ gridTemplateColumns: '56px repeat(7, 1fr)' }}>
@@ -467,10 +467,10 @@ const Schedule: React.FC = () => {
                     isToday ? 'bg-blue-600' : isWorking ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/50'
                   )}
                 >
-                  <p className={cn('text-[10px] font-black uppercase tracking-wider', isToday ? 'text-blue-200' : 'text-slate-400')}>
+                  <p className={cn('text-[10px] font-semibold uppercase tracking-wider', isToday ? 'text-blue-200' : 'text-slate-400')}>
                     {DAYS[i].short}
                   </p>
-                  <p className={cn('text-lg font-black', isToday ? 'text-white' : 'text-slate-900 dark:text-white')}>
+                  <p className={cn('text-lg font-semibold', isToday ? 'text-white' : 'text-slate-900 dark:text-white')}>
                     {date.getDate()}
                   </p>
                   {dayApts.length > 0 && (
@@ -489,7 +489,7 @@ const Schedule: React.FC = () => {
                 {hourSlots.map((slot, i) => (
                   i % 2 === 0 && (
                     <div key={slot} className="absolute flex items-start pt-1 pr-2 w-14" style={{ top: `${i * SLOT_HEIGHT}px`, height: `${SLOT_HEIGHT * 2}px` }}>
-                      <span className="text-[10px] font-black text-slate-400 ml-auto">{formatTime(slot)}</span>
+                      <span className="text-[10px] font-semibold text-slate-400 ml-auto">{formatTime(slot)}</span>
                     </div>
                   )
                 ))}
@@ -580,16 +580,16 @@ const Schedule: React.FC = () => {
           .map(([status, cfg]) => (
           <div key={status} className="flex items-center gap-2">
             <div className={cn('w-3 h-3 rounded-full border-2', cfg.border.replace('border-', 'border-'))} />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{cfg.label}</span>
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{cfg.label}</span>
           </div>
         ))}
         <div className="flex items-center gap-2">
           <div className="w-3 h-0.5 bg-red-500" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Current Time</span>
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Current Time</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Working Hours</span>
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Working Hours</span>
         </div>
       </div>
     </div>

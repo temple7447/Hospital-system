@@ -184,16 +184,16 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={() => !saving && onClose()}>
         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-          className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+          className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-lg  overflow-hidden max-h-[92vh] flex flex-col"
           onClick={e => e.stopPropagation()}>
 
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white">New Invoice</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white">New Invoice</h3>
               <p className="text-xs text-slate-400 font-bold mt-0.5">Step {step + 1} of {STEPS.length}</p>
             </div>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
               <X className="w-4 h-4 text-slate-400" />
             </button>
           </div>
@@ -203,7 +203,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
             {STEPS.map((s, i) => (
               <div key={i} className="flex-1">
                 <div className={cn('h-1 rounded-full transition-all', i < step ? 'bg-emerald-500' : i === step ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700')} />
-                <p className={cn('text-[9px] font-black uppercase tracking-wider mt-1', i === step ? 'text-blue-600' : 'text-slate-400')}>{s}</p>
+                <p className={cn('text-[9px] font-semibold uppercase tracking-wider mt-1', i === step ? 'text-blue-600' : 'text-slate-400')}>{s}</p>
               </div>
             ))}
           </div>
@@ -218,15 +218,15 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                   <input type="text" value={patientSearch}
                     onChange={e => { setPatientSearch(e.target.value); if (!e.target.value) { setPatientId(''); setPatient(null); } }}
                     placeholder="Search patient..."
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                 </div>
 
                 {patientSearch && !patient && filteredPatients.length > 0 && (
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
+                  <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                     {filteredPatients.map(p => (
                       <button key={p.id} onClick={() => setPatientId(p.id)}
                         className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-                        <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xs font-black shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-xs font-semibold shrink-0">
                           {p.firstName[0]}{p.lastName[0]}
                         </div>
                         {p.firstName} {p.lastName}
@@ -237,12 +237,12 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                 )}
 
                 {patient && (
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black shrink-0">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-md bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold shrink-0">
                       {patient.firstName[0]}{patient.lastName[0]}
                     </div>
                     <div>
-                      <p className="font-black text-slate-900 dark:text-white">{patient.firstName} {patient.lastName}</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{patient.firstName} {patient.lastName}</p>
                       <p className="text-xs text-slate-400 font-bold">{patient.patientNumber} · {patient.phone}</p>
                       {patient.insuranceProvider && (
                         <p className="text-xs text-blue-600 font-bold mt-0.5">Insured: {patient.insuranceProvider}</p>
@@ -253,9 +253,9 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
 
                 {aptOptions.length > 0 && (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Link to Appointment (auto-fills items)</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Link to Appointment (auto-fills items)</label>
                     <select value={aptId} onChange={e => setAptId(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                       <option value="">No link</option>
                       {aptOptions.map(a => (
                         <option key={a.id} value={a.id}>
@@ -267,10 +267,10 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                 )}
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notes</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Notes</label>
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                     placeholder="Optional notes..."
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none resize-none font-medium" />
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none resize-none font-medium" />
                 </div>
               </motion.div>
             )}
@@ -279,21 +279,21 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
             {step === 1 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
                 <div className="grid grid-cols-12 gap-2 px-1">
-                  <div className="col-span-5 text-[10px] font-black text-slate-400 uppercase tracking-wider">Description</div>
-                  <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center">Qty</div>
-                  <div className="col-span-3 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Unit Price</div>
-                  <div className="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Total</div>
+                  <div className="col-span-5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Description</div>
+                  <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-center">Qty</div>
+                  <div className="col-span-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Unit Price</div>
+                  <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Total</div>
                 </div>
 
                 {items.map((it, i) => (
                   <div key={i} className="grid grid-cols-12 gap-2 items-center">
                     <input type="text" value={it.description} onChange={e => updateItem(i, 'description', e.target.value)}
                       placeholder="Service description"
-                      className="col-span-5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      className="col-span-5 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                     <input type="number" min="1" value={it.quantity} onChange={e => updateItem(i, 'quantity', Number(e.target.value))}
-                      className="col-span-2 px-2 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center" />
+                      className="col-span-2 px-2 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center" />
                     <input type="number" min="0" step="0.01" value={it.unitPrice} onChange={e => updateItem(i, 'unitPrice', Number(e.target.value))}
-                      className="col-span-3 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium text-right" />
+                      className="col-span-3 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium text-right" />
                     <div className="col-span-2 flex items-center justify-end gap-1">
                       <span className="text-xs font-bold text-slate-900 dark:text-white">{fmtMoney(it.total)}</span>
                       {items.length > 1 && (
@@ -314,7 +314,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-slate-500">Subtotal</span>
-                    <span className="text-sm font-black text-slate-900 dark:text-white">{fmtMoney(subtotal)}</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{fmtMoney(subtotal)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-sm font-bold text-slate-500">Tax (%)</span>
@@ -327,8 +327,8 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                       className="w-20 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none font-bold text-right" />
                   </div>
                   <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
-                    <span className="text-base font-black text-slate-900 dark:text-white">Total</span>
-                    <span className="text-xl font-black text-blue-600">{fmtMoney(total)}</span>
+                    <span className="text-base font-semibold text-slate-900 dark:text-white">Total</span>
+                    <span className="text-xl font-semibold text-blue-600">{fmtMoney(total)}</span>
                   </div>
                 </div>
               </motion.div>
@@ -337,14 +337,14 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
             {/* Step 2: Payment */}
             {step === 2 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
-                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500 font-bold">Patient</span>
-                    <span className="font-black text-slate-900 dark:text-white">{patient?.firstName} {patient?.lastName}</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{patient?.firstName} {patient?.lastName}</span>
                   </div>
                   <div className="flex justify-between text-sm mt-2">
                     <span className="text-slate-500 font-bold">Amount Due</span>
-                    <span className="font-black text-xl text-blue-600">{fmtMoney(total)}</span>
+                    <span className="font-semibold text-xl text-blue-600">{fmtMoney(total)}</span>
                   </div>
                   <div className="flex justify-between text-sm mt-2">
                     <span className="text-slate-500 font-bold">Items</span>
@@ -353,9 +353,9 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Date</label>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Due Date</label>
                   <select value={dueInDays} onChange={e => setDueInDays(Number(e.target.value))}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm outline-none cursor-pointer font-medium">
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none cursor-pointer font-medium">
                     <option value={7}>Due in 7 days ({fmtDate(futureDays(7))})</option>
                     <option value={14}>Due in 14 days ({fmtDate(futureDays(14))})</option>
                     <option value={30}>Due in 30 days ({fmtDate(futureDays(30))})</option>
@@ -364,21 +364,21 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Collect Payment Now?</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Collect Payment Now?</label>
                     <button onClick={() => setPayNow(p => !p)}
                       className={cn('relative w-11 h-6 rounded-full transition-colors', payNow ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700')}>
-                      <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all', payNow ? 'left-5' : 'left-0.5')} />
+                      <span className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all', payNow ? 'left-5' : 'left-0.5')} />
                     </button>
                   </div>
                 </div>
 
                 {payNow && (
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Method</label>
+                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Payment Method</label>
                     <div className="grid grid-cols-2 gap-2">
                       {PAYMENT_METHODS.map(m => (
                         <button key={m.value} onClick={() => setPayMethod(m.value)}
-                          className={cn('flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all text-sm font-bold',
+                          className={cn('flex items-center gap-3 px-4 py-3 rounded-md border-2 transition-all text-sm font-bold',
                             payMethod === m.value
                               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                               : 'border-transparent bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-500/30'
@@ -391,8 +391,8 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
                 )}
 
                 {payNow && (
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800">
-                    <p className="text-xs font-black text-emerald-700 dark:text-emerald-400">
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-md border border-emerald-200 dark:border-emerald-800">
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
                       Collecting {fmtMoney(total)} via {PAYMENT_METHODS.find(m => m.value === payMethod)?.label}
                     </p>
                   </div>
@@ -404,17 +404,17 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated }) =
           {/* Footer */}
           <div className="px-6 pb-6 flex gap-3 shrink-0 border-t border-slate-100 dark:border-slate-800 pt-4">
             <button onClick={() => step === 0 ? onClose() : setStep(s => s - 1)} disabled={saving}
-              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
               {step === 0 ? 'Cancel' : 'Back'}
             </button>
             {step < 2 ? (
               <button onClick={() => setStep(s => s + 1)} disabled={(step === 0 && !canStep0) || (step === 1 && !canStep1)}
-                className="flex-2 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50">
+                className="flex-2 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50">
                 Next
               </button>
             ) : (
               <button onClick={handleSubmit} disabled={saving}
-                className="flex-2 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                className="flex-2 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</> : payNow ? 'Create & Mark Paid' : 'Create Invoice'}
               </button>
             )}
@@ -465,23 +465,23 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid 
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => !saving && onClose()}>
           <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden"
+            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-lg  overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-black text-slate-900 dark:text-white">Collect Payment</h3>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
+              <h3 className="font-semibold text-slate-900 dark:text-white">Collect Payment</h3>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">{invoice.invoiceNumber}</p>
-                <p className="text-2xl font-black text-blue-600 mt-1">{fmtMoney(invoice.total)}</p>
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{invoice.invoiceNumber}</p>
+                <p className="text-2xl font-semibold text-blue-600 mt-1">{fmtMoney(invoice.total)}</p>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Method</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Payment Method</label>
                 <div className="grid grid-cols-2 gap-2">
                   {PAYMENT_METHODS.map(m => (
                     <button key={m.value} onClick={() => setMethod(m.value)}
-                      className={cn('flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-xs font-black transition-all',
+                      className={cn('flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-xs font-semibold transition-all',
                         method === m.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                           : 'border-transparent bg-slate-50 dark:bg-slate-800 text-slate-600 hover:border-blue-500/30')}>
                       <m.icon className="w-3.5 h-3.5" /> {m.label}
@@ -490,8 +490,8 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid 
                 </div>
               </div>
               <div className="flex gap-3">
-                <button onClick={onClose} disabled={saving} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
-                <button onClick={handlePay} disabled={saving} className="flex-2 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                <button onClick={onClose} disabled={saving} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+                <button onClick={handlePay} disabled={saving} className="flex-2 py-3 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...</> : 'Confirm Payment'}
                 </button>
               </div>
@@ -517,16 +517,16 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, patient, onMarkPaid,
   const cfg = STATUS_CFG[invoice.status];
   const isActionable = invoice.status === 'pending' || invoice.status === 'overdue';
   return (
-    <div className="glass-card rounded-3xl overflow-hidden">
-      <button className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all" onClick={onToggle}>
+    <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
+      <button className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors" onClick={onToggle}>
         <div className="flex items-center gap-4 min-w-0">
-          <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center shrink-0', cfg.bg)}>
+          <div className={cn('w-10 h-10 rounded-md flex items-center justify-center shrink-0', cfg.bg)}>
             <cfg.icon className={cn('w-5 h-5', cfg.text)} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-black text-slate-900 dark:text-white">{invoice.invoiceNumber}</p>
-              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cfg.bg, cfg.text)}>{cfg.label}</span>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{invoice.invoiceNumber}</p>
+              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cfg.bg, cfg.text)}>{cfg.label}</span>
             </div>
             <p className="text-xs text-slate-400 font-bold truncate">
               {patient ? `${patient.firstName} ${patient.lastName}` : '—'} · {fmtDate(invoice.createdAt)}
@@ -534,7 +534,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, patient, onMarkPaid,
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-base font-black text-slate-900 dark:text-white">{fmtMoney(invoice.total)}</span>
+          <span className="text-base font-semibold text-slate-900 dark:text-white">{fmtMoney(invoice.total)}</span>
           {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
         </div>
       </button>
@@ -555,7 +555,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, patient, onMarkPaid,
                 <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Subtotal</span><span className="font-bold text-slate-700 dark:text-slate-300">{fmtMoney(invoice.subtotal)}</span></div>
                 {invoice.tax > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Tax</span><span className="font-bold text-slate-700 dark:text-slate-300">{fmtMoney(invoice.tax)}</span></div>}
                 {invoice.discount > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400 font-bold">Discount</span><span className="font-bold text-emerald-600">-{fmtMoney(invoice.discount)}</span></div>}
-                <div className="flex justify-between"><span className="text-sm font-black text-slate-900 dark:text-white">Total</span><span className="text-sm font-black text-blue-600">{fmtMoney(invoice.total)}</span></div>
+                <div className="flex justify-between"><span className="text-sm font-semibold text-slate-900 dark:text-white">Total</span><span className="text-sm font-semibold text-blue-600">{fmtMoney(invoice.total)}</span></div>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>Due: {fmtDate(invoice.dueDate)}</span>
@@ -564,7 +564,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, patient, onMarkPaid,
               </div>
               {isActionable && (
                 <button onClick={() => onMarkPaid(invoice)}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-emerald-700 transition-all">
                   <CreditCard className="w-4 h-4" /> Collect Payment
                 </button>
               )}
@@ -636,46 +636,46 @@ const Payment: React.FC = () => {
       <MarkPaidModal invoice={markPaidTarget} onClose={() => setMarkPaidTarget(null)} onPaid={loadData} />
 
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Billing & Payments</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Generate invoices and process payments</p>
+          <h1 className="text-[15px] font-semibold text-slate-800 dark:text-white">Billing & Payments</h1>
+          <p className="text-[13px] text-slate-400 mt-0.5">Generate invoices and process payments</p>
         </div>
         <button onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start">
-          <Plus className="w-5 h-5" /> New Invoice
+          className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 text-white text-[13px] font-medium rounded hover:bg-blue-700 transition-colors self-start">
+          <Plus className="w-3.5 h-3.5" /> New Invoice
         </button>
-      </motion.div>
+      </div>
 
       {/* Stats */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Revenue', value: fmtMoney(stats.totalRevenue), icon: Receipt, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
           { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
           { label: 'Overdue', value: stats.overdue, icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
           { label: 'Paid Today', value: stats.todayPaid, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
-              <s.icon className={cn('w-5 h-5', s.color)} />
+          <div key={s.label} className="border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-4 rounded-lg flex items-center gap-4">
+            <div className={cn('w-9 h-9 rounded flex items-center justify-center shrink-0', s.bg)}>
+              <s.icon className={cn('w-4 h-4', s.color)} />
             </div>
             <div>
-              <p className="text-lg font-black text-slate-900 dark:text-white">{s.value}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+              <p className="text-[17px] font-semibold text-slate-800 dark:text-white">{s.value}</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="flex-1 min-w-52 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search patient or invoice..."
-            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
         </div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}
-          className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
+          className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
           <option value="all">All Statuses</option>
           {(Object.keys(STATUS_CFG) as InvoiceStatus[]).map(s => (
             <option key={s} value={s}>{STATUS_CFG[s].label}</option>
@@ -683,7 +683,7 @@ const Payment: React.FC = () => {
         </select>
         {(search || statusFilter !== 'all') && (
           <button onClick={() => { setSearch(''); setStatusFilter('all'); }}
-            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
+            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
             <X className="w-4 h-4" /> Clear
           </button>
         )}
@@ -691,9 +691,9 @@ const Payment: React.FC = () => {
 
       {/* Invoice list */}
       {filtered.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
-          <Receipt className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-400 font-bold">No invoices found</p>
+        <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 p-16 text-center">
+          <Receipt className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+          <p className="text-[13px] text-slate-400">No invoices found</p>
         </div>
       ) : (
         <div className="space-y-3">

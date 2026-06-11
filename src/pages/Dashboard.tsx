@@ -176,10 +176,10 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm">
+          <button className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm">
             Export Report
           </button>
-          <button className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25">
+          <button className="px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-all ">
             + New Appointment
           </button>
         </div>
@@ -192,11 +192,11 @@ const Dashboard: React.FC = () => {
             key={i} 
             variants={item}
             whileHover={{ y: -5 }}
-            className="glass-card p-6 rounded-3xl transition-all duration-300 group"
+            className="glass-card p-6 rounded-lg transition-all duration-300 group"
           >
             <div className="flex items-center justify-between mb-4">
               <div className={cn(
-                "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-300",
+                "p-3 rounded-md transition-transform group-hover:scale-110 duration-300",
                 stat.color === 'blue' && "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
                 stat.color === 'purple' && "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400",
                 stat.color === 'emerald' && "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400",
@@ -220,7 +220,7 @@ const Dashboard: React.FC = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div variants={item} className="lg:col-span-2 glass-card p-6 rounded-3xl">
+        <motion.div variants={item} className="lg:col-span-2 glass-card p-6 rounded-lg">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Appointments Trend</h3>
@@ -276,7 +276,7 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        <motion.div variants={item} className="glass-card p-6 rounded-3xl">
+        <motion.div variants={item} className="glass-card p-6 rounded-lg">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Department Load</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Patient distribution by department</p>
           <div className="h-[250px] w-full">
@@ -316,7 +316,7 @@ const Dashboard: React.FC = () => {
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Activity Table */}
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-3xl overflow-hidden">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-lg overflow-hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Upcoming Appointments</h3>
             <button className="text-sm font-bold text-blue-600 hover:text-blue-500">View all</button>
@@ -337,7 +337,7 @@ const Dashboard: React.FC = () => {
                   <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-xs group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-xs group-hover:bg-blue-600 group-hover:text-white transition-all">
                           {patient.name.charAt(0)}
                         </div>
                         <div>
@@ -385,7 +385,7 @@ const Dashboard: React.FC = () => {
           <motion.div 
             variants={item}
             whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-3xl text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group"
+            className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-lg text-white  shadow-blue-500/20 relative overflow-hidden group"
           >
             <div className="relative z-10">
               <h4 className="text-lg font-bold mb-2">Hospital Capacity</h4>
@@ -424,29 +424,29 @@ const Dashboard: React.FC = () => {
             <Activity className="absolute -bottom-4 -right-4 w-32 h-32 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-500" />
           </motion.div>
 
-          <motion.div variants={item} className="glass-card p-6 rounded-3xl">
+          <motion.div variants={item} className="glass-card p-6 rounded-lg">
             <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Quick Actions</h4>
             <div className="grid grid-cols-2 gap-3">
-              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
+              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
                 <Users className="w-5 h-5 mx-auto mb-2 text-slate-400 group-hover:text-blue-600 transition-colors" />
                 <span className="text-xs font-bold">Add Patient</span>
               </button>
-              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
+              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
                 <FileText className="w-5 h-5 mx-auto mb-2 text-slate-400 group-hover:text-blue-600 transition-colors" />
                 <span className="text-xs font-bold">Write Script</span>
               </button>
-              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
+              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
                 <Calendar className="w-5 h-5 mx-auto mb-2 text-slate-400 group-hover:text-blue-600 transition-colors" />
                 <span className="text-xs font-bold">Schedule</span>
               </button>
-              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
+              <button className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-all text-center group">
                 <TrendingUp className="w-5 h-5 mx-auto mb-2 text-slate-400 group-hover:text-blue-600 transition-colors" />
                 <span className="text-xs font-bold">Reports</span>
               </button>
             </div>
           </motion.div>
 
-          <motion.div variants={item} className="glass-card p-6 rounded-3xl relative overflow-hidden">
+          <motion.div variants={item} className="glass-card p-6 rounded-lg relative overflow-hidden">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-emerald-600">
                 <Heart className="w-5 h-5" />

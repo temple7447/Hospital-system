@@ -88,7 +88,7 @@ function getInitials(name: string) {
 const StatusBadge: React.FC<{ status: AppointmentStatus }> = ({ status }) => {
   const cfg = STATUS_CONFIG[status];
   return (
-    <span className={cn('px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-block', cfg.bg, cfg.darkBg, cfg.color)}>
+    <span className={cn('px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider inline-block', cfg.bg, cfg.darkBg, cfg.color)}>
       {cfg.label}
     </span>
   );
@@ -215,15 +215,15 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-4xl shadow-2xl overflow-hidden"
+              className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-4xl  overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 dark:border-slate-800">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white">Book Appointment</h2>
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Book Appointment</h2>
                   <p className="text-xs font-bold text-slate-400 mt-1">Step {step + 1} of {BOOK_STEPS.length}</p>
                 </div>
-                <button onClick={() => !saving && onClose()} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                <button onClick={() => !saving && onClose()} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
@@ -248,12 +248,12 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                   {success && (
                     <motion.div
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 z-10 rounded-2xl"
+                      className="absolute inset-0 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 z-10 rounded-md"
                     >
                       <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
                         <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                       </div>
-                      <h3 className="text-lg font-black text-slate-900 dark:text-white">Appointment Booked!</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Appointment Booked!</h3>
                       <p className="text-sm text-slate-500 mt-1">Scheduled for {date} at {formatTime(slot)}</p>
                     </motion.div>
                   )}
@@ -264,7 +264,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
                     {!isPatient && (
                       <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Patient</label>
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Patient</label>
                         <div className="relative">
                           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
@@ -272,11 +272,11 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                             value={patientSearch}
                             onChange={e => { setPatientSearch(e.target.value); setPatientId(''); }}
                             placeholder="Search by name, email or ID..."
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none border border-transparent focus:border-blue-500/20"
+                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none border border-transparent focus:border-blue-500/20"
                           />
                         </div>
                         {patientSearch && (
-                          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg max-h-44 overflow-y-auto">
+                          <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm max-h-44 overflow-y-auto">
                             {filteredPatients.length === 0 ? (
                               <p className="text-xs text-slate-400 p-4 text-center">No patients found</p>
                             ) : filteredPatients.map(p => (
@@ -288,7 +288,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                                   patientId === p.id && 'bg-blue-50 dark:bg-blue-900/20'
                                 )}
                               >
-                                <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xs font-black text-blue-600 shrink-0">
+                                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xs font-semibold text-blue-600 shrink-0">
                                   {getInitials(`${p.firstName} ${p.lastName}`)}
                                 </div>
                                 <div>
@@ -307,16 +307,16 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                     )}
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Department</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</label>
                       <div className="grid grid-cols-2 gap-2">
                         {departments.map(d => (
                           <button
                             key={d.id}
                             onClick={() => { setDeptId(d.id); setDoctorId(''); setSlot(''); }}
                             className={cn(
-                              'px-4 py-3 rounded-2xl text-sm font-bold text-left transition-all border',
+                              'px-4 py-3 rounded-md text-sm font-bold text-left transition-all border',
                               deptId === d.id
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20'
+                                ? 'bg-blue-600 text-white border-blue-600 '
                                 : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-blue-500/30'
                             )}
                           >
@@ -332,9 +332,9 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                 {step === 1 && (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Doctor</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Doctor</label>
                       {deptDoctors.length === 0 ? (
-                        <p className="text-sm text-slate-400 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-center">No active doctors in this department</p>
+                        <p className="text-sm text-slate-400 p-4 bg-slate-50 dark:bg-slate-800 rounded-md text-center">No active doctors in this department</p>
                       ) : (
                         <div className="space-y-2">
                           {deptDoctors.map(doc => (
@@ -342,13 +342,13 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                               key={doc.id}
                               onClick={() => { setDoctorId(doc.id); setSlot(''); }}
                               className={cn(
-                                'w-full flex items-center gap-4 px-4 py-3 rounded-2xl border transition-all text-left',
+                                'w-full flex items-center gap-4 px-4 py-3 rounded-md border transition-all text-left',
                                 doctorId === doc.id
                                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                                   : 'border-transparent bg-slate-50 dark:bg-slate-800 hover:border-blue-500/30'
                               )}
                             >
-                              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
                                 {getInitials(`${doc.firstName} ${doc.lastName}`)}
                               </div>
                               <div className="flex-1">
@@ -363,7 +363,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Date</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Date</label>
                       <div className="relative">
                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -371,14 +371,14 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                           value={date}
                           min={today}
                           onChange={e => { setDate(e.target.value); setSlot(''); }}
-                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                         />
                       </div>
                     </div>
 
                     {doctorId && date && (
                       <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
                           Available Time Slots {timeSlots.length === 0 && <span className="text-red-500">(None available)</span>}
                         </label>
                         {timeSlots.length > 0 ? (
@@ -388,9 +388,9 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                                 key={s}
                                 onClick={() => setSlot(s)}
                                 className={cn(
-                                  'py-2 rounded-xl text-xs font-bold transition-all',
+                                  'py-2 rounded-lg text-xs font-bold transition-all',
                                   slot === s
-                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700'
                                 )}
                               >
@@ -399,7 +399,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 text-center">
+                          <p className="text-xs text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-md p-4 text-center">
                             {selectedDoctor && !selectedDoctor.workingDays.includes(
                               new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as any
                             ) ? 'Doctor does not work on this day' : 'All slots are booked'}
@@ -413,8 +413,8 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                 {/* Step 2: Details */}
                 {step === 2 && (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl space-y-2">
-                      <p className="text-xs font-black text-blue-600 uppercase tracking-wider">Summary</p>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md space-y-2">
+                      <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Summary</p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
                           <p className="text-xs text-slate-400 font-bold">Doctor</p>
@@ -430,14 +430,14 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Visit Type</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Visit Type</label>
                       <div className="grid grid-cols-2 gap-2">
                         {(Object.entries(TYPE_LABELS) as [AppointmentType, string][]).map(([val, label]) => (
                           <button
                             key={val}
                             onClick={() => setType(val)}
                             className={cn(
-                              'px-4 py-2.5 rounded-xl text-xs font-bold border transition-all',
+                              'px-4 py-2.5 rounded-lg text-xs font-bold border transition-all',
                               type === val
                                 ? 'bg-blue-600 text-white border-blue-600'
                                 : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-blue-500/30'
@@ -450,13 +450,13 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Reason for Visit</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Reason for Visit</label>
                       <textarea
                         value={reason}
                         onChange={e => setReason(e.target.value)}
                         placeholder="Describe symptoms or reason..."
                         rows={3}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                       />
                     </div>
                   </motion.div>
@@ -468,7 +468,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                 <button
                   onClick={() => step === 0 ? onClose() : setStep(s => s - 1)}
                   disabled={saving}
-                  className="flex-1 px-4 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all disabled:opacity-50"
+                  className="flex-1 px-4 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all disabled:opacity-50"
                 >
                   {step === 0 ? 'Cancel' : 'Back'}
                 </button>
@@ -476,7 +476,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                   <button
                     onClick={() => setStep(s => s + 1)}
                     disabled={(step === 0 && !canStep0) || (step === 1 && !canStep1)}
-                    className="flex-2 px-4 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-2 px-4 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest  hover:bg-blue-700 transition-all  disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -484,7 +484,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, curre
                   <button
                     onClick={handleSubmit}
                     disabled={saving || !canStep2}
-                    className="flex-2 px-4 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-2 px-4 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest  hover:bg-blue-700 transition-all  disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Booking...</> : 'Confirm Booking'}
                   </button>
@@ -546,17 +546,17 @@ const CancelModal: React.FC<CancelModalProps> = ({ appointment, onClose, onCance
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-4xl shadow-2xl overflow-hidden"
+              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-4xl  overflow-hidden"
             >
               <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">Cancel Appointment</h2>
-                <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Cancel Appointment</h2>
+                <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
               <div className="px-8 py-6 space-y-5">
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl space-y-1">
-                  <p className="text-xs font-black text-red-600 uppercase tracking-wider">Appointment to Cancel</p>
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-md space-y-1">
+                  <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">Appointment to Cancel</p>
                   <p className="text-sm font-bold text-slate-900 dark:text-white">
                     {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient'}
                   </p>
@@ -565,23 +565,23 @@ const CancelModal: React.FC<CancelModalProps> = ({ appointment, onClose, onCance
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Reason for Cancellation</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Reason for Cancellation</label>
                   <textarea
                     value={reason}
                     onChange={e => setReason(e.target.value)}
                     placeholder="Provide a reason..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
                   />
                 </div>
               </div>
               <div className="px-8 pb-6 flex gap-3">
                 <button onClick={onClose} disabled={saving}
-                  className="flex-1 px-4 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+                  className="flex-1 px-4 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
                   Keep
                 </button>
                 <button onClick={handleCancel} disabled={saving || !reason.trim()}
-                  className="flex-2 px-4 py-3.5 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="flex-2 px-4 py-3.5 bg-red-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-red-700 transition-all  disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Cancelling...</> : 'Cancel Appointment'}
                 </button>
               </div>
@@ -723,7 +723,7 @@ const Appointments: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Appointments</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Appointments</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
             {isPatient ? 'Your scheduled visits' : isDoctor ? 'Your patient schedule' : 'All hospital appointments'}
           </p>
@@ -731,7 +731,7 @@ const Appointments: React.FC = () => {
         {!isPatient && (
           <button
             onClick={() => setShowBook(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start"
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start"
           >
             <Plus className="w-5 h-5" />
             Book Appointment
@@ -740,7 +740,7 @@ const Appointments: React.FC = () => {
         {isPatient && (
           <button
             onClick={() => setShowBook(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start"
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start"
           >
             <Plus className="w-5 h-5" />
             Book Appointment
@@ -756,12 +756,12 @@ const Appointments: React.FC = () => {
           { label: 'Upcoming', value: stats.upcoming, icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
           { label: 'Completed', value: stats.completed, icon: CheckCheck, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-800' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
+          <div key={s.label} className="glass-card p-5 rounded-md flex items-center gap-4">
+            <div className={cn('w-12 h-12 rounded-md flex items-center justify-center shrink-0', s.bg)}>
               <s.icon className={cn('w-6 h-6', s.color)} />
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -780,13 +780,13 @@ const Appointments: React.FC = () => {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={isPatient ? 'Search by doctor or reason...' : 'Search patient, doctor, or ID...'}
-                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
               />
             </div>
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
               {(Object.keys(STATUS_CONFIG) as AppointmentStatus[]).map(s => (
@@ -796,7 +796,7 @@ const Appointments: React.FC = () => {
             <select
               value={typeFilter}
               onChange={e => setTypeFilter(e.target.value as any)}
-              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
             >
               <option value="all">All Types</option>
               {(Object.entries(TYPE_LABELS) as [AppointmentType, string][]).map(([v, l]) => (
@@ -807,12 +807,12 @@ const Appointments: React.FC = () => {
               type="date"
               value={dateFilter}
               onChange={e => setDateFilter(e.target.value)}
-              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+              className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
             />
             {(statusFilter !== 'all' || typeFilter !== 'all' || dateFilter || search) && (
               <button
                 onClick={() => { setSearch(''); setStatusFilter('all'); setTypeFilter('all'); setDateFilter(''); }}
-                className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2"
+                className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2"
               >
                 <X className="w-4 h-4" /> Clear
               </button>
@@ -823,7 +823,7 @@ const Appointments: React.FC = () => {
           {filtered.length === 0 ? (
             <div className="glass-card rounded-4xl p-16 text-center">
               <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-              <p className="text-lg font-black text-slate-400">No appointments found</p>
+              <p className="text-lg font-semibold text-slate-400">No appointments found</p>
               <p className="text-sm text-slate-400 mt-1">Try adjusting your filters</p>
             </div>
           ) : (
@@ -843,7 +843,7 @@ const Appointments: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.03 }}
                     className={cn(
-                      'glass-card rounded-3xl overflow-hidden transition-all',
+                      'glass-card rounded-lg overflow-hidden transition-all',
                       isToday && 'ring-2 ring-blue-500/30',
                       apt.status === 'cancelled' && 'opacity-60'
                     )}
@@ -851,7 +851,7 @@ const Appointments: React.FC = () => {
                     {isToday && (
                       <div className="px-6 py-1.5 bg-blue-600 flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Today</span>
+                        <span className="text-[10px] font-semibold text-white uppercase tracking-widest">Today</span>
                       </div>
                     )}
                     <div
@@ -860,12 +860,12 @@ const Appointments: React.FC = () => {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                          <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-black shrink-0 shadow-lg shadow-blue-500/20">
+                          <div className="w-12 h-12 rounded-md bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 ">
                             {patient ? getInitials(`${patient.firstName} ${patient.lastName}`) : '?'}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-black text-slate-900 dark:text-white text-sm">
+                              <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
                                 {patient ? `${patient.firstName} ${patient.lastName}` : apt.patientId}
                               </h3>
                               <StatusBadge status={apt.status} />
@@ -895,7 +895,7 @@ const Appointments: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <span className="hidden sm:block px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                          <span className="hidden sm:block px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                             {TYPE_LABELS[apt.type]}
                           </span>
                           <ChevronDown className={cn('w-5 h-5 text-slate-400 transition-transform', isExpanded && 'rotate-180')} />
@@ -915,36 +915,36 @@ const Appointments: React.FC = () => {
                         >
                           <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Appointment #</p>
+                              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Appointment #</p>
                                 <p className="text-xs font-bold text-slate-900 dark:text-white">{apt.appointmentNumber}</p>
                               </div>
-                              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Duration</p>
+                              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Duration</p>
                                 <p className="text-xs font-bold text-slate-900 dark:text-white">{apt.duration} min</p>
                               </div>
                               {patient?.phone && (
-                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Patient Phone</p>
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Patient Phone</p>
                                   <p className="text-xs font-bold text-slate-900 dark:text-white">{patient.phone}</p>
                                 </div>
                               )}
                             </div>
-                            <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                              <p className="text-[10px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1">
+                            <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1 flex items-center gap-1">
                                 <FileText className="w-3 h-3" /> Reason
                               </p>
                               <p className="text-sm text-slate-700 dark:text-slate-300">{apt.reason}</p>
                             </div>
                             {apt.cancelledReason && (
-                              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                                <p className="text-[10px] font-black text-red-500 uppercase mb-1">Cancellation Reason</p>
+                              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                <p className="text-[10px] font-semibold text-red-500 uppercase mb-1">Cancellation Reason</p>
                                 <p className="text-sm text-slate-700 dark:text-slate-300">{apt.cancelledReason}</p>
                               </div>
                             )}
                             {apt.notes && (
-                              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                                <p className="text-[10px] font-black text-amber-600 uppercase mb-1">Notes</p>
+                              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                <p className="text-[10px] font-semibold text-amber-600 uppercase mb-1">Notes</p>
                                 <p className="text-sm text-slate-700 dark:text-slate-300">{apt.notes}</p>
                               </div>
                             )}
@@ -955,7 +955,7 @@ const Appointments: React.FC = () => {
                                 {apt.status === 'scheduled' && !isPatient && (
                                   <button
                                     onClick={() => handleStatusChange(apt, 'confirmed')}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-xl text-xs font-black hover:bg-emerald-100 transition-all"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-all"
                                   >
                                     <CheckCircle2 className="w-4 h-4" /> Confirm
                                   </button>
@@ -963,7 +963,7 @@ const Appointments: React.FC = () => {
                                 {apt.status === 'confirmed' && (isDoctor || isAdmin) && (
                                   <button
                                     onClick={() => handleStatusChange(apt, 'in_progress')}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-violet-50 dark:bg-violet-900/20 text-violet-600 rounded-xl text-xs font-black hover:bg-violet-100 transition-all"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-violet-50 dark:bg-violet-900/20 text-violet-600 rounded-lg text-xs font-semibold hover:bg-violet-100 transition-all"
                                   >
                                     <PlayCircle className="w-4 h-4" /> Start
                                   </button>
@@ -971,7 +971,7 @@ const Appointments: React.FC = () => {
                                 {apt.status === 'in_progress' && (isDoctor || isAdmin) && (
                                   <button
                                     onClick={() => handleStatusChange(apt, 'completed')}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black hover:bg-slate-200 transition-all"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-all"
                                   >
                                     <CheckCheck className="w-4 h-4" /> Complete
                                   </button>
@@ -979,14 +979,14 @@ const Appointments: React.FC = () => {
                                 {!isPatient && (
                                   <button
                                     onClick={() => handleStatusChange(apt, 'no_show')}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl text-xs font-black hover:bg-amber-100 transition-all"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-lg text-xs font-semibold hover:bg-amber-100 transition-all"
                                   >
                                     <AlertCircle className="w-4 h-4" /> No Show
                                   </button>
                                 )}
                                 <button
                                   onClick={() => setCancelTarget(apt)}
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl text-xs font-black hover:bg-red-100 transition-all"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-all"
                                 >
                                   <XCircle className="w-4 h-4" /> Cancel
                                 </button>
@@ -1006,21 +1006,21 @@ const Appointments: React.FC = () => {
         {/* Sidebar: Calendar + Quick Stats */}
         <div className="space-y-6">
           {/* Mini Calendar */}
-          <div className="glass-card p-5 rounded-3xl">
+          <div className="glass-card p-5 rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-black text-slate-900 dark:text-white text-sm">
+              <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
                 {calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h3>
               <div className="flex gap-1">
                 <button
                   onClick={() => setCalendarDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
-                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                 >
                   <ChevronLeft className="w-4 h-4 text-slate-400" />
                 </button>
                 <button
                   onClick={() => setCalendarDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
-                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                 >
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
@@ -1028,7 +1028,7 @@ const Appointments: React.FC = () => {
             </div>
             <div className="grid grid-cols-7 gap-1 mb-2">
               {['S','M','T','W','T','F','S'].map((d, i) => (
-                <div key={i} className="text-center text-[9px] font-black text-slate-400 uppercase py-1">{d}</div>
+                <div key={i} className="text-center text-[9px] font-semibold text-slate-400 uppercase py-1">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-1">
@@ -1044,7 +1044,7 @@ const Appointments: React.FC = () => {
                     onClick={() => setDateFilter(dateFilter === dateStr ? '' : dateStr)}
                     className={cn(
                       'aspect-square rounded-lg flex flex-col items-center justify-center transition-all relative text-xs font-bold',
-                      isToday ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' :
+                      isToday ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' :
                       dateFilter === dateStr ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' :
                       'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
                     )}
@@ -1060,8 +1060,8 @@ const Appointments: React.FC = () => {
           </div>
 
           {/* Today's Summary */}
-          <div className="glass-card p-5 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Today</h3>
+          <div className="glass-card p-5 rounded-lg">
+            <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Today</h3>
             {appointments.filter(a => a.date === today).length === 0 ? (
               <p className="text-xs text-slate-400 text-center py-4">No appointments today</p>
             ) : (
@@ -1087,8 +1087,8 @@ const Appointments: React.FC = () => {
           </div>
 
           {/* Status breakdown */}
-          <div className="glass-card p-5 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Breakdown</h3>
+          <div className="glass-card p-5 rounded-lg">
+            <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Breakdown</h3>
             <div className="space-y-2">
               {(Object.keys(STATUS_CONFIG) as AppointmentStatus[]).map(s => {
                 const count = appointments.filter(a => a.status === s).length;
@@ -1099,12 +1099,12 @@ const Appointments: React.FC = () => {
                     key={s}
                     onClick={() => setStatusFilter(statusFilter === s ? 'all' : s)}
                     className={cn(
-                      'w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-left',
+                      'w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-left',
                       statusFilter === s ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                     )}
                   >
                     <span className={cn('text-xs font-bold', cfg.color)}>{cfg.label}</span>
-                    <span className="text-xs font-black text-slate-900 dark:text-white">{count}</span>
+                    <span className="text-xs font-semibold text-slate-900 dark:text-white">{count}</span>
                   </button>
                 );
               })}

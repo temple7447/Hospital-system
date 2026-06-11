@@ -116,38 +116,38 @@ const ItemModal: React.FC<ItemModalProps> = ({ item, open, onClose, onSaved, use
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={() => !saving && onClose()}>
         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+          className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-lg  overflow-hidden max-h-[92vh] flex flex-col"
           onClick={e => e.stopPropagation()}>
 
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
-            <h3 className="font-black text-slate-900 dark:text-white">{isEdit ? 'Edit Item' : 'Add Item'}</h3>
-            <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+            <h3 className="font-semibold text-slate-900 dark:text-white">{isEdit ? 'Edit Item' : 'Add Item'}</h3>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
               <X className="w-4 h-4 text-slate-400" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Name</label>
               <input type="text" value={form.name} onChange={e => set('name', e.target.value)}
                 placeholder="e.g. Amoxicillin 500mg"
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Category</label>
                 <select value={form.category} onChange={e => set('category', e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                   {(Object.keys(CATEGORY_CFG) as InventoryCategory[]).map(c => (
                     <option key={c} value={c}>{CATEGORY_CFG[c].label}</option>
                   ))}
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Unit</label>
                 <select value={form.unit} onChange={e => set('unit', e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                   {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
@@ -155,51 +155,51 @@ const ItemModal: React.FC<ItemModalProps> = ({ item, open, onClose, onSaved, use
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Qty</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Qty</label>
                 <input type="number" min="0" value={form.quantity} onChange={e => set('quantity', Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Min Qty</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Min Qty</label>
                 <input type="number" min="0" value={form.minQuantity} onChange={e => set('minQuantity', Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit Price</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Unit Price</label>
                 <input type="number" min="0" step="0.01" value={form.unitPrice} onChange={e => set('unitPrice', Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplier</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Supplier</label>
               <input type="text" value={form.supplier} onChange={e => set('supplier', e.target.value)}
                 placeholder="Supplier name"
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Location</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Location</label>
                 <input type="text" value={form.location} onChange={e => set('location', e.target.value)}
                   placeholder="e.g. Pharmacy Store A"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Expiry Date</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Expiry Date</label>
                 <input type="date" value={form.expiryDate} onChange={e => set('expiryDate', e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
               </div>
             </div>
           </div>
 
           <div className="px-6 pb-6 flex gap-3 shrink-0 border-t border-slate-100 dark:border-slate-800 pt-4">
             <button onClick={onClose} disabled={saving}
-              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+              className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
               Cancel
             </button>
             <button onClick={handleSave} disabled={saving || !canSave}
-              className="flex-2 py-3.5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              className="flex-2 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : isEdit ? 'Save Changes' : 'Add Item'}
             </button>
           </div>
@@ -246,28 +246,28 @@ const RestockModal: React.FC<RestockModalProps> = ({ item, onClose, onRestocked,
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => !saving && onClose()}>
           <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden"
+            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-lg  overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-black text-slate-900 dark:text-white">Restock Item</h3>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
+              <h3 className="font-semibold text-slate-900 dark:text-white">Restock Item</h3>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><X className="w-4 h-4 text-slate-400" /></button>
             </div>
             <div className="p-6 space-y-5">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="font-black text-slate-900 dark:text-white">{item.name}</p>
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
+                <p className="font-semibold text-slate-900 dark:text-white">{item.name}</p>
                 <p className="text-xs text-slate-400 font-bold mt-1">Current stock: {item.quantity} {item.unit}</p>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Quantity ({item.unit})</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Add Quantity ({item.unit})</label>
                 <input type="number" min="1" value={qty} onChange={e => setQty(Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-2xl font-black outline-none focus:ring-2 focus:ring-blue-500 text-center" />
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-2xl font-semibold outline-none focus:ring-2 focus:ring-blue-500 text-center" />
               </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-xs font-bold text-blue-600">New total: {item.quantity + qty} {item.unit}</p>
               </div>
               <div className="flex gap-3">
-                <button onClick={onClose} disabled={saving} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
-                <button onClick={handleRestock} disabled={saving || qty <= 0} className="flex-2 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                <button onClick={onClose} disabled={saving} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+                <button onClick={handleRestock} disabled={saving || qty <= 0} className="flex-2 py-3 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : 'Restock'}
                 </button>
               </div>
@@ -296,32 +296,32 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onRestock, onDelete }
 
   return (
     <div className={cn(
-      'glass-card rounded-2xl p-5 space-y-4 transition-all',
+      'glass-card rounded-md p-5 space-y-4 transition-all',
       level === 'out' ? 'ring-2 ring-red-400/50' : level === 'low' ? 'ring-2 ring-amber-400/40' : ''
     )}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', cat.bg)}>
+          <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', cat.bg)}>
             <cat.icon className={cn('w-5 h-5', cat.text)} />
           </div>
           <div className="min-w-0">
-            <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{item.name}</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm leading-tight">{item.name}</p>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cat.bg, cat.text)}>{cat.label}</span>
-              {level === 'out' && <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-red-50 dark:bg-red-900/20 text-red-600">Out of Stock</span>}
-              {level === 'low' && <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600">Low Stock</span>}
-              {isExpired && <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase bg-red-50 dark:bg-red-900/20 text-red-600">Expired</span>}
+              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cat.bg, cat.text)}>{cat.label}</span>
+              {level === 'out' && <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-red-50 dark:bg-red-900/20 text-red-600">Out of Stock</span>}
+              {level === 'low' && <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-amber-50 dark:bg-amber-900/20 text-amber-600">Low Stock</span>}
+              {isExpired && <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase bg-red-50 dark:bg-red-900/20 text-red-600">Expired</span>}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <button onClick={() => onRestock(item)} title="Restock" className="p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-slate-400 hover:text-emerald-600 transition-all">
+          <button onClick={() => onRestock(item)} title="Restock" className="p-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-slate-400 hover:text-emerald-600 transition-all">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onEdit(item)} title="Edit" className="p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-400 hover:text-blue-600 transition-all">
+          <button onClick={() => onEdit(item)} title="Edit" className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-400 hover:text-blue-600 transition-all">
             <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onDelete(item)} title="Delete" className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-all">
+          <button onClick={() => onDelete(item)} title="Delete" className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-all">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -405,11 +405,11 @@ const Inventory: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Inventory</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Inventory</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Medicines, equipment and supplies</p>
         </div>
         <button onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start">
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start">
           <Plus className="w-5 h-5" /> Add Item
         </button>
       </motion.div>
@@ -422,12 +422,12 @@ const Inventory: React.FC = () => {
           { label: 'Out of Stock', value: stats.outOfStock, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
           { label: 'Total Value', value: fmtMoney(stats.totalValue), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
+          <div key={s.label} className="glass-card p-5 rounded-md flex items-center gap-4">
+            <div className={cn('w-11 h-11 rounded-md flex items-center justify-center shrink-0', s.bg)}>
               <s.icon className={cn('w-5 h-5', s.color)} />
             </div>
             <div>
-              <p className="text-lg font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -436,7 +436,7 @@ const Inventory: React.FC = () => {
 
       {/* Low stock alert */}
       {(stats.lowStock > 0 || stats.outOfStock > 0) && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-center gap-3">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
           <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
             {stats.outOfStock > 0 && `${stats.outOfStock} item${stats.outOfStock !== 1 ? 's' : ''} out of stock. `}
@@ -452,17 +452,17 @@ const Inventory: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search name, supplier, location..."
-              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
           </div>
           <select value={stockFilter} onChange={e => setStockFilter(e.target.value as typeof stockFilter)}
-            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
+            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300">
             <option value="all">All Stock Levels</option>
             <option value="low">Low Stock</option>
             <option value="out">Out of Stock</option>
           </select>
           {(search || catFilter !== 'all' || stockFilter !== 'all') && (
             <button onClick={() => { setSearch(''); setCatFilter('all'); setStockFilter('all'); }}
-              className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
+              className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2">
               <X className="w-4 h-4" /> Clear
             </button>
           )}
@@ -473,9 +473,9 @@ const Inventory: React.FC = () => {
           {(['all', ...Object.keys(CATEGORY_CFG)] as (InventoryCategory | 'all')[]).map(c => (
             <button key={c} onClick={() => setCatFilter(c)}
               className={cn(
-                'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
+                'px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
                 catFilter === c
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                  ? 'bg-blue-600 text-white '
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-300'
               )}>
               {c === 'all' ? 'All' : CATEGORY_CFG[c as InventoryCategory].label}
@@ -486,7 +486,7 @@ const Inventory: React.FC = () => {
 
       {/* Items grid */}
       {filtered.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
+        <div className="glass-card p-16 rounded-lg text-center">
           <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">No items found</p>
         </div>

@@ -126,13 +126,13 @@ const QueuePage: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Arrival Queue</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Arrival Queue</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
             {stats.waiting} waiting · {stats.inProgress} in progress
           </p>
         </div>
         <button onClick={load}
-          className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-2xl font-bold hover:bg-slate-50 transition-all self-start">
+          className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-md font-bold hover:bg-slate-50 transition-all self-start">
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </motion.div>
@@ -146,14 +146,14 @@ const QueuePage: React.FC = () => {
           { label: 'In Progress', value: stats.inProgress, color: 'emerald' },
           { label: 'Completed',   value: stats.completed,  color: 'slate' },
         ].map(s => (
-          <div key={s.label} className={cn('p-5 rounded-2xl border',
+          <div key={s.label} className={cn('p-5 rounded-md border',
             s.color === 'amber'   && 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800',
             s.color === 'blue'    && 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
             s.color === 'emerald' && 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
             s.color === 'slate'   && 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700',
           )}>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
-            <p className={cn('text-[10px] font-black uppercase tracking-wider mt-0.5',
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
+            <p className={cn('text-[10px] font-semibold uppercase tracking-wider mt-0.5',
               s.color === 'amber'   && 'text-amber-600',
               s.color === 'blue'    && 'text-blue-600',
               s.color === 'emerald' && 'text-emerald-600',
@@ -167,9 +167,9 @@ const QueuePage: React.FC = () => {
       <div className="flex flex-wrap gap-2">
         {(['active', 'waiting', 'called', 'in_progress', 'completed', 'no_show'] as const).map(s => (
           <button key={s} onClick={() => setStatusFilter(s)}
-            className={cn('px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
+            className={cn('px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
               statusFilter === s
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                ? 'bg-blue-600 text-white '
                 : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-blue-300')}>
             {s === 'active' ? 'Active' : s.replace('_', ' ')}
           </button>
@@ -179,7 +179,7 @@ const QueuePage: React.FC = () => {
       {/* Queue list */}
       {filtered.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="glass-card p-16 rounded-3xl text-center">
+          className="glass-card p-16 rounded-lg text-center">
           <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">Queue is empty</p>
         </motion.div>
@@ -198,24 +198,24 @@ const QueuePage: React.FC = () => {
                 <motion.div key={entry.id}
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }} transition={{ delay: i * 0.03 }}
-                  className="glass-card rounded-2xl p-5 flex items-center gap-4">
+                  className="glass-card rounded-md p-5 flex items-center gap-4">
 
                   {/* Token + status dot */}
                   <div className="flex flex-col items-center gap-1 shrink-0 w-14">
-                    <span className="text-lg font-black text-slate-900 dark:text-white">{entry.tokenNumber}</span>
+                    <span className="text-lg font-semibold text-slate-900 dark:text-white">{entry.tokenNumber}</span>
                     <div className={cn('w-2 h-2 rounded-full', cfg.dot)} />
                   </div>
 
                   {/* Patient info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-black text-slate-900 dark:text-white">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {patient ? `${patient.firstName} ${patient.lastName}` : '—'}
                       </p>
-                      <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', priCfg.cls)}>
+                      <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', priCfg.cls)}>
                         {entry.priority}
                       </span>
-                      <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cfg.bg, cfg.text)}>
+                      <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cfg.bg, cfg.text)}>
                         {cfg.label}
                       </span>
                     </div>
@@ -231,17 +231,17 @@ const QueuePage: React.FC = () => {
                   <div className="flex items-center gap-2 shrink-0">
                     {entry.status === 'waiting' && (
                       <button onClick={() => markNoShow(entry)} disabled={busy}
-                        className="p-2 rounded-xl text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all disabled:opacity-40"
+                        className="p-2 rounded-lg text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all disabled:opacity-40"
                         title="Mark no-show">
                         <AlertCircle className="w-4 h-4" />
                       </button>
                     )}
                     {action && (
                       <button onClick={() => advance(entry)} disabled={busy}
-                        className={cn('flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all disabled:opacity-40',
+                        className={cn('flex items-center gap-1.5 px-4 py-2.5 rounded-lg font-semibold text-xs uppercase tracking-wider transition-all disabled:opacity-40',
                           entry.status === 'in_progress'
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20'
-                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20')}>
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-500/20'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 ')}>
                         <action.icon className="w-3.5 h-3.5" />
                         {action.label}
                       </button>

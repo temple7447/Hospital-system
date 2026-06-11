@@ -21,7 +21,7 @@ const NotFound: React.FC = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-          className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-3xl mb-8 mx-auto"
+          className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-8 mx-auto"
         >
           <Hospital className="w-12 h-12 text-blue-600 dark:text-blue-400" />
         </motion.div>
@@ -33,10 +33,10 @@ const NotFound: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <div className="relative inline-block mb-6">
-            <span className="text-[120px] font-black text-slate-100 dark:text-slate-800 leading-none select-none">
+            <span className="text-[120px] font-semibold text-slate-100 dark:text-slate-800 leading-none select-none">
               404
             </span>
-            <span className="absolute inset-0 flex items-center justify-center text-2xl font-black text-blue-600 dark:text-blue-400">
+            <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-blue-600 dark:text-blue-400">
               Page Not Found
             </span>
           </div>
@@ -78,14 +78,14 @@ const NotFound: React.FC = () => {
         >
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:border-blue-500/40 hover:text-blue-600 transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-md border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:border-blue-500/40 hover:text-blue-600 transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
             Go Back
           </button>
           <button
             onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25"
+            className="flex items-center gap-2 px-6 py-3 rounded-md bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all "
           >
             <Home className="w-5 h-5" />
             {isAuthenticated ? 'Go to Dashboard' : 'Go to Login'}

@@ -28,13 +28,13 @@ const item = {
 export function DoctorAvailability({ doctors, className }: DoctorAvailabilityProps) {
   return (
     <div className={className}>
-      <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-6">Doctor Availability</h3>
+      <h3 className="font-semibold text-slate-900 dark:text-white uppercase tracking-wider text-sm mb-6">Doctor Availability</h3>
       <div className="space-y-4">
         {doctors.map((doc, i) => (
           <motion.div 
             key={i}
             variants={item}
-            className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl"
+            className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md"
           >
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColors[doc.status].bg.replace('bg-', '#') }} />
@@ -43,7 +43,7 @@ export function DoctorAvailability({ doctors, className }: DoctorAvailabilityPro
                 <p className="text-[10px] text-slate-500">{doc.department} • {doc.room}</p>
               </div>
             </div>
-            <span className={cn("text-[10px] font-black uppercase tracking-wider", statusColors[doc.status].text)}>
+            <span className={cn("text-[10px] font-semibold uppercase tracking-wider", statusColors[doc.status].text)}>
               {doc.status}
             </span>
           </motion.div>

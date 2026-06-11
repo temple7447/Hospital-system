@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -64,6 +65,7 @@ const statusColors: Record<Patient['status'], string> = {
 };
 
 const Patients: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -128,8 +130,7 @@ const Patients: React.FC = () => {
   };
 
   const handleViewPatient = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setIsViewModalOpen(true);
+    navigate(`/patients/${patient.id}`);
   };
 
   const handleDeletePatient = (patient: Patient) => {
@@ -198,12 +199,12 @@ const Patients: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-2xl"
+              className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-md"
             >
               <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Registration Success!</h3>
+              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white uppercase tracking-tight">Registration Success!</h3>
               <p className="text-slate-500 dark:text-slate-400 font-bold mt-2 text-center max-w-xs">The new patient has been registered in the system.</p>
             </motion.div>
           )}
@@ -211,13 +212,13 @@ const Patients: React.FC = () => {
           <form className="space-y-6" onSubmit={handleAddPatient}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">First Name</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">First Name</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
                     placeholder="e.g. John" 
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
                     value={formData.firstName}
@@ -226,13 +227,13 @@ const Patients: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Last Name</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Last Name</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
                     placeholder="e.g. Doe" 
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
                     value={formData.lastName}
@@ -241,13 +242,13 @@ const Patients: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Email Address</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Email Address</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="email" 
                     placeholder="e.g. john@example.com" 
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
                     value={formData.email}
@@ -256,13 +257,13 @@ const Patients: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Phone Number</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="tel" 
                     placeholder="e.g. +1 234 567 890" 
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
                     value={formData.phone}
@@ -271,12 +272,12 @@ const Patients: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Date of Birth</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Date of Birth</label>
                 <div className="relative">
                   <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="date" 
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
                     value={formData.dateOfBirth}
@@ -285,9 +286,9 @@ const Patients: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Gender</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Gender</label>
                 <select 
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
                   required 
                   disabled={isAddingPatient}
                   value={formData.gender}
@@ -300,9 +301,9 @@ const Patients: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Blood Group</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Blood Group</label>
                 <select 
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50" 
                   required 
                   disabled={isAddingPatient}
                   value={formData.bloodType}
@@ -320,13 +321,13 @@ const Patients: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Address</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Address</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
                     placeholder="e.g. 123 Healthcare Ave" 
-                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none disabled:opacity-50" 
                     required 
                     disabled={isAddingPatient}
                     value={formData.address}
@@ -339,14 +340,14 @@ const Patients: React.FC = () => {
               <button 
                 type="button" 
                 onClick={() => setIsAddModalOpen(false)} 
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
+                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
                 disabled={isAddingPatient}
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
-                className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+                className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-md font-semibold uppercase tracking-widest text-[10px]  hover:bg-blue-700 transition-all  disabled:opacity-70 flex items-center justify-center gap-2"
                 disabled={isAddingPatient}
               >
                 {isAddingPatient ? (
@@ -373,34 +374,34 @@ const Patients: React.FC = () => {
         {selectedPatient && (
           <div className="space-y-6">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-3xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-2xl font-black">
+              <div className="w-20 h-20 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 text-2xl font-semibold">
                 {selectedPatient.firstName[0]}{selectedPatient.lastName[0]}
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">{`${selectedPatient.firstName} ${selectedPatient.lastName}`}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">{`${selectedPatient.firstName} ${selectedPatient.lastName}`}</h3>
                 <p className="text-sm font-medium text-slate-500">ID: #{selectedPatient.patientNumber}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-bold text-slate-400 uppercase">Email</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.email}</p>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-bold text-slate-400 uppercase">Phone</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.phone}</p>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-bold text-slate-400 uppercase">Gender / Age</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.gender}, {calcAge(selectedPatient.dateOfBirth)}y</p>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-bold text-slate-400 uppercase">Blood Type</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{selectedPatient.bloodType}</p>
               </div>
             </div>
             {selectedPatient.address && (
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-4 rounded-md">
                 <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
                 {selectedPatient.address}{selectedPatient.city ? `, ${selectedPatient.city}` : ''}
               </div>
@@ -409,7 +410,7 @@ const Patients: React.FC = () => {
               <button 
                 type="button" 
                 onClick={() => setIsViewModalOpen(false)} 
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
               >
                 Close
               </button>
@@ -419,7 +420,7 @@ const Patients: React.FC = () => {
                   setIsViewModalOpen(false);
                   handleEditClick(selectedPatient);
                 }}
-                className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all"
+                className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-md font-semibold uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all"
               >
                 Edit Patient
               </button>
@@ -439,7 +440,7 @@ const Patients: React.FC = () => {
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-600" />
           </div>
-          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Confirm Delete</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Confirm Delete</h3>
           <p className="text-sm text-slate-500 mb-6">
             Are you sure you want to delete <span className="font-bold text-red-500">{selectedPatient && `${selectedPatient.firstName} ${selectedPatient.lastName}`}</span>? This action cannot be undone.
           </p>
@@ -448,7 +449,7 @@ const Patients: React.FC = () => {
               type="button" 
               onClick={() => setIsDeleteModalOpen(false)} 
               disabled={isDeleting}
-              className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
+              className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all disabled:opacity-50"
             >
               Cancel
             </button>
@@ -456,7 +457,7 @@ const Patients: React.FC = () => {
               type="button" 
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-4 bg-red-600 text-white rounded-md font-semibold uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {isDeleting ? (
                 <>
@@ -482,56 +483,56 @@ const Patients: React.FC = () => {
           <form className="space-y-6" onSubmit={handleEditSave}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">First Name</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">First Name</label>
                 <input 
                   type="text" 
                   value={editData.firstName}
                   onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Last Name</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Last Name</label>
                 <input 
                   type="text" 
                   value={editData.lastName}
                   onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Email Address</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Email Address</label>
                 <input 
                   type="email" 
                   value={editData.email}
                   onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Phone Number</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Phone Number</label>
                 <input 
                   type="tel" 
                   value={editData.phone}
                   onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Date of Birth</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Date of Birth</label>
                 <input 
                   type="date" 
                   value={editData.dateOfBirth}
                   onChange={(e) => setEditData({ ...editData, dateOfBirth: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Gender</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Gender</label>
                 <select 
                   value={editData.gender}
                   onChange={(e) => setEditData({ ...editData, gender: e.target.value as Patient['gender'] })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
                 >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -539,11 +540,11 @@ const Patients: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Blood Type</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Blood Type</label>
                 <select 
                   value={editData.bloodType}
                   onChange={(e) => setEditData({ ...editData, bloodType: e.target.value as BloodType })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
                 >
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
@@ -556,11 +557,11 @@ const Patients: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">Status</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">Status</label>
                 <select 
                   value={editData.status}
                   onChange={(e) => setEditData({ ...editData, status: e.target.value as Patient['status'] })}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none cursor-pointer"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -572,13 +573,13 @@ const Patients: React.FC = () => {
               <button 
                 type="button" 
                 onClick={() => setIsEditModalOpen(false)} 
-                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+                className="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
               >
                 Cancel
               </button>
               <button 
                 type="submit"
-                className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all"
+                className="flex-[2] px-12 py-4 bg-blue-600 text-white rounded-md font-semibold uppercase tracking-widest text-[10px]  hover:bg-blue-700 transition-all"
               >
                 Save Changes
               </button>
@@ -590,12 +591,12 @@ const Patients: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Patients</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Patients</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Manage and monitor hospital patients</p>
         </div>
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/25 active:scale-95"
+          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-bold transition-all  "
         >
           <UserPlus className="w-5 h-5" />
           <span>Add New Patient</span>
@@ -613,11 +614,11 @@ const Patients: React.FC = () => {
           <motion.div 
             key={i}
             variants={item}
-            className="glass-card p-6 rounded-3xl"
+            className="glass-card p-6 rounded-lg"
           >
             <div className="flex items-center justify-between mb-4">
               <div className={cn(
-                "p-3 rounded-2xl",
+                "p-3 rounded-md",
                 stat.color === 'blue' && "bg-blue-50 dark:bg-blue-900/20 text-blue-600",
                 stat.color === 'emerald' && "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600",
                 stat.color === 'amber' && "bg-amber-50 dark:bg-amber-900/20 text-amber-600",
@@ -632,30 +633,30 @@ const Patients: React.FC = () => {
                 {stat.change}
               </span>
             </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</h3>
+            <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">{stat.value}</h3>
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
           </motion.div>
         ))}
       </div>
 
       {/* Filter and Search Bar */}
-      <motion.div variants={item} className="glass-card p-4 rounded-3xl flex flex-col md:flex-row gap-4 items-center">
+      <motion.div variants={item} className="glass-card p-4 rounded-lg flex flex-col md:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input 
             type="text" 
             placeholder="Search patients by name, ID, or email..." 
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all outline-none text-sm font-medium"
+            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-none rounded-md focus:ring-2 focus:ring-blue-500 transition-all outline-none text-sm font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-all text-sm">
+          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-md font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-all text-sm">
             <Filter className="w-4 h-4" />
             <span>Filters</span>
           </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-all text-sm">
+          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-md font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-all text-sm">
             <ArrowUpDown className="w-4 h-4" />
             <span>Sort</span>
           </button>
@@ -663,7 +664,7 @@ const Patients: React.FC = () => {
       </motion.div>
 
       {/* Patients Table */}
-      <motion.div variants={item} className="glass-card rounded-3xl overflow-hidden">
+      <motion.div variants={item} className="glass-card rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -688,7 +689,7 @@ const Patients: React.FC = () => {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-sm">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold text-sm">
                           {patient.firstName[0]}{patient.lastName[0]}
                         </div>
                         <div>
@@ -720,7 +721,7 @@ const Patients: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn(
-                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+                        "px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider",
                         statusColors[patient.status]
                       )}>
                         {patient.status}
@@ -760,8 +761,8 @@ const Patients: React.FC = () => {
         <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Showing {filteredPatients.length} of {patients.length} patients</p>
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold disabled:opacity-50" disabled>Previous</button>
-            <button className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold">Next</button>
+            <button className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-bold disabled:opacity-50" disabled>Previous</button>
+            <button className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-bold">Next</button>
           </div>
         </div>
       </motion.div>

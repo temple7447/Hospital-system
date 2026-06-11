@@ -65,11 +65,11 @@ const PrescriptionQueue: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-8">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Prescription Queue</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Prescription Queue</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">{filtered.length} pending dispense</p>
       </div>
 
-      <div className="glass-card rounded-3xl p-5">
+      <div className="glass-card rounded-lg p-5">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" placeholder="Search by Rx number, patient, or diagnosis…" value={search}
@@ -79,7 +79,7 @@ const PrescriptionQueue: React.FC = () => {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="glass-card rounded-3xl p-16 text-center">
+        <div className="glass-card rounded-lg p-16 text-center">
           <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-500 mb-3" />
           <p className="text-slate-400 font-medium">Queue is empty. All caught up!</p>
         </div>
@@ -94,21 +94,21 @@ const PrescriptionQueue: React.FC = () => {
 
             return (
               <motion.div key={rx.id} layout
-                className={cn('glass-card rounded-3xl overflow-hidden',
+                className={cn('glass-card rounded-lg overflow-hidden',
                   hasAllergyConflict && 'ring-2 ring-red-400')}>
                 <button onClick={() => setExpanded(isExpanded ? null : rx.id)}
                   className="w-full p-4 flex items-center gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors text-left">
-                  <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
                     <Pill className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-900 dark:text-white truncate">{rx.prescriptionNumber} · {rx.diagnosis}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white truncate">{rx.prescriptionNumber} · {rx.diagnosis}</p>
                     <p className="text-xs text-slate-500 font-medium truncate">
                       {patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown'} · {rx.items.length} medicine{rx.items.length === 1 ? '' : 's'}
                     </p>
                   </div>
                   {hasAllergyConflict && (
-                    <span className="flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-900/20 shrink-0">
+                    <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-900/20 shrink-0">
                       <AlertTriangle className="w-3 h-3" /> Allergy
                     </span>
                   )}
@@ -123,8 +123,8 @@ const PrescriptionQueue: React.FC = () => {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                     className="px-4 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
                     {hasAllergyConflict && patient && (
-                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200">
-                        <p className="text-xs font-black text-red-700 uppercase mb-1 flex items-center gap-1.5">
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-red-200">
+                        <p className="text-xs font-semibold text-red-700 uppercase mb-1 flex items-center gap-1.5">
                           <AlertTriangle className="w-3.5 h-3.5" /> Allergy warning
                         </p>
                         <p className="text-sm font-bold text-red-700 dark:text-red-300">
@@ -135,10 +135,10 @@ const PrescriptionQueue: React.FC = () => {
 
                     <div className="space-y-2">
                       {rx.items.map((item, i) => (
-                        <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                        <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                           <div className="flex justify-between items-start mb-1">
-                            <p className="font-black text-slate-900 dark:text-white">{item.medicine}</p>
-                            <span className="text-xs font-black text-blue-600">{item.dosage}</span>
+                            <p className="font-semibold text-slate-900 dark:text-white">{item.medicine}</p>
+                            <span className="text-xs font-semibold text-blue-600">{item.dosage}</span>
                           </div>
                           <p className="text-xs text-slate-500 font-medium">
                             {item.frequency} · {item.duration}
@@ -151,7 +151,7 @@ const PrescriptionQueue: React.FC = () => {
                     </div>
 
                     <button onClick={() => handleDispense(rx)}
-                      className="w-full py-3 bg-emerald-600 text-white rounded-xl text-sm font-black hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                      className="w-full py-3 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
                       <CheckCircle2 className="w-4 h-4" /> Mark as Dispensed
                     </button>
                   </motion.div>

@@ -78,7 +78,7 @@ const Availability: React.FC = () => {
     <div className="space-y-8 max-w-3xl">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">My Availability</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">My Availability</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
           Set your working days and hours for scheduling
         </p>
@@ -86,13 +86,13 @@ const Availability: React.FC = () => {
 
       {/* Working Days */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        className="glass-card p-6 rounded-3xl space-y-5">
+        className="glass-card p-6 rounded-lg space-y-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
             <Calendar className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h3 className="font-black text-slate-900 dark:text-white">Working Days</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Working Days</h3>
             <p className="text-xs text-slate-400 font-bold">{workingDays.size} day{workingDays.size !== 1 ? 's' : ''} selected</p>
           </div>
         </div>
@@ -102,9 +102,9 @@ const Availability: React.FC = () => {
             return (
               <button key={d.key} onClick={() => toggleDay(d.key)}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl font-black text-xs transition-all',
+                  'flex flex-col items-center gap-1.5 py-3 px-1 rounded-md font-semibold text-xs transition-all',
                   active
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                    ? 'bg-blue-600 text-white '
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700',
                 )}>
                 <span className="text-[10px] uppercase tracking-wider">{d.short}</span>
@@ -117,36 +117,36 @@ const Availability: React.FC = () => {
 
       {/* Working Hours */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="glass-card p-6 rounded-3xl space-y-5">
+        className="glass-card p-6 rounded-lg space-y-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
             <Clock className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <h3 className="font-black text-slate-900 dark:text-white">Working Hours</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Working Hours</h3>
             <p className="text-xs text-slate-400 font-bold">{startTime} — {endTime}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Start Time</label>
+            <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Start Time</label>
             <select value={startTime} onChange={e => setStartTime(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-bold outline-none cursor-pointer">
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm font-bold outline-none cursor-pointer">
               {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">End Time</label>
+            <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">End Time</label>
             <select value={endTime} onChange={e => setEndTime(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm font-bold outline-none cursor-pointer">
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm font-bold outline-none cursor-pointer">
               {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
         </div>
         {/* Visual time bar */}
         <div className="space-y-2">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Day Overview</p>
-          <div className="relative h-8 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden">
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Day Overview</p>
+          <div className="relative h-8 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
             {startSlot >= 0 && endSlot > startSlot && (
               <motion.div
                 initial={{ scaleX: 0 }}
@@ -157,8 +157,8 @@ const Availability: React.FC = () => {
                   width: `${((endSlot - startSlot) / TIME_SLOTS.length) * 100}%`,
                   originX: 0,
                 }}
-                className="absolute inset-y-0 bg-blue-500 rounded-xl flex items-center justify-center">
-                <span className="text-[10px] font-black text-white">{startTime} — {endTime}</span>
+                className="absolute inset-y-0 bg-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-[10px] font-semibold text-white">{startTime} — {endTime}</span>
               </motion.div>
             )}
           </div>
@@ -170,17 +170,17 @@ const Availability: React.FC = () => {
 
       {/* Weekly schedule preview */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        className="glass-card p-6 rounded-3xl space-y-4">
-        <h3 className="font-black text-slate-900 dark:text-white">Weekly Schedule Preview</h3>
+        className="glass-card p-6 rounded-lg space-y-4">
+        <h3 className="font-semibold text-slate-900 dark:text-white">Weekly Schedule Preview</h3>
         <div className="space-y-2">
           {DAYS.map(d => {
             const active = workingDays.has(d.key);
             return (
               <div key={d.key} className={cn(
-                'flex items-center justify-between p-3 rounded-xl transition-all',
+                'flex items-center justify-between p-3 rounded-lg transition-all',
                 active ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-slate-50 dark:bg-slate-800 opacity-50',
               )}>
-                <span className={cn('text-sm font-black', active ? 'text-blue-700 dark:text-blue-300' : 'text-slate-400')}>
+                <span className={cn('text-sm font-semibold', active ? 'text-blue-700 dark:text-blue-300' : 'text-slate-400')}>
                   {d.label}
                 </span>
                 <span className={cn('text-xs font-bold', active ? 'text-blue-600' : 'text-slate-400')}>
@@ -195,7 +195,7 @@ const Availability: React.FC = () => {
       {/* Save */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
         <button onClick={handleSave} disabled={saving}
-          className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+          className="w-full py-4 bg-blue-600 text-white rounded-md font-semibold uppercase tracking-widest  hover:bg-blue-700 transition-all  disabled:opacity-50 flex items-center justify-center gap-2">
           {saving
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
             : <><Save className="w-4 h-4" /> Save Availability</>}

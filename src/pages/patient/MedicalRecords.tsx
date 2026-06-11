@@ -120,7 +120,7 @@ const MedicalRecords: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">My Medical Records</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">My Medical Records</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Your complete health history</p>
       </motion.div>
 
@@ -132,12 +132,12 @@ const MedicalRecords: React.FC = () => {
           { label: 'All Prescriptions', value: stats.totalPrescriptions, icon: FileText, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
           { label: 'Doctor Notes', value: stats.totalNotes, icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
+          <div key={s.label} className="glass-card p-5 rounded-md flex items-center gap-4">
+            <div className={cn('w-11 h-11 rounded-md flex items-center justify-center shrink-0', s.bg)}>
               <s.icon className={cn('w-5 h-5', s.color)} />
             </div>
             <div>
-              <p className="text-xl font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -145,13 +145,13 @@ const MedicalRecords: React.FC = () => {
       </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl w-fit overflow-x-auto">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-md w-fit overflow-x-auto">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap',
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap',
               activeTab === t.id ? 'bg-white dark:bg-slate-900 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             )}
           >
@@ -167,9 +167,9 @@ const MedicalRecords: React.FC = () => {
           <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
             {/* Latest vitals */}
             {latestVitals ? (
-              <div className="glass-card p-6 rounded-3xl">
+              <div className="glass-card p-6 rounded-lg">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider">Latest Vitals</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider">Latest Vitals</h3>
                   <p className="text-xs text-slate-400 font-bold">{fmtDate(latestVitals.recordedAt)}</p>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -179,10 +179,10 @@ const MedicalRecords: React.FC = () => {
                     { icon: Thermometer, label: 'Temperature', value: latestVitals.temperature, unit: '°C', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
                     { icon: Droplets, label: 'O₂ Saturation', value: `${latestVitals.oxygenSaturation}%`, unit: '', color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
                   ].map(v => (
-                    <div key={v.label} className={cn('p-4 rounded-2xl text-center', v.bg)}>
+                    <div key={v.label} className={cn('p-4 rounded-md text-center', v.bg)}>
                       <v.icon className={cn('w-5 h-5 mx-auto mb-2', v.color)} />
-                      <p className={cn('text-lg font-black', v.color)}>{v.value}</p>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">{v.label}</p>
+                      <p className={cn('text-lg font-semibold', v.color)}>{v.value}</p>
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">{v.label}</p>
                       {v.unit && <p className="text-[9px] text-slate-300 dark:text-slate-600 font-bold">{v.unit}</p>}
                     </div>
                   ))}
@@ -190,7 +190,7 @@ const MedicalRecords: React.FC = () => {
 
                 {vitals.length >= 2 && (
                   <div className="mt-6">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">BP & Heart Rate Trend</p>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3">BP & Heart Rate Trend</p>
                     <ResponsiveContainer width="100%" height={160}>
                       <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
@@ -206,7 +206,7 @@ const MedicalRecords: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="glass-card p-8 rounded-3xl text-center">
+              <div className="glass-card p-8 rounded-lg text-center">
                 <Activity className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-400 font-bold">No vitals recorded yet</p>
                 <p className="text-xs text-slate-400 mt-1">Your doctor will record these during your visit</p>
@@ -215,15 +215,15 @@ const MedicalRecords: React.FC = () => {
 
             {/* Active prescriptions */}
             {prescriptions.filter(p => p.status === 'active').length > 0 && (
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Active Prescriptions</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Active Prescriptions</h3>
                 <div className="space-y-3">
                   {prescriptions.filter(p => p.status === 'active').map(rx => {
                     const doc = staff.find(s => s.id === rx.doctorId);
                     return (
-                      <div key={rx.id} className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+                      <div key={rx.id} className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-md border border-emerald-200 dark:border-emerald-800">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-black text-emerald-700 dark:text-emerald-400">{rx.prescriptionNumber}</p>
+                          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{rx.prescriptionNumber}</p>
                           <p className="text-[10px] text-slate-400 font-bold">Expires {fmtDate(rx.expiresAt)}</p>
                         </div>
                         <p className="text-sm font-bold text-slate-900 dark:text-white">{rx.diagnosis}</p>
@@ -238,23 +238,23 @@ const MedicalRecords: React.FC = () => {
 
             {/* Upcoming appointments */}
             {appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status)).length > 0 && (
-              <div className="glass-card p-6 rounded-3xl">
-                <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Upcoming Appointments</h3>
+              <div className="glass-card p-6 rounded-lg">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Upcoming Appointments</h3>
                 <div className="space-y-3">
                   {appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status)).slice(0, 3).map(apt => {
                     const doc = staff.find(s => s.id === apt.doctorId);
                     const dept = departments.find(d => d.id === apt.departmentId);
                     return (
-                      <div key={apt.id} className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-600 flex flex-col items-center justify-center text-white shrink-0">
-                          <p className="text-[10px] font-black leading-none">{new Date(apt.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}</p>
-                          <p className="text-lg font-black leading-none">{new Date(apt.date + 'T00:00:00').getDate()}</p>
+                      <div key={apt.id} className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                        <div className="w-12 h-12 rounded-md bg-blue-600 flex flex-col items-center justify-center text-white shrink-0">
+                          <p className="text-[10px] font-semibold leading-none">{new Date(apt.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}</p>
+                          <p className="text-lg font-semibold leading-none">{new Date(apt.date + 'T00:00:00').getDate()}</p>
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-black text-slate-900 dark:text-white">{doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'}</p>
                           <p className="text-xs text-slate-400 font-bold">{dept?.name} · {fmtTime(apt.time)} · {apt.type.replace('_', ' ')}</p>
                         </div>
-                        <span className={cn('px-2 py-1 rounded-lg text-[10px] font-black uppercase', apt.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/20')}>
+                        <span className={cn('px-2 py-1 rounded-lg text-[10px] font-semibold uppercase', apt.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/20')}>
                           {apt.status}
                         </span>
                       </div>
@@ -270,7 +270,7 @@ const MedicalRecords: React.FC = () => {
         {activeTab === 'prescriptions' && (
           <motion.div key="prescriptions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
             {prescriptions.length === 0 ? (
-              <div className="glass-card p-16 rounded-3xl text-center">
+              <div className="glass-card p-16 rounded-lg text-center">
                 <Pill className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-400 font-bold">No prescriptions yet</p>
               </div>
@@ -280,17 +280,17 @@ const MedicalRecords: React.FC = () => {
                 const cfg = RX_STATUS_CFG[rx.status];
                 const expanded = expandedRxId === rx.id;
                 return (
-                  <div key={rx.id} className="glass-card rounded-3xl overflow-hidden">
+                  <div key={rx.id} className="glass-card rounded-lg overflow-hidden">
                     <button
                       className="w-full flex items-center justify-between p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all"
                       onClick={() => setExpandedRxId(expanded ? null : rx.id)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={cn('px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider', cfg.bg, cfg.text)}>
+                        <div className={cn('px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-wider', cfg.bg, cfg.text)}>
                           {cfg.label}
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-slate-900 dark:text-white">{rx.prescriptionNumber} — {rx.diagnosis}</p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">{rx.prescriptionNumber} — {rx.diagnosis}</p>
                           <p className="text-xs text-slate-400 font-bold">
                             {fmtDate(rx.createdAt)} · {rx.items.length} medicine{rx.items.length !== 1 ? 's' : ''}
                             {doc ? ` · Dr. ${doc.firstName} ${doc.lastName}` : ''}
@@ -306,25 +306,25 @@ const MedicalRecords: React.FC = () => {
                           <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
                             <div className="grid grid-cols-3 gap-3 text-xs">
                               <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase">Issued</p>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase">Issued</p>
                                 <p className="font-bold text-slate-900 dark:text-white mt-0.5">{fmtDate(rx.createdAt)}</p>
                               </div>
                               <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase">Expires</p>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase">Expires</p>
                                 <p className="font-bold text-slate-900 dark:text-white mt-0.5">{fmtDate(rx.expiresAt)}</p>
                               </div>
                               <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase">Doctor</p>
+                                <p className="text-[10px] font-semibold text-slate-400 uppercase">Doctor</p>
                                 <p className="font-bold text-slate-900 dark:text-white mt-0.5">{doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'}</p>
                               </div>
                             </div>
 
                             <div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Medicines</p>
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Medicines</p>
                               <div className="space-y-2">
                                 {rx.items.map((item, i) => (
-                                  <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                    <p className="text-sm font-black text-slate-900 dark:text-white">{item.medicine} — {item.dosage}</p>
+                                  <div key={i} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{item.medicine} — {item.dosage}</p>
                                     <p className="text-xs text-slate-400 mt-0.5">{item.frequency} for {item.duration}</p>
                                     {item.instructions && (
                                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5 font-medium italic">{item.instructions}</p>
@@ -335,8 +335,8 @@ const MedicalRecords: React.FC = () => {
                             </div>
 
                             {rx.notes && (
-                              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                                <p className="text-[10px] font-black text-amber-600 uppercase mb-1">Notes</p>
+                              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                <p className="text-[10px] font-semibold text-amber-600 uppercase mb-1">Notes</p>
                                 <p className="text-sm text-slate-700 dark:text-slate-300">{rx.notes}</p>
                               </div>
                             )}
@@ -355,7 +355,7 @@ const MedicalRecords: React.FC = () => {
         {activeTab === 'visits' && (
           <motion.div key="visits" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
             {appointments.length === 0 ? (
-              <div className="glass-card p-16 rounded-3xl text-center">
+              <div className="glass-card p-16 rounded-lg text-center">
                 <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-400 font-bold">No visits yet</p>
               </div>
@@ -370,16 +370,16 @@ const MedicalRecords: React.FC = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.03 }}
-                    className={cn('glass-card p-5 rounded-3xl flex items-start gap-4', apt.status === 'cancelled' && 'opacity-60')}
+                    className={cn('glass-card p-5 rounded-lg flex items-start gap-4', apt.status === 'cancelled' && 'opacity-60')}
                   >
-                    <div className={cn('w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-white shrink-0 shadow-md', apt.status === 'completed' ? 'bg-emerald-500' : apt.status === 'cancelled' ? 'bg-slate-400' : 'bg-blue-600')}>
-                      <p className="text-[9px] font-black leading-none">{new Date(apt.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}</p>
-                      <p className="text-lg font-black leading-none">{new Date(apt.date + 'T00:00:00').getDate()}</p>
+                    <div className={cn('w-12 h-12 rounded-md flex flex-col items-center justify-center text-white shrink-0 shadow-sm', apt.status === 'completed' ? 'bg-emerald-500' : apt.status === 'cancelled' ? 'bg-slate-400' : 'bg-blue-600')}>
+                      <p className="text-[9px] font-semibold leading-none">{new Date(apt.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}</p>
+                      <p className="text-lg font-semibold leading-none">{new Date(apt.date + 'T00:00:00').getDate()}</p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-black text-slate-900 dark:text-white text-sm">{apt.type.replace('_', ' ')}</p>
-                        <span className={cn('flex items-center gap-1 text-[10px] font-black uppercase tracking-wider', cfg.color)}>
+                        <p className="font-semibold text-slate-900 dark:text-white text-sm">{apt.type.replace('_', ' ')}</p>
+                        <span className={cn('flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider', cfg.color)}>
                           <cfg.icon className="w-3 h-3" /> {cfg.label}
                         </span>
                       </div>
@@ -410,7 +410,7 @@ const MedicalRecords: React.FC = () => {
         {/* ─── NOTES ────────────────────────────────────────────────────────── */}
         {activeTab === 'notes' && (
           <motion.div key="notes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-            <div className="glass-card p-16 rounded-3xl text-center">
+            <div className="glass-card p-16 rounded-lg text-center">
               <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-400 font-bold">No doctor notes yet</p>
             </div>

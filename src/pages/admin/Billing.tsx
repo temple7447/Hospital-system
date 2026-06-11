@@ -107,27 +107,27 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
         >
           <motion.div
             initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden"
+            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-lg  overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-black text-slate-900 dark:text-white">Collect Payment</h3>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+              <h3 className="font-semibold text-slate-900 dark:text-white">Collect Payment</h3>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                 <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">{invoice.invoiceNumber}</p>
-                <p className="text-2xl font-black text-blue-600 mt-1">{fmtMoney(invoice.total)}</p>
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{invoice.invoiceNumber}</p>
+                <p className="text-2xl font-semibold text-blue-600 mt-1">{fmtMoney(invoice.total)}</p>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Method</label>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Payment Method</label>
                 <div className="grid grid-cols-2 gap-2">
                   {PAYMENT_METHODS.map(m => (
                     <button key={m.value} onClick={() => setMethod(m.value)}
                       className={cn(
-                        'flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-xs font-black transition-all',
+                        'flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-xs font-semibold transition-all',
                         method === m.value
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                           : 'border-transparent bg-slate-50 dark:bg-slate-800 text-slate-600 hover:border-blue-500/30'
@@ -139,11 +139,11 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
               </div>
               <div className="flex gap-3">
                 <button onClick={onClose} disabled={saving}
-                  className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+                  className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
                   Cancel
                 </button>
                 <button onClick={handlePay} disabled={saving}
-                  className="flex-2 py-3 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="flex-2 py-3 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...</> : 'Confirm Payment'}
                 </button>
               </div>
@@ -170,19 +170,19 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({ invoice, patient, onMarkPaid, e
   const isActionable = invoice.status === 'pending' || invoice.status === 'overdue';
 
   return (
-    <div className="glass-card rounded-2xl overflow-hidden">
+    <div className="glass-card rounded-md overflow-hidden">
       <button
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all"
         onClick={onToggle}
       >
         <div className="flex items-center gap-4 min-w-0 flex-1">
-          <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', cfg.bg)}>
+          <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', cfg.bg)}>
             <cfg.icon className={cn('w-4 h-4', cfg.text)} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-black text-slate-900 dark:text-white">{invoice.invoiceNumber}</span>
-              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-black uppercase', cfg.bg, cfg.text)}>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">{invoice.invoiceNumber}</span>
+              <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', cfg.bg, cfg.text)}>
                 {cfg.label}
               </span>
             </div>
@@ -192,7 +192,7 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({ invoice, patient, onMarkPaid, e
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-sm font-black text-slate-900 dark:text-white hidden sm:block">{fmtMoney(invoice.total)}</span>
+          <span className="text-sm font-semibold text-slate-900 dark:text-white hidden sm:block">{fmtMoney(invoice.total)}</span>
           {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
         </div>
       </button>
@@ -218,7 +218,7 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({ invoice, patient, onMarkPaid, e
                 <div className="flex justify-between text-xs"><span className="text-slate-400">Subtotal</span><span className="font-bold">{fmtMoney(invoice.subtotal)}</span></div>
                 {invoice.tax > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400">Tax</span><span className="font-bold">{fmtMoney(invoice.tax)}</span></div>}
                 {invoice.discount > 0 && <div className="flex justify-between text-xs"><span className="text-slate-400">Discount</span><span className="font-bold text-emerald-600">-{fmtMoney(invoice.discount)}</span></div>}
-                <div className="flex justify-between"><span className="text-sm font-black">Total</span><span className="text-sm font-black text-blue-600">{fmtMoney(invoice.total)}</span></div>
+                <div className="flex justify-between"><span className="text-sm font-semibold">Total</span><span className="text-sm font-semibold text-blue-600">{fmtMoney(invoice.total)}</span></div>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span>Due: {fmtDate(invoice.dueDate)}</span>
@@ -228,7 +228,7 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({ invoice, patient, onMarkPaid, e
               {isActionable && (
                 <button
                   onClick={() => onMarkPaid(invoice)}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-emerald-700 transition-all"
                 >
                   <CreditCard className="w-3.5 h-3.5" /> Collect Payment
                 </button>
@@ -295,7 +295,7 @@ const AdminBilling: React.FC = () => {
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Billing Overview</h1>
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Billing Overview</h1>
         <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Revenue analytics and invoice management</p>
       </motion.div>
 
@@ -310,12 +310,12 @@ const AdminBilling: React.FC = () => {
           { label: 'Overdue', value: stats.overdueCount, icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
           { label: 'Paid Today', value: stats.paidToday, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 rounded-2xl flex items-center gap-4">
-            <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', s.bg)}>
+          <div key={s.label} className="glass-card p-5 rounded-md flex items-center gap-4">
+            <div className={cn('w-11 h-11 rounded-md flex items-center justify-center shrink-0', s.bg)}>
               <s.icon className={cn('w-5 h-5', s.color)} />
             </div>
             <div>
-              <p className="text-lg font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -325,14 +325,14 @@ const AdminBilling: React.FC = () => {
       {/* Revenue Chart */}
       <motion.div
         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="glass-card p-6 rounded-3xl"
+        className="glass-card p-6 rounded-lg"
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-black text-slate-900 dark:text-white">Monthly Revenue</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Monthly Revenue</h2>
             <p className="text-xs text-slate-400 font-bold mt-0.5">Last 6 months (paid invoices)</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-emerald-600" />
           </div>
         </div>
@@ -363,12 +363,12 @@ const AdminBilling: React.FC = () => {
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search patient or invoice..."
-            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
           />
         </div>
         <select
           value={statusFilter} onChange={e => setStatusFilter(e.target.value as InvoiceStatus | 'all')}
-          className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300"
+          className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm font-bold outline-none cursor-pointer text-slate-600 dark:text-slate-300"
         >
           <option value="all">All Statuses</option>
           {(Object.keys(STATUS_CFG) as InvoiceStatus[]).map(s => (
@@ -378,7 +378,7 @@ const AdminBilling: React.FC = () => {
         {(search || statusFilter !== 'all') && (
           <button
             onClick={() => { setSearch(''); setStatusFilter('all'); }}
-            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2"
+            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-bold text-slate-500 hover:bg-slate-200 transition-all flex items-center gap-2"
           >
             <X className="w-4 h-4" /> Clear
           </button>
@@ -387,7 +387,7 @@ const AdminBilling: React.FC = () => {
 
       {/* Invoice list */}
       {filtered.length === 0 ? (
-        <div className="glass-card p-16 rounded-3xl text-center">
+        <div className="glass-card p-16 rounded-lg text-center">
           <Receipt className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">No invoices found</p>
         </div>

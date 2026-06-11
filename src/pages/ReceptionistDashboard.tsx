@@ -60,18 +60,18 @@ const ReceptionistDashboard: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Reception Desk</h1>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Reception Desk</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
             Hello, {user?.name.split(' ')[0]}. Manage today's patient flow.
           </p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <button onClick={() => navigate('/receptionist/register')}
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95">
+            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all ">
             <UserPlus className="w-4 h-4" /> Register Patient
           </button>
           <button onClick={() => navigate('/appointments')}
-            className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-5 py-3 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+            className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 px-5 py-3 rounded-md font-bold hover:bg-slate-50 transition-all">
             <Calendar className="w-4 h-4" /> Appointments
           </button>
         </div>
@@ -89,9 +89,9 @@ const ReceptionistDashboard: React.FC = () => {
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.04 }}
             onClick={() => navigate(s.path)}
-            className="glass-card p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all group">
+            className="glass-card p-5 rounded-md cursor-pointer hover:shadow-sm transition-all group">
             <div className="flex items-center justify-between mb-3">
-              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center',
+              <div className={cn('w-10 h-10 rounded-md flex items-center justify-center',
                 s.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20',
                 s.color === 'emerald'&& 'bg-emerald-50 dark:bg-emerald-900/20',
                 s.color === 'amber'  && 'bg-amber-50 dark:bg-amber-900/20',
@@ -106,7 +106,7 @@ const ReceptionistDashboard: React.FC = () => {
               </div>
               <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{s.label}</p>
           </motion.div>
         ))}
@@ -120,7 +120,7 @@ const ReceptionistDashboard: React.FC = () => {
           { label: 'In Progress', value: progress, color: 'blue',    icon: AlertCircle },
           { label: 'Completed',   value: done,     color: 'emerald', icon: CheckCircle2 },
         ].map(s => (
-          <div key={s.label} className={cn('p-4 rounded-2xl border flex items-center gap-3',
+          <div key={s.label} className={cn('p-4 rounded-md border flex items-center gap-3',
             s.color === 'amber'  && 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800',
             s.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800',
             s.color === 'emerald'&& 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800',
@@ -131,7 +131,7 @@ const ReceptionistDashboard: React.FC = () => {
               s.color === 'emerald'&& 'text-emerald-600',
             )} />
             <div>
-              <p className="text-lg font-black text-slate-900 dark:text-white">{s.value}</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">{s.value}</p>
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
             </div>
           </div>
@@ -141,11 +141,11 @@ const ReceptionistDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's appointment list */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="lg:col-span-2 glass-card rounded-3xl overflow-hidden">
+          className="lg:col-span-2 glass-card rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="font-black text-slate-900 dark:text-white">Today's Appointments</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Today's Appointments</h3>
             <button onClick={() => navigate('/appointments')}
-              className="text-xs font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest">
+              className="text-xs font-semibold text-blue-600 hover:text-blue-500 uppercase tracking-widest">
               Manage All
             </button>
           </div>
@@ -162,11 +162,11 @@ const ReceptionistDashboard: React.FC = () => {
                 const cfg = STATUS_CFG[a.status] ?? STATUS_CFG.scheduled;
                 return (
                   <div key={a.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[10px] font-black text-blue-600 shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[10px] font-semibold text-blue-600 shrink-0">
                       {p ? `${p.firstName[0]}${p.lastName[0]}` : '?'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-slate-900 dark:text-white">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {p ? `${p.firstName} ${p.lastName}` : '—'}
                       </p>
                       <p className="text-xs text-slate-400 font-bold">
@@ -174,7 +174,7 @@ const ReceptionistDashboard: React.FC = () => {
                         {' · '}{a.time}
                       </p>
                     </div>
-                    <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-black uppercase hidden sm:block', cfg.cls)}>
+                    <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase hidden sm:block', cfg.cls)}>
                       {cfg.label}
                     </span>
                     <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
@@ -187,8 +187,8 @@ const ReceptionistDashboard: React.FC = () => {
 
         {/* Quick actions */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="glass-card p-6 rounded-3xl">
-          <h3 className="font-black text-slate-900 dark:text-white mb-5">Quick Actions</h3>
+          className="glass-card p-6 rounded-lg">
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-5">Quick Actions</h3>
           <div className="space-y-2">
             {[
               { label: 'Register New Patient', icon: UserPlus,  path: '/receptionist/register', color: 'blue' },
@@ -197,8 +197,8 @@ const ReceptionistDashboard: React.FC = () => {
               { label: 'Patient Records',      icon: Users,     path: '/patients',               color: 'emerald' },
             ].map(a => (
               <button key={a.path} onClick={() => navigate(a.path)}
-                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-blue-200 transition-all group text-left">
-                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-blue-200 transition-all group text-left">
+                <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
                   a.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20',
                   a.color === 'amber'  && 'bg-amber-50 dark:bg-amber-900/20',
                   a.color === 'purple' && 'bg-purple-50 dark:bg-purple-900/20',

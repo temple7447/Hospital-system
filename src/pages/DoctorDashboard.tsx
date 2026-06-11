@@ -84,7 +84,7 @@ const DoctorDashboard: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">
             Good day, Dr. {user?.name.split(' ').pop()}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
@@ -92,7 +92,7 @@ const DoctorDashboard: React.FC = () => {
           </p>
         </div>
         <button onClick={() => navigate('/doctor/prescription/new')}
-          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all active:scale-95 self-start">
+          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start">
           <Pill className="w-4 h-4" /> Write Prescription
         </button>
       </motion.div>
@@ -109,9 +109,9 @@ const DoctorDashboard: React.FC = () => {
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 + i * 0.04 }}
             onClick={() => navigate(s.path)}
-            className="glass-card p-5 rounded-2xl cursor-pointer hover:shadow-lg transition-all group">
+            className="glass-card p-5 rounded-md cursor-pointer hover:shadow-sm transition-all group">
             <div className="flex items-center justify-between mb-3">
-              <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center',
+              <div className={cn('w-10 h-10 rounded-md flex items-center justify-center',
                 s.color === 'blue'   && 'bg-blue-50 dark:bg-blue-900/20',
                 s.color === 'emerald'&& 'bg-emerald-50 dark:bg-emerald-900/20',
                 s.color === 'purple' && 'bg-purple-50 dark:bg-purple-900/20',
@@ -126,7 +126,7 @@ const DoctorDashboard: React.FC = () => {
               </div>
               <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{s.label}</p>
           </motion.div>
         ))}
@@ -135,11 +135,11 @@ const DoctorDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's queue */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="lg:col-span-2 glass-card rounded-3xl overflow-hidden">
+          className="lg:col-span-2 glass-card rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="font-black text-slate-900 dark:text-white">Today's Queue</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white">Today's Queue</h3>
             <button onClick={() => navigate('/doctor/schedule')}
-              className="text-xs font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest">
+              className="text-xs font-semibold text-blue-600 hover:text-blue-500 uppercase tracking-widest">
               Full Schedule
             </button>
           </div>
@@ -156,11 +156,11 @@ const DoctorDashboard: React.FC = () => {
                 return (
                   <button key={a.id} onClick={() => p && navigate(`/doctor/patient/${p.id}`)}
                     className="w-full flex items-center gap-4 px-6 py-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all text-left">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[11px] font-black text-blue-600 shrink-0">
+                    <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[11px] font-semibold text-blue-600 shrink-0">
                       {p ? `${p.firstName[0]}${p.lastName[0]}` : '?'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-slate-900 dark:text-white">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {p ? `${p.firstName} ${p.lastName}` : a.patientId}
                       </p>
                       <p className="text-xs text-slate-400 font-bold mt-0.5 capitalize">{a.type.replace('_', ' ')}</p>
@@ -169,7 +169,7 @@ const DoctorDashboard: React.FC = () => {
                       <div className="flex items-center gap-1 text-xs text-slate-400 font-bold">
                         <Clock className="w-3.5 h-3.5" /> {a.time}
                       </div>
-                      <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-black uppercase hidden sm:block', cfg.cls)}>
+                      <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase hidden sm:block', cfg.cls)}>
                         {cfg.label}
                       </span>
                       <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
@@ -185,8 +185,8 @@ const DoctorDashboard: React.FC = () => {
         <div className="space-y-4">
           {/* Weekly chart */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="glass-card p-5 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-4">Last 7 Days</h3>
+            className="glass-card p-5 rounded-lg">
+            <h3 className="font-semibold text-slate-900 dark:text-white text-sm mb-4">Last 7 Days</h3>
             <div className="h-28">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={weekData}>
@@ -210,14 +210,14 @@ const DoctorDashboard: React.FC = () => {
           {/* Next appointment */}
           {nextApt && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-              className="p-5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl text-white shadow-lg shadow-blue-500/25">
-              <p className="text-[10px] font-black uppercase tracking-widest text-blue-100 mb-3">Next Patient</p>
+              className="p-5 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg text-white ">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-100 mb-3">Next Patient</p>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xs font-black">
+                <div className="w-10 h-10 rounded-md bg-white/20 flex items-center justify-center text-xs font-semibold">
                   {nextPatient ? `${nextPatient.firstName[0]}${nextPatient.lastName[0]}` : '?'}
                 </div>
                 <div>
-                  <p className="font-black">
+                  <p className="font-semibold">
                     {nextPatient ? `${nextPatient.firstName} ${nextPatient.lastName}` : '—'}
                   </p>
                   <p className="text-xs text-blue-200 font-medium capitalize">{nextApt.type.replace('_', ' ')}</p>
@@ -229,7 +229,7 @@ const DoctorDashboard: React.FC = () => {
               </div>
               {nextPatient && (
                 <button onClick={() => navigate(`/doctor/patient/${nextPatient.id}`)}
-                  className="mt-3 w-full py-2 bg-white/20 hover:bg-white/30 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
+                  className="mt-3 w-full py-2 bg-white/20 hover:bg-white/30 rounded-md text-xs font-semibold uppercase tracking-widest transition-all">
                   Open Record
                 </button>
               )}
@@ -238,8 +238,8 @@ const DoctorDashboard: React.FC = () => {
 
           {/* Quick links */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="glass-card p-5 rounded-3xl">
-            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-3">Quick Links</h3>
+            className="glass-card p-5 rounded-lg">
+            <h3 className="font-semibold text-slate-900 dark:text-white text-sm mb-3">Quick Links</h3>
             <div className="space-y-1">
               {[
                 { label: 'My Schedule',   icon: CalendarDays, path: '/doctor/schedule' },
@@ -248,7 +248,7 @@ const DoctorDashboard: React.FC = () => {
                 { label: 'Patient List',  icon: Users,        path: '/patients' },
               ].map(l => (
                 <button key={l.path} onClick={() => navigate(l.path)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group text-left">
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group text-left">
                   <l.icon className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
                   <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-blue-600 transition-colors">{l.label}</span>
                 </button>
