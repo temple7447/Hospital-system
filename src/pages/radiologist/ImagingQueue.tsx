@@ -109,7 +109,7 @@ const ImagingQueue: React.FC = () => {
         <div className="space-y-3">
           {filtered.map(o => {
             const patient = patients.find(p => p.id === o.patientId);
-            const doctor  = staff.find(s => s.id === o.doctorId);
+            const doctor  = staff.find(s => s.userId === o.doctorId || s.id === o.doctorId);
             const pri = PRIORITY_CFG[o.priority];
             const st  = STATUS_CFG[o.status];
 

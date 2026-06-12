@@ -300,7 +300,7 @@ const MyAppointments: React.FC = () => {
             <AptCard
               key={apt.id}
               apt={apt}
-              doctor={doctors.find(d => d.id === apt.doctorId)}
+              doctor={doctors.find(d => d.userId === apt.doctorId || d.id === apt.doctorId)}
               dept={depts.find(d => d.id === apt.departmentId)}
               onCancel={setCancelTarget}
               expanded={expandedId === apt.id}

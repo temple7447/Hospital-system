@@ -12,6 +12,7 @@ import {
 import { cn } from '@/utils/cn';
 import type { Staff, StaffStatus, Department } from '@/types';
 import { getStaff, updateStaff, listDepartments } from '@/lib/services';
+import { ROLE_MAP } from '@/lib/mappers';
 import { resetStaffPassword } from '@/lib/services/staffService';
 
 // ─── Re-use role helpers from Staff page ──────────────────────────────────────
@@ -81,11 +82,7 @@ function getRoleMeta(role: string) {
   return ROLE_META[role?.toLowerCase()] ?? { ...DEFAULT_META, label: role?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ?? 'Staff' };
 }
 
-const DOCTOR_ROLES = new Set([
-  'doctor','surgeon','trauma_surgeon','anesthesiologist','intensivist',
-  'emergency_physician','pediatrician','cardiologist','neurologist','radiologist',
-  'oncologist','gynecologist','psychiatrist','pathologist','resident_doctor','intern',
-]);
+const isDoctorRole = (role: string) => ROLE_MAP[role.toLowerCase()] === 'DOCTOR';
 
 const DAY_SHORT: Record<string, string> = {
   monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
@@ -155,7 +152,7 @@ const StaffProfilePage: React.FC = () => {
   const roleMeta   = staff ? getRoleMeta(staff.role) : DEFAULT_META;
   const RoleIcon   = roleMeta.icon;
   const status     = staff ? (statusMeta[staff.status] ?? statusMeta.inactive) : statusMeta.inactive;
-  const isDoctor   = staff ? DOCTOR_ROLES.has(staff.role.toLowerCase()) : false;
+  const isDoctor   = staff ? isDoctorRole(staff.role) : false;
   const initials   = staff ? `${staff.firstName[0]}${staff.lastName[0]}`.toUpperCase() : '';
 
   const handleResetPassword = async () => {

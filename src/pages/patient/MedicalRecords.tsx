@@ -219,7 +219,7 @@ const MedicalRecords: React.FC = () => {
                 <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Active Prescriptions</h3>
                 <div className="space-y-3">
                   {prescriptions.filter(p => p.status === 'active').map(rx => {
-                    const doc = staff.find(s => s.id === rx.doctorId);
+                    const doc = staff.find(s => s.userId === rx.doctorId || s.id === rx.doctorId);
                     return (
                       <div key={rx.id} className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-md border border-emerald-200 dark:border-emerald-800">
                         <div className="flex items-center justify-between mb-2">
@@ -242,7 +242,7 @@ const MedicalRecords: React.FC = () => {
                 <h3 className="font-semibold text-slate-900 dark:text-white text-sm uppercase tracking-wider mb-4">Upcoming Appointments</h3>
                 <div className="space-y-3">
                   {appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status)).slice(0, 3).map(apt => {
-                    const doc = staff.find(s => s.id === apt.doctorId);
+                    const doc = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                     const dept = departments.find(d => d.id === apt.departmentId);
                     return (
                       <div key={apt.id} className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
@@ -276,7 +276,7 @@ const MedicalRecords: React.FC = () => {
               </div>
             ) : (
               prescriptions.map(rx => {
-                const doc = staff.find(s => s.id === rx.doctorId);
+                const doc = staff.find(s => s.userId === rx.doctorId || s.id === rx.doctorId);
                 const cfg = RX_STATUS_CFG[rx.status];
                 const expanded = expandedRxId === rx.id;
                 return (
@@ -361,7 +361,7 @@ const MedicalRecords: React.FC = () => {
               </div>
             ) : (
               appointments.map((apt, idx) => {
-                const doc = staff.find(s => s.id === apt.doctorId);
+                const doc = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                 const dept = departments.find(d => d.id === apt.departmentId);
                 const cfg = APT_STATUS_CFG[apt.status] ?? APT_STATUS_CFG.scheduled;
                 return (

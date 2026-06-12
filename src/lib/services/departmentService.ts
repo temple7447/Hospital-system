@@ -2,8 +2,9 @@ import { api } from '../api';
 import type { Department } from '@/types';
 import { mapBackendDepartment, toBackendDepartment, type BackendDepartment } from '../mappers';
 
-export async function listDepartments(): Promise<Department[]> {
-  const data = await api.get<{ departments: BackendDepartment[] }>('/departments');
+export async function listDepartments(options?: { onlyActive?: boolean }): Promise<Department[]> {
+  const qs = options?.onlyActive ? '?active=1' : '';
+  const data = await api.get<{ departments: BackendDepartment[] }>(`/departments${qs}`);
   return (data.departments || []).map(mapBackendDepartment);
 }
 

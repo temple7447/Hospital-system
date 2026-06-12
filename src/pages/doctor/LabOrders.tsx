@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FlaskConical, Plus, Search, X, ChevronDown, ChevronUp,
   Clock, CheckCircle2, AlertTriangle, XCircle, Loader2,
-  Zap, ArrowRight, ClipboardList, User,
+  Zap, ArrowRight, ClipboardList, User, ScanLine,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
@@ -81,12 +81,13 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
   const [testSearch, setTestSearch] = useState('');
   const [selectedTests, setSelectedTests] = useState<string[]>([]);
   const [priority, setPriority] = useState<'routine' | 'urgent' | 'stat'>('routine');
+  const [category, setCategory] = useState<'lab' | 'radiology'>('lab');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (open) {
       setPatientSearch(''); setPatientId(''); setPatient(null); setAptId('');
-      setTestSearch(''); setSelectedTests([]); setPriority('routine'); setNotes('');
+      setTestSearch(''); setSelectedTests([]); setPriority('routine'); setCategory('lab'); setNotes('');
       listPatients().then(setPatients);
     }
   }, [open]);
@@ -138,6 +139,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
         tests: selectedTests,
         status: 'ordered',
         priority,
+        category,
         notes: notes.trim() || undefined,
       });
       onCreated();
@@ -172,6 +174,27 @@ const CreateModal: React.FC<CreateModalProps> = ({ open, onClose, onCreated, doc
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+
+            {/* Order type */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Order Type</label>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { value: 'lab',      label: 'Lab Test',      Icon: FlaskConical },
+                  { value: 'radiology',label: 'Imaging Study', Icon: ScanLine },
+                ] as const).map(({ value, label, Icon }) => (
+                  <button key={value} onClick={() => setCategory(value)}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold border-2 transition-all',
+                      category === value
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-transparent bg-slate-50 dark:bg-slate-800 text-slate-500 hover:border-slate-300'
+                    )}>
+                    <Icon className="w-3.5 h-3.5" /> {label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Patient search */}
             <div className="space-y-2">

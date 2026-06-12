@@ -40,9 +40,13 @@ export async function createQueueEntry(data: Partial<QueueEntry>): Promise<{ id:
 
 export async function updateQueueEntry(id: string, data: Partial<QueueEntry>): Promise<void> {
   const body: Record<string, unknown> = {};
-  if (data.status) body.status = data.status;
-  if (data.priority) body.priority = data.priority;
-  if (data.doctorId) body.doctor_id = data.doctorId;
+  if (data.status) {
+    body.status = data.status;
+    if (data.status === 'called')    body.called_at    = new Date().toISOString();
+    if (data.status === 'completed') body.completed_at = new Date().toISOString();
+  }
+  if (data.priority)     body.priority      = data.priority;
+  if (data.doctorId)     body.doctor_id     = data.doctorId;
   if (data.estimatedWait) body.estimated_wait = data.estimatedWait;
   await api.put(`/queue/${id}`, body);
 }

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { toast } from 'sonner';
-import { KEYS } from '@/lib/storage';
+import { getSettings, saveSettings } from '@/lib/services';
 
 const TABS = [
   { id: 'hospital',      label: 'Hospital Info',   icon: Hospital },
@@ -70,17 +70,6 @@ const DEFAULTS: AppSettings = {
   },
 };
 
-const loadSettings = (): AppSettings => {
-  try {
-    const raw = localStorage.getItem(KEYS.SETTINGS);
-    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
-  } catch {}
-  return DEFAULTS;
-};
-
-const saveSettings = (settings: AppSettings) => {
-  localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
-};
 
 function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
   return (
@@ -103,20 +92,25 @@ const Settings: React.FC = () => {
   const [security, setSecurity] = useState<SecuritySettings>(DEFAULTS.security);
 
   useEffect(() => {
-    const s = loadSettings();
-    setHospital(s.hospital);
-    setOps(s.ops);
-    setNotifs(s.notifs);
-    setSecurity(s.security);
+    getSettings().then(raw => {
+      const s = raw as Partial<AppSettings>;
+      if (s.hospital) setHospital(h => ({ ...h, ...s.hospital as HospitalSettings }));
+      if (s.ops)      setOps(o => ({ ...o, ...s.ops as OpsSettings }));
+      if (s.notifs)   setNotifs(n => ({ ...n, ...s.notifs as NotifSettings }));
+      if (s.security) setSecurity(sec => ({ ...sec, ...s.security as SecuritySettings }));
+    }).catch(() => {});
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
-    setTimeout(() => {
-      saveSettings({ hospital, ops, notifs, security });
-      setSaving(false);
+    try {
+      await saveSettings({ hospital, ops, notifs, security });
       toast.success('Settings saved successfully');
-    }, 400);
+    } catch {
+      toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputCls = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all";

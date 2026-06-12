@@ -51,7 +51,7 @@ const PrescriptionQueue: React.FC = () => {
     if (!user) return;
     try {
       await updatePrescription(rx.id, {
-        status: 'completed',
+        status: 'dispensed',
         dispensedAt: new Date().toISOString(),
         dispensedBy: user.id,
       });

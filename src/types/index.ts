@@ -20,6 +20,7 @@ export interface Department {
   availableBeds: number;
   color: string;
   icon: string;
+  isActive: boolean;
 }
 
 // ─── Staff ────────────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ export type WeekDay = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
 
 export interface Staff {
   id: string;
+  userId?: string;
   staffNumber: string;
   firstName: string;
   lastName: string;
@@ -55,6 +57,7 @@ export type PatientStatus = 'active' | 'inactive' | 'deceased';
 
 export interface Patient {
   id: string;
+  userId?: string;
   patientNumber: string;
   firstName: string;
   lastName: string;
@@ -230,6 +233,30 @@ export interface Notification {
   createdAt: string;
 }
 
+// ─── Admission ────────────────────────────────────────────────────────────────
+export type AdmissionStatus = 'admitted' | 'discharged' | 'transferred';
+
+export interface Admission {
+  id: string;
+  patientId: string;
+  roomId: string;
+  appointmentId?: string;
+  admittedBy: string;
+  admissionReason?: string;
+  admittedAt: string;
+  dischargedAt?: string;
+  dischargeDiagnosis?: string;
+  dischargeSummary?: string;
+  followUpPlan?: string;
+  status: AdmissionStatus;
+  // joined fields
+  patientName?: string;
+  medicalRecordNumber?: string;
+  roomNumber?: string;
+  roomType?: string;
+  admittedByName?: string;
+}
+
 // ─── Audit Log ────────────────────────────────────────────────────────────────
 export interface AuditLog {
   id: string;
@@ -257,6 +284,8 @@ export interface QueueEntry {
   checkedInAt: string;
   calledAt?: string;
   completedAt?: string;
+  patientName?: string;
+  doctorName?: string;
 }
 
 // ─── Consultation Note ────────────────────────────────────────────────────────
@@ -274,6 +303,8 @@ export interface ConsultationNote {
 }
 
 // ─── Vitals ───────────────────────────────────────────────────────────────────
+export type TriageLevel = 'green' | 'yellow' | 'orange' | 'red';
+
 export interface VitalRecord {
   id: string;
   patientId: string;
@@ -284,8 +315,11 @@ export interface VitalRecord {
   temperature: number;
   weight: number;
   height: number;
+  bmi?: number;
   oxygenSaturation: number;
   respiratoryRate: number;
+  triageLevel?: TriageLevel;
+  notes?: string;
   recordedAt: string;
 }
 

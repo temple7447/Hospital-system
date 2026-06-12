@@ -114,11 +114,6 @@ const Patients: React.FC = () => {
         emergencyContactPhone: '',
         allergies: [],
         chronicConditions: [],
-        patientNumber: `PAT-${Date.now()}`,
-        insuranceProvider: '',
-        insuranceNumber: '',
-        status: 'active',
-        registeredAt: new Date().toISOString(),
       });
       await loadPatients();
       setShowAddSuccess(true);

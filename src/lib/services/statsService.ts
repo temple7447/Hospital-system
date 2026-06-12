@@ -60,10 +60,10 @@ export async function getPatientStats(): Promise<PatientStats> {
 
 export async function getNurseStats(): Promise<NurseStats> {
   const data = await api.get<{
-    tasks_today: number; tasks_completed: number; vitals_recorded_today: number;
+    my_patients: number; tasks_today: number; tasks_completed: number; vitals_recorded_today: number;
   }>('/stats/nurse');
   return {
-    myPatients: 0,
+    myPatients: data.my_patients,
     tasksToday: data.tasks_today,
     tasksCompleted: data.tasks_completed,
     vitalsRecordedToday: data.vitals_recorded_today,

@@ -5,10 +5,9 @@ import {
   AlertCircle, RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useAuth } from '@/context/AuthContext';
-import { listQueue, updateQueueEntry, updateAppointment, listPatients, listStaff } from '@/lib/services';
+import { listQueue, updateQueueEntry, updateAppointment } from '@/lib/services';
 import { toast } from 'sonner';
-import type { QueueEntry, Patient, Staff } from '@/types';
+import type { QueueEntry } from '@/types';
 
 type QueueStatus = 'waiting' | 'called' | 'in_progress' | 'completed' | 'no_show';
 
@@ -33,24 +32,16 @@ function waitTime(checkedInAt: string) {
 }
 
 const QueuePage: React.FC = () => {
-  const { user } = useAuth();
   const [queue, setQueue]     = useState<QueueEntry[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [doctors, setDoctors]  = useState<Staff[]>([]);
   const [statusFilter, setStatusFilter] = useState<QueueStatus | 'active'>('active');
   const [updating, setUpdating] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const [queueEntries, pts, staff] = await Promise.all([
-        listQueue(),
-        listPatients(),
-        listStaff({ role: 'DOCTOR' }),
-      ]);
-      queueEntries.sort((a, b) => a.checkedInAt.localeCompare(b.checkedInAt));
-      setQueue(queueEntries);
-      setPatients(pts);
-      setDoctors(staff);
+      const today = new Date().toISOString().slice(0, 10);
+      const entries = await listQueue({ date: today, limit: 200 });
+      entries.sort((a, b) => a.checkedInAt.localeCompare(b.checkedInAt));
+      setQueue(entries);
     } catch {
       // silently ignore
     }
@@ -187,12 +178,10 @@ const QueuePage: React.FC = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           <AnimatePresence>
             {filtered.map((entry, i) => {
-              const patient = patients.find(p => p.id === entry.patientId);
-              const doctor  = doctors.find(d => d.id === entry.doctorId);
-              const cfg     = STATUS_CFG[entry.status];
-              const priCfg  = PRIORITY_CFG[entry.priority];
-              const action  = nextAction(entry.status);
-              const busy    = updating === entry.id;
+              const cfg    = STATUS_CFG[entry.status];
+              const priCfg = PRIORITY_CFG[entry.priority];
+              const action = nextAction(entry.status);
+              const busy   = updating === entry.id;
 
               return (
                 <motion.div key={entry.id}
@@ -210,7 +199,7 @@ const QueuePage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {patient ? `${patient.firstName} ${patient.lastName}` : '—'}
+                        {entry.patientName ?? '—'}
                       </p>
                       <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', priCfg.cls)}>
                         {entry.priority}
@@ -220,7 +209,7 @@ const QueuePage: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-400 font-bold flex-wrap">
-                      {doctor && <span>Dr. {doctor.firstName} {doctor.lastName}</span>}
+                      {entry.doctorName && <span>Dr. {entry.doctorName}</span>}
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> {waitTime(entry.checkedInAt)}
                       </span>

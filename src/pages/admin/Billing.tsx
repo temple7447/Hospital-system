@@ -3,16 +3,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2, XCircle,
   CreditCard, ChevronDown, ChevronUp, Search, X, Banknote, Building2, Wallet,
-  Loader2,
+  Loader2, Plus, Trash2,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import type { Invoice, InvoiceStatus, Patient, PaymentMethod } from '@/types';
+import type { Invoice, InvoiceStatus, Patient, PaymentMethod, InvoiceItem } from '@/types';
 import { toast } from 'sonner';
-import { listInvoices, updateInvoice, listPatients, createNotification } from '@/lib/services';
+import {
+  listInvoices, updateInvoice, createInvoice,
+  listPatients, createNotification,
+} from '@/lib/services';
 
 const STATUS_CFG: Record<InvoiceStatus, { label: string; bg: string; text: string; icon: React.ElementType }> = {
   pending:        { label: 'Pending',    bg: 'bg-amber-50 dark:bg-amber-900/20',    text: 'text-amber-600',   icon: Clock },
@@ -63,12 +66,12 @@ function buildMonthlyData(invoices: Invoice[]): { month: string; revenue: number
 
 interface MarkPaidModalProps {
   invoice: Invoice | null;
+  patient: Patient | undefined;
   onClose: () => void;
   onPaid: () => void;
-  userId: string;
 }
 
-const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid, userId }) => {
+const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, patient, onClose, onPaid }) => {
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [saving, setSaving] = useState(false);
 
@@ -83,15 +86,19 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
         paidAt: new Date().toISOString(),
         amountPaid: invoice.total,
       });
-      await createNotification({
-        user_id: invoice.patientId,
-        type: 'billing',
-        title: 'Payment Received',
-        message: `Invoice ${invoice.invoiceNumber} has been paid.`,
-      });
+      if (patient?.userId) {
+        await createNotification({
+          user_id: patient.userId,
+          type: 'billing',
+          title: 'Payment Received',
+          message: `Invoice ${invoice.invoiceNumber} of ${fmtMoney(invoice.total)} has been paid.`,
+        });
+      }
       onPaid();
       onClose();
       toast.success('Payment recorded');
+    } catch {
+      toast.error('Failed to record payment');
     } finally {
       setSaving(false);
     }
@@ -107,7 +114,7 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
         >
           <motion.div
             initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-lg  overflow-hidden"
+            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-lg overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
@@ -120,6 +127,7 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
               <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{invoice.invoiceNumber}</p>
                 <p className="text-2xl font-semibold text-blue-600 mt-1">{fmtMoney(invoice.total)}</p>
+                {patient && <p className="text-xs text-slate-500 mt-1">{patient.firstName} {patient.lastName}</p>}
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Payment Method</label>
@@ -143,7 +151,7 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
                   Cancel
                 </button>
                 <button onClick={handlePay} disabled={saving}
-                  className="flex-2 py-3 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="flex-1 py-3 bg-emerald-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing...</> : 'Confirm Payment'}
                 </button>
               </div>
@@ -151,6 +159,228 @@ const MarkPaidModal: React.FC<MarkPaidModalProps> = ({ invoice, onClose, onPaid,
           </motion.div>
         </motion.div>
       )}
+    </AnimatePresence>
+  );
+};
+
+// ─── Create Invoice Modal ─────────────────────────────────────────────────────
+
+interface CreateInvoiceModalProps {
+  open: boolean;
+  patients: Patient[];
+  onClose: () => void;
+  onCreated: () => void;
+}
+
+const EMPTY_ITEM = (): InvoiceItem => ({ description: '', quantity: 1, unitPrice: 0, total: 0 });
+
+const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({ open, patients, onClose, onCreated }) => {
+  const [patientId, setPatientId] = useState('');
+  const [items, setItems] = useState<InvoiceItem[]>([EMPTY_ITEM()]);
+  const [taxPct, setTaxPct] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [dueDate, setDueDate] = useState('');
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setPatientId(patients[0]?.id || '');
+      setItems([EMPTY_ITEM()]);
+      setTaxPct(0);
+      setDiscount(0);
+      setDueDate('');
+      setNotes('');
+    }
+  }, [open, patients]);
+
+  const subtotal = items.reduce((s, it) => s + it.total, 0);
+  const taxAmt = +(subtotal * taxPct / 100).toFixed(2);
+  const total = +(subtotal + taxAmt - discount).toFixed(2);
+
+  const updateItem = (idx: number, field: keyof InvoiceItem, val: string | number) => {
+    setItems(prev => prev.map((it, i) => {
+      if (i !== idx) return it;
+      const updated = { ...it, [field]: val };
+      if (field === 'quantity' || field === 'unitPrice') {
+        updated.total = +(updated.quantity * updated.unitPrice).toFixed(2);
+      }
+      return updated;
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!patientId) return toast.error('Select a patient');
+    const validItems = items.filter(it => it.description.trim());
+    if (!validItems.length) return toast.error('Add at least one line item');
+    if (!dueDate) return toast.error('Set a due date');
+    setSaving(true);
+    try {
+      await createInvoice({
+        patientId,
+        items: validItems,
+        subtotal,
+        tax: taxAmt,
+        discount,
+        total,
+        amountPaid: 0,
+        status: 'pending',
+        dueDate,
+        notes: notes || undefined,
+      });
+      toast.success('Invoice created');
+      onCreated();
+      onClose();
+    } catch {
+      toast.error('Failed to create invoice');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={() => !saving && onClose()}
+      >
+        <motion.div
+          initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+          className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-lg overflow-hidden flex flex-col max-h-[90vh]"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+            <h3 className="font-semibold text-slate-900 dark:text-white">New Invoice</h3>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+              <X className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-5 overflow-y-auto flex-1">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Patient</label>
+                <select
+                  value={patientId} onChange={e => setPatientId(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none"
+                >
+                  <option value="">Select patient…</option>
+                  {patients.map(p => (
+                    <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Due Date</label>
+                <input
+                  type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Line Items</label>
+                <button
+                  onClick={() => setItems(prev => [...prev, EMPTY_ITEM()])}
+                  className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Item
+                </button>
+              </div>
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                  <span className="col-span-5">Description</span>
+                  <span className="col-span-2 text-center">Qty</span>
+                  <span className="col-span-2 text-right">Unit Price</span>
+                  <span className="col-span-2 text-right">Total</span>
+                  <span className="col-span-1" />
+                </div>
+                {items.map((it, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                    <input
+                      value={it.description}
+                      onChange={e => updateItem(idx, 'description', e.target.value)}
+                      placeholder="Service / item"
+                      className="col-span-5 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-sm outline-none"
+                    />
+                    <input
+                      type="number" min="1" value={it.quantity}
+                      onChange={e => updateItem(idx, 'quantity', +e.target.value || 1)}
+                      className="col-span-2 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-sm text-center outline-none"
+                    />
+                    <input
+                      type="number" min="0" step="0.01" value={it.unitPrice}
+                      onChange={e => updateItem(idx, 'unitPrice', +e.target.value || 0)}
+                      className="col-span-2 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-sm text-right outline-none"
+                    />
+                    <span className="col-span-2 text-sm font-semibold text-right text-slate-700 dark:text-slate-300">
+                      {fmtMoney(it.total)}
+                    </span>
+                    <button
+                      onClick={() => items.length > 1 && setItems(prev => prev.filter((_, i) => i !== idx))}
+                      disabled={items.length === 1}
+                      className="col-span-1 flex items-center justify-center text-slate-300 hover:text-red-500 disabled:opacity-30 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Tax (%)</label>
+                <input
+                  type="number" min="0" max="100" value={taxPct}
+                  onChange={e => setTaxPct(+e.target.value || 0)}
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Discount ($)</label>
+                <input
+                  type="number" min="0" step="0.01" value={discount}
+                  onChange={e => setDiscount(+e.target.value || 0)}
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block mb-1.5">Notes (optional)</label>
+              <textarea
+                value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-sm outline-none resize-none"
+              />
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-md p-4 space-y-1.5 text-sm">
+              <div className="flex justify-between text-slate-500"><span>Subtotal</span><span className="font-semibold">{fmtMoney(subtotal)}</span></div>
+              {taxPct > 0 && <div className="flex justify-between text-slate-500"><span>Tax ({taxPct}%)</span><span className="font-semibold">{fmtMoney(taxAmt)}</span></div>}
+              {discount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><span className="font-semibold">-{fmtMoney(discount)}</span></div>}
+              <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-1.5 font-semibold text-slate-900 dark:text-white">
+                <span>Total</span><span className="text-blue-600 text-base">{fmtMoney(total)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 shrink-0">
+            <button onClick={onClose} disabled={saving}
+              className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+              Cancel
+            </button>
+            <button onClick={handleSubmit} disabled={saving}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating...</> : 'Create Invoice'}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 };
@@ -221,7 +451,7 @@ const InvoiceRow: React.FC<InvoiceRowProps> = ({ invoice, patient, onMarkPaid, e
                 <div className="flex justify-between"><span className="text-sm font-semibold">Total</span><span className="text-sm font-semibold text-blue-600">{fmtMoney(invoice.total)}</span></div>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">
-                <span>Due: {fmtDate(invoice.dueDate)}</span>
+                <span>Due: {invoice.dueDate ? fmtDate(invoice.dueDate) : '—'}</span>
                 {invoice.paidAt && <span className="text-emerald-600 font-bold">Paid: {fmtDate(invoice.paidAt)}</span>}
                 {invoice.paymentMethod && <span className="capitalize font-bold">{invoice.paymentMethod.replace('_', ' ')}</span>}
               </div>
@@ -247,18 +477,37 @@ const AdminBilling: React.FC = () => {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [markPaidTarget, setMarkPaidTarget] = useState<Invoice | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
   const [chartData, setChartData] = useState<{ month: string; revenue: number }[]>([]);
 
+  // suppress unused warning — user kept for future role checks
+  void user;
+
   const loadData = useCallback(async () => {
-    const [invs, pats] = await Promise.all([listInvoices(), listPatients()]);
-    const sorted = invs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    setInvoices(sorted);
-    setPatients(pats);
-    setChartData(buildMonthlyData(sorted));
+    try {
+      const [invs, pats] = await Promise.all([
+        listInvoices({ limit: 1000 }),
+        listPatients({ limit: 1000 }),
+      ]);
+      const today = new Date().toISOString().split('T')[0];
+      const overdueUpdates = invs
+        .filter(inv => inv.status === 'pending' && inv.dueDate && inv.dueDate < today)
+        .map(inv => updateInvoice(inv.id, { status: 'overdue' }));
+      if (overdueUpdates.length) await Promise.all(overdueUpdates);
+
+      const refreshed = overdueUpdates.length ? await listInvoices({ limit: 1000 }) : invs;
+      const sorted = refreshed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      setInvoices(sorted);
+      setPatients(pats);
+      setChartData(buildMonthlyData(sorted));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -289,14 +538,48 @@ const AdminBilling: React.FC = () => {
     });
   }, [invoices, statusFilter, search, patients]);
 
+  const markPaidPatient = useMemo(
+    () => patients.find(p => p.id === markPaidTarget?.patientId),
+    [patients, markPaidTarget],
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      <MarkPaidModal invoice={markPaidTarget} onClose={() => setMarkPaidTarget(null)} onPaid={loadData} userId={user!.id} />
+      <MarkPaidModal
+        invoice={markPaidTarget}
+        patient={markPaidPatient}
+        onClose={() => setMarkPaidTarget(null)}
+        onPaid={loadData}
+      />
+      <CreateInvoiceModal
+        open={showCreate}
+        patients={patients}
+        onClose={() => setShowCreate(false)}
+        onCreated={loadData}
+      />
 
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Billing Overview</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Revenue analytics and invoice management</p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Billing Overview</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Revenue analytics and invoice management</p>
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all"
+        >
+          <Plus className="w-4 h-4" /> New Invoice
+        </button>
       </motion.div>
 
       {/* Stats */}
@@ -362,7 +645,7 @@ const AdminBilling: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search patient or invoice..."
+            placeholder="Search patient or invoice…"
             className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
           />
         </div>
@@ -383,6 +666,9 @@ const AdminBilling: React.FC = () => {
             <X className="w-4 h-4" /> Clear
           </button>
         )}
+        <span className="px-4 py-3 text-xs font-bold text-slate-400 self-center">
+          {filtered.length} invoice{filtered.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
       {/* Invoice list */}
@@ -390,6 +676,12 @@ const AdminBilling: React.FC = () => {
         <div className="glass-card p-16 rounded-lg text-center">
           <Receipt className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-400 font-bold">No invoices found</p>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="mt-4 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all"
+          >
+            Create First Invoice
+          </button>
         </div>
       ) : (
         <div className="space-y-3">

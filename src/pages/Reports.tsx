@@ -11,17 +11,20 @@ import {
 } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { listAppointments, listPatients, listInvoices, getAdminStats } from '@/lib/services';
-import type { Appointment, Patient, Invoice, AdminStats } from '@/types';
+import { listAppointments, listPatients, listInvoices, getAdminStats, listStaff, listDepartments } from '@/lib/services';
+import { ROLE_MAP } from '@/lib/mappers';
+import type { Appointment, Patient, Invoice, AdminStats, Staff, Department } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const Reports: React.FC = () => {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [patients, setPatients]         = useState<Patient[]>([]);
+  const [invoices, setInvoices]         = useState<Invoice[]>([]);
+  const [stats, setStats]               = useState<AdminStats | null>(null);
+  const [staffList, setStaffList]       = useState<Staff[]>([]);
+  const [departments, setDepartments]   = useState<Department[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -29,11 +32,15 @@ const Reports: React.FC = () => {
       listPatients({ limit: 1000 }),
       listInvoices({ limit: 1000 }),
       getAdminStats(),
-    ]).then(([apts, pats, invs, s]) => {
+      listStaff(),
+      listDepartments(),
+    ]).then(([apts, pats, invs, s, st, depts]) => {
       setAppointments(apts);
       setPatients(pats);
       setInvoices(invs);
       setStats(s);
+      setStaffList(st);
+      setDepartments(depts);
     }).catch(() => {});
   }, []);
 
@@ -87,14 +94,80 @@ const Reports: React.FC = () => {
     });
   }, [patients]);
 
+  // ── Staff analytics ──────────────────────────────────────────────────────────
+  const staffByCategory = useMemo(() => {
+    const CATEGORY_COLORS: Record<string, string> = {
+      ADMIN: '#8b5cf6', DOCTOR: '#3b82f6', NURSE: '#ec4899',
+      RECEPTIONIST: '#10b981', PHARMACIST: '#f59e0b',
+      LAB_TECHNICIAN: '#06b6d4', RADIOLOGIST: '#6366f1', PATIENT: '#94a3b8',
+    };
+    const counts: Record<string, number> = {};
+    staffList.forEach(s => {
+      const cat = ROLE_MAP[s.role.toLowerCase()] ?? 'OTHER';
+      counts[cat] = (counts[cat] ?? 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name: name.charAt(0) + name.slice(1).toLowerCase().replace(/_/g, ' '),
+      value,
+      color: CATEGORY_COLORS[name] ?? '#94a3b8',
+    })).sort((a, b) => b.value - a.value);
+  }, [staffList]);
+
+  const staffByStatus = useMemo(() => [
+    { name: 'Active',    value: staffList.filter(s => s.status === 'active').length,   color: '#10b981' },
+    { name: 'Inactive',  value: staffList.filter(s => s.status === 'inactive').length, color: '#94a3b8' },
+    { name: 'On Leave',  value: staffList.filter(s => s.status === 'on_leave').length, color: '#f59e0b' },
+  ].filter(s => s.value > 0), [staffList]);
+
+  const staffByDept = useMemo(() => {
+    const counts: Record<string, number> = {};
+    staffList.forEach(s => {
+      const dept = departments.find(d => d.id === s.departmentId);
+      const label = dept?.name ?? 'Unassigned';
+      counts[label] = (counts[label] ?? 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([dept, count]) => ({ dept: dept.length > 18 ? dept.slice(0, 16) + '…' : dept, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [staffList, departments]);
+
   const totalRevenue = revenueData.reduce((s, d) => s + d.revenue, 0);
   const totalApts    = aptStats.reduce((s, d) => s + d.value, 0);
 
+  // Real month-over-month changes
+  const changes = useMemo(() => {
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const revThis = invoices.filter(i => i.status === 'paid' && i.paidAt && new Date(i.paidAt) >= thisMonthStart).reduce((s, i) => s + (i.total ?? 0), 0);
+    const revLast = invoices.filter(i => i.status === 'paid' && i.paidAt && new Date(i.paidAt) >= lastMonthStart && new Date(i.paidAt) < thisMonthStart).reduce((s, i) => s + (i.total ?? 0), 0);
+
+    const aptsThis = appointments.filter(a => new Date(a.date) >= thisMonthStart).length;
+    const aptsLast = appointments.filter(a => { const d = new Date(a.date); return d >= lastMonthStart && d < thisMonthStart; }).length;
+
+    const patsThis = patients.filter(p => new Date(p.registeredAt) >= thisMonthStart).length;
+    const patsLast = patients.filter(p => { const d = new Date(p.registeredAt); return d >= lastMonthStart && d < thisMonthStart; }).length;
+
+    const fmt = (curr: number, prev: number) => {
+      if (prev === 0) return curr > 0 ? 'New' : '—';
+      const pct = Math.round(((curr - prev) / prev) * 100);
+      return pct >= 0 ? `+${pct}%` : `${pct}%`;
+    };
+
+    return {
+      revenue:      fmt(revThis, revLast),
+      appointments: fmt(aptsThis, aptsLast),
+      patients:     fmt(patsThis, patsLast),
+    };
+  }, [invoices, appointments, patients]);
+
   const KPI = [
-    { label: 'Total Revenue (6mo)', value: `$${(totalRevenue / 1000).toFixed(1)}k`, icon: DollarSign, color: 'emerald', change: '+12%' },
-    { label: 'Total Appointments',  value: totalApts,                                icon: Calendar,   color: 'blue',    change: '+8%' },
-    { label: 'Active Patients',     value: stats?.totalPatients ?? '—',              icon: Users,      color: 'violet',  change: '+5%' },
-    { label: 'Active Staff',        value: stats?.totalStaff ?? '—',                 icon: Activity,   color: 'amber',   change: '0%' },
+    { label: 'Revenue This Month',  value: `$${((stats?.monthlyRevenue ?? 0) / 1000).toFixed(1)}k`, icon: DollarSign, color: 'emerald', change: changes.revenue },
+    { label: 'Total Appointments',  value: totalApts,                                                icon: Calendar,   color: 'blue',    change: changes.appointments },
+    { label: 'Active Patients',     value: stats?.totalPatients ?? '—',                             icon: Users,      color: 'violet',  change: changes.patients },
+    { label: 'Active Staff',        value: stats?.totalStaff ?? '—',                                icon: Activity,   color: 'amber',   change: '—' },
   ];
 
   return (
@@ -126,7 +199,10 @@ const Reports: React.FC = () => {
                   k.color === 'amber'   && 'text-amber-600',
                 )} />
               </div>
-              <span className="text-xs font-semibold text-emerald-600">{k.change}</span>
+              <span className={cn('text-xs font-semibold',
+                k.change.startsWith('+') ? 'text-emerald-600' :
+                k.change.startsWith('-') ? 'text-red-500' : 'text-slate-400'
+              )}>{k.change}</span>
             </div>
             <p className="text-2xl font-semibold text-slate-900 dark:text-white">{k.value}</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{k.label}</p>
@@ -230,18 +306,84 @@ const Reports: React.FC = () => {
         </motion.div>
       </div>
 
+      {/* ── Staff Analytics ──────────────────────────────────── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Staff Analytics</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Staff by Category (donut) */}
+          <div className="glass-card p-6 rounded-lg">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Staff by Category</h3>
+            <p className="text-xs text-slate-400 font-bold mb-4">Role distribution</p>
+            <div className="h-44 flex items-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={staffByCategory} cx="50%" cy="50%" innerRadius={45} outerRadius={68}
+                    paddingAngle={3} dataKey="value">
+                    {staffByCategory.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 10, border: 'none', fontSize: 11 }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10, fontWeight: 700 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-2 space-y-1.5">
+              {staffByCategory.map(s => (
+                <div key={s.name} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                  <span className="text-xs text-slate-500 font-semibold capitalize">{s.name}</span>
+                  <span className="ml-auto text-xs font-bold text-slate-900 dark:text-white">{s.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Staff by Department (horizontal bar) */}
+          <div className="glass-card p-6 rounded-lg lg:col-span-2">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">Staff by Department</h3>
+            <p className="text-xs text-slate-400 font-bold mb-4">Headcount per department</p>
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={staffByDept} layout="vertical" margin={{ left: 10, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                  <XAxis type="number" axisLine={false} tickLine={false}
+                    tick={{ fontSize: 10, fill: '#64748b' }} allowDecimals={false} />
+                  <YAxis type="category" dataKey="dept" axisLine={false} tickLine={false}
+                    tick={{ fontSize: 10, fill: '#64748b' }} width={110} />
+                  <Tooltip contentStyle={{ borderRadius: 10, border: 'none', fontSize: 11 }} />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={14} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Staff status strip */}
+        <div className="mt-4 grid grid-cols-3 gap-4">
+          {staffByStatus.map(s => (
+            <div key={s.name} className="glass-card p-4 rounded-lg flex items-center gap-4">
+              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+              <div>
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{s.value}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.name}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
       {/* Summary table */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
         className="glass-card p-6 rounded-lg">
         <h3 className="font-semibold text-slate-900 dark:text-white mb-5">Quick Stats</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { label: 'Staff',      value: stats?.totalStaff ?? '—',        icon: Activity,     color: 'blue' },
-            { label: 'Patients',   value: stats?.totalPatients ?? '—',      icon: Users,        color: 'violet' },
-            { label: 'Today Apts', value: stats?.todayAppointments ?? '—',  icon: Calendar,     color: 'amber' },
-            { label: 'Completed',  value: aptStats[0]?.value ?? '—',        icon: CheckCircle2, color: 'emerald' },
-            { label: 'Pending Bills', value: stats?.pendingInvoices ?? '—', icon: Clock,        color: 'orange' },
-            { label: 'Low Stock',  value: stats?.lowStockItems ?? '—',      icon: XCircle,      color: 'red' },
+            { label: 'Active Staff',    value: stats?.totalStaff ?? '—',                                      icon: Activity,     color: 'blue' },
+            { label: 'Patients',        value: stats?.totalPatients ?? '—',                                    icon: Users,        color: 'violet' },
+            { label: 'Today Apts',      value: stats?.todayAppointments ?? '—',                               icon: Calendar,     color: 'amber' },
+            { label: 'Beds Available',  value: stats ? `${stats.availableBeds}/${stats.totalBeds}` : '—',     icon: CheckCircle2, color: 'emerald' },
+            { label: 'Pending Bills',   value: stats?.pendingInvoices ?? '—',                                 icon: Clock,        color: 'orange' },
+            { label: 'Low Stock Items', value: stats?.lowStockItems ?? '—',                                   icon: XCircle,      color: 'red' },
           ].map(s => (
             <div key={s.label} className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
               <p className="text-2xl font-semibold text-slate-900 dark:text-white">{s.value}</p>

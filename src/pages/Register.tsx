@@ -87,11 +87,6 @@ const Register: React.FC = () => {
         city: form.city.trim(),
         emergencyContactName: form.emergencyContactName.trim(),
         emergencyContactPhone: form.emergencyContactPhone.trim(),
-        patientNumber: `PAT-${Date.now()}`,
-        insuranceProvider: '',
-        insuranceNumber: '',
-        status: 'active',
-        registeredAt: new Date().toISOString(),
       });
       setDone(true);
       setTimeout(() => {

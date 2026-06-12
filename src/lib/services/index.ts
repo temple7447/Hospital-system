@@ -14,3 +14,6 @@ export * from './queueService';
 export * from './nursingTaskService';
 export * from './notificationService';
 export * from './statsService';
+export * from './admissionService';
+export * from './rolesService';
+export * from './settingsService';

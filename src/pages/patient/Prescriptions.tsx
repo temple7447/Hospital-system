@@ -240,7 +240,7 @@ const Prescriptions: React.FC = () => {
             <RxCard
               key={rx.id}
               rx={rx}
-              doctor={doctors.find(d => d.id === rx.doctorId)}
+              doctor={doctors.find(d => d.userId === rx.doctorId || d.id === rx.doctorId)}
               expanded={expandedId === rx.id}
               onToggle={() => setExpandedId(expandedId === rx.id ? null : rx.id)}
             />

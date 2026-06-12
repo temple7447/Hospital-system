@@ -299,7 +299,7 @@ const LabResults: React.FC = () => {
             <ResultCard
               key={order.id}
               order={order}
-              doctor={doctors.find(d => d.id === order.doctorId)}
+              doctor={doctors.find(d => d.userId === order.doctorId || d.id === order.doctorId)}
               expanded={expandedId === order.id}
               onToggle={() => setExpandedId(expandedId === order.id ? null : order.id)}
             />

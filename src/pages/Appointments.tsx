@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -27,9 +28,10 @@ import {
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
 import {
-  listAppointments, createAppointment, updateAppointment,
+  listAppointments, updateAppointment,
   listPatients, listStaff, listDepartments,
 } from '@/lib/services';
+import { ROLE_MAP } from '@/lib/mappers';
 import type { Appointment, AppointmentStatus, AppointmentType, Patient, Staff, Department } from '@/types';
 import { toast } from 'sonner';
 
@@ -64,24 +66,11 @@ function formatTime(t: string) {
   return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${ampm}`;
 }
 
-function generateTimeSlots(start: string, end: string): string[] {
-  const slots: string[] = [];
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  let cur = sh * 60 + sm;
-  const endMin = eh * 60 + em;
-  while (cur + 30 <= endMin) {
-    const h = Math.floor(cur / 60);
-    const m = cur % 60;
-    slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-    cur += 30;
-  }
-  return slots;
-}
-
 function getInitials(name: string) {
   return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
 }
+
+const isDoctorRole = (role: string) => ROLE_MAP[role.toLowerCase()] === 'DOCTOR';
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -91,410 +80,6 @@ const StatusBadge: React.FC<{ status: AppointmentStatus }> = ({ status }) => {
     <span className={cn('px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider inline-block', cfg.bg, cfg.darkBg, cfg.color)}>
       {cfg.label}
     </span>
-  );
-};
-
-// ─── Book Appointment Modal ───────────────────────────────────────────────────
-
-interface BookModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCreated: () => void;
-  currentUser: { id: string; role: string };
-  patients: Patient[];
-  staff: Staff[];
-  departments: Department[];
-}
-
-const BOOK_STEPS = ['Patient & Department', 'Doctor & Date', 'Details'];
-
-const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, onCreated, currentUser, patients, staff, departments }) => {
-  const [step, setStep] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const [patientId, setPatientId] = useState(currentUser.role === 'PATIENT' ? currentUser.id : '');
-  const [patientSearch, setPatientSearch] = useState('');
-  const [deptId, setDeptId] = useState('');
-  const [doctorId, setDoctorId] = useState('');
-  const [date, setDate] = useState('');
-  const [slot, setSlot] = useState('');
-  const [type, setType] = useState<AppointmentType>('consultation');
-  const [reason, setReason] = useState('');
-
-  const isPatient = currentUser.role === 'PATIENT';
-
-  // Reset on open
-  useEffect(() => {
-    if (isOpen) {
-      setStep(0);
-      setSaving(false);
-      setSuccess(false);
-      setPatientId(isPatient ? currentUser.id : '');
-      setPatientSearch('');
-      setDeptId('');
-      setDoctorId('');
-      setDate('');
-      setSlot('');
-      setType('consultation');
-      setReason('');
-    }
-  }, [isOpen]);
-
-  const filteredPatients = useMemo(() => {
-    if (!patientSearch) return patients.slice(0, 8);
-    const q = patientSearch.toLowerCase();
-    return patients.filter(p =>
-      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
-      p.email.toLowerCase().includes(q) ||
-      p.patientNumber.toLowerCase().includes(q)
-    ).slice(0, 8);
-  }, [patients, patientSearch]);
-
-  const deptDoctors = useMemo(() =>
-    deptId ? staff.filter(s => s.role === 'DOCTOR' && s.departmentId === deptId && s.status === 'active') : [],
-    [staff, deptId]
-  );
-
-  const selectedDoctor = useMemo(() => staff.find(s => s.id === doctorId), [staff, doctorId]);
-
-  const timeSlots = useMemo(() => {
-    if (!selectedDoctor || !date) return [];
-    const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as any;
-    if (!selectedDoctor.workingDays.includes(dayName)) return [];
-    const all = generateTimeSlots(selectedDoctor.workingHours.start, selectedDoctor.workingHours.end);
-    return all;
-  }, [selectedDoctor, date, doctorId]);
-
-  const today = new Date().toISOString().split('T')[0];
-
-  const canStep0 = (isPatient || patientId !== '') && deptId !== '';
-  const canStep1 = doctorId !== '' && date !== '' && slot !== '';
-  const canStep2 = reason.trim() !== '';
-
-  const handleSubmit = async () => {
-    setSaving(true);
-    try {
-      await createAppointment({
-        patientId,
-        doctorId,
-        departmentId: deptId,
-        date,
-        time: slot,
-        duration: 30,
-        type,
-        status: 'scheduled',
-        reason: reason.trim(),
-      });
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-        onCreated();
-        toast.success('Appointment booked successfully');
-      }, 1800);
-    } catch {
-      toast.error('Failed to book appointment');
-      setSaving(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50"
-            onClick={() => !saving && onClose()}
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-4xl  overflow-hidden"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 dark:border-slate-800">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Book Appointment</h2>
-                  <p className="text-xs font-bold text-slate-400 mt-1">Step {step + 1} of {BOOK_STEPS.length}</p>
-                </div>
-                <button onClick={() => !saving && onClose()} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
-
-              {/* Step dots */}
-              <div className="flex gap-2 px-8 pt-5">
-                {BOOK_STEPS.map((label, i) => (
-                  <div key={i} className="flex-1">
-                    <div className={cn(
-                      'h-1.5 rounded-full transition-all',
-                      i < step ? 'bg-emerald-500' : i === step ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
-                    )} />
-                    <p className={cn('text-[10px] font-bold mt-1.5 uppercase tracking-wider',
-                      i === step ? 'text-blue-600' : 'text-slate-400')}>{label}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="px-8 py-6 space-y-5 min-h-80 relative">
-                {/* Success overlay */}
-                <AnimatePresence>
-                  {success && (
-                    <motion.div
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 z-10 rounded-md"
-                    >
-                      <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
-                        <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Appointment Booked!</h3>
-                      <p className="text-sm text-slate-500 mt-1">Scheduled for {date} at {formatTime(slot)}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Step 0: Patient & Department */}
-                {step === 0 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                    {!isPatient && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Patient</label>
-                        <div className="relative">
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            type="text"
-                            value={patientSearch}
-                            onChange={e => { setPatientSearch(e.target.value); setPatientId(''); }}
-                            placeholder="Search by name, email or ID..."
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none border border-transparent focus:border-blue-500/20"
-                          />
-                        </div>
-                        {patientSearch && (
-                          <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm max-h-44 overflow-y-auto">
-                            {filteredPatients.length === 0 ? (
-                              <p className="text-xs text-slate-400 p-4 text-center">No patients found</p>
-                            ) : filteredPatients.map(p => (
-                              <button
-                                key={p.id}
-                                onClick={() => { setPatientId(p.id); setPatientSearch(`${p.firstName} ${p.lastName}`); }}
-                                className={cn(
-                                  'w-full text-left px-4 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-3',
-                                  patientId === p.id && 'bg-blue-50 dark:bg-blue-900/20'
-                                )}
-                              >
-                                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-xs font-semibold text-blue-600 shrink-0">
-                                  {getInitials(`${p.firstName} ${p.lastName}`)}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-slate-900 dark:text-white">{p.firstName} {p.lastName}</p>
-                                  <p className="text-[10px] text-slate-400">{p.patientNumber} · {p.phone}</p>
-                                </div>
-                                {patientId === p.id && <CheckCheck className="w-4 h-4 text-blue-600 ml-auto" />}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {patientId && !patientSearch.includes(' ') && (
-                          <p className="text-xs text-emerald-600 font-bold px-1">✓ Patient selected</p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {departments.map(d => (
-                          <button
-                            key={d.id}
-                            onClick={() => { setDeptId(d.id); setDoctorId(''); setSlot(''); }}
-                            className={cn(
-                              'px-4 py-3 rounded-md text-sm font-bold text-left transition-all border',
-                              deptId === d.id
-                                ? 'bg-blue-600 text-white border-blue-600 '
-                                : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-blue-500/30'
-                            )}
-                          >
-                            {d.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Step 1: Doctor & Date */}
-                {step === 1 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Doctor</label>
-                      {deptDoctors.length === 0 ? (
-                        <p className="text-sm text-slate-400 p-4 bg-slate-50 dark:bg-slate-800 rounded-md text-center">No active doctors in this department</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {deptDoctors.map(doc => (
-                            <button
-                              key={doc.id}
-                              onClick={() => { setDoctorId(doc.id); setSlot(''); }}
-                              className={cn(
-                                'w-full flex items-center gap-4 px-4 py-3 rounded-md border transition-all text-left',
-                                doctorId === doc.id
-                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                  : 'border-transparent bg-slate-50 dark:bg-slate-800 hover:border-blue-500/30'
-                              )}
-                            >
-                              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
-                                {getInitials(`${doc.firstName} ${doc.lastName}`)}
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-bold text-sm text-slate-900 dark:text-white">Dr. {doc.firstName} {doc.lastName}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase">{doc.specialization || 'General'}</p>
-                              </div>
-                              {doctorId === doc.id && <CheckCheck className="w-4 h-4 text-blue-600" />}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Date</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                          type="date"
-                          value={date}
-                          min={today}
-                          onChange={e => { setDate(e.target.value); setSlot(''); }}
-                          className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    {doctorId && date && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                          Available Time Slots {timeSlots.length === 0 && <span className="text-red-500">(None available)</span>}
-                        </label>
-                        {timeSlots.length > 0 ? (
-                          <div className="grid grid-cols-4 gap-2">
-                            {timeSlots.map(s => (
-                              <button
-                                key={s}
-                                onClick={() => setSlot(s)}
-                                className={cn(
-                                  'py-2 rounded-lg text-xs font-bold transition-all',
-                                  slot === s
-                                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700'
-                                )}
-                              >
-                                {formatTime(s)}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-md p-4 text-center">
-                            {selectedDoctor && !selectedDoctor.workingDays.includes(
-                              new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as any
-                            ) ? 'Doctor does not work on this day' : 'All slots are booked'}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-
-                {/* Step 2: Details */}
-                {step === 2 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md space-y-2">
-                      <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Summary</p>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <p className="text-xs text-slate-400 font-bold">Doctor</p>
-                          <p className="font-bold text-slate-900 dark:text-white text-xs">
-                            {selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : '—'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-400 font-bold">Date & Time</p>
-                          <p className="font-bold text-slate-900 dark:text-white text-xs">{date} · {formatTime(slot)}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Visit Type</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(Object.entries(TYPE_LABELS) as [AppointmentType, string][]).map(([val, label]) => (
-                          <button
-                            key={val}
-                            onClick={() => setType(val)}
-                            className={cn(
-                              'px-4 py-2.5 rounded-lg text-xs font-bold border transition-all',
-                              type === val
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-blue-500/30'
-                            )}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Reason for Visit</label>
-                      <textarea
-                        value={reason}
-                        onChange={e => setReason(e.target.value)}
-                        placeholder="Describe symptoms or reason..."
-                        rows={3}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="px-8 pb-6 flex gap-3">
-                <button
-                  onClick={() => step === 0 ? onClose() : setStep(s => s - 1)}
-                  disabled={saving}
-                  className="flex-1 px-4 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all disabled:opacity-50"
-                >
-                  {step === 0 ? 'Cancel' : 'Back'}
-                </button>
-                {step < BOOK_STEPS.length - 1 ? (
-                  <button
-                    onClick={() => setStep(s => s + 1)}
-                    disabled={(step === 0 && !canStep0) || (step === 1 && !canStep1)}
-                    className="flex-2 px-4 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest  hover:bg-blue-700 transition-all  disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={saving || !canStep2}
-                    className="flex-2 px-4 py-3.5 bg-blue-600 text-white rounded-md font-semibold text-xs uppercase tracking-widest  hover:bg-blue-700 transition-all  disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Booking...</> : 'Confirm Booking'}
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
   );
 };
 
@@ -518,13 +103,13 @@ const CancelModal: React.FC<CancelModalProps> = ({ appointment, onClose, onCance
   if (!appointment) return null;
 
   const patient = patients.find(p => p.id === appointment.patientId);
-  const doctor = staff.find(s => s.id === appointment.doctorId);
+  const doctor = staff.find(s => s.userId === appointment.doctorId || s.id === appointment.doctorId);
 
   const handleCancel = async () => {
     if (!reason.trim()) return;
     setSaving(true);
     try {
-      await updateAppointment({ id: appointment.id, status: 'cancelled', notes: reason.trim() });
+      await updateAppointment(appointment.id, { status: 'cancelled', notes: reason.trim() });
       onCancelled();
       onClose();
       toast.success('Appointment cancelled');
@@ -597,6 +182,7 @@ const CancelModal: React.FC<CancelModalProps> = ({ appointment, onClose, onCance
 
 const Appointments: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -607,7 +193,6 @@ const Appointments: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<AppointmentType | 'all'>('all');
   const [dateFilter, setDateFilter] = useState('');
 
-  const [showBook, setShowBook] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -645,7 +230,7 @@ const Appointments: React.FC = () => {
       if (search) {
         const q = search.toLowerCase();
         const patient = patients.find(p => p.id === apt.patientId);
-        const doctor = staff.find(s => s.id === apt.doctorId);
+        const doctor = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
         const patName = patient ? `${patient.firstName} ${patient.lastName}`.toLowerCase() : '';
         const drName = doctor ? `${doctor.firstName} ${doctor.lastName}`.toLowerCase() : '';
         if (!patName.includes(q) && !drName.includes(q) && !apt.appointmentNumber.toLowerCase().includes(q) && !apt.reason.toLowerCase().includes(q)) {
@@ -692,7 +277,7 @@ const Appointments: React.FC = () => {
   }, [appointments, calendarDays]);
 
   const handleStatusChange = async (apt: Appointment, newStatus: AppointmentStatus) => {
-    await updateAppointment({ id: apt.id, status: newStatus });
+    await updateAppointment(apt.id, { status: newStatus });
     loadData();
     toast.success(`Appointment marked as ${STATUS_CONFIG[newStatus].label}`);
   };
@@ -701,16 +286,6 @@ const Appointments: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Modals */}
-      <BookModal
-        isOpen={showBook}
-        onClose={() => setShowBook(false)}
-        onCreated={loadData}
-        currentUser={{ id: user!.id, role: user!.role }}
-        patients={patients}
-        staff={staff}
-        departments={departments}
-      />
       <CancelModal
         appointment={cancelTarget}
         onClose={() => setCancelTarget(null)}
@@ -728,24 +303,13 @@ const Appointments: React.FC = () => {
             {isPatient ? 'Your scheduled visits' : isDoctor ? 'Your patient schedule' : 'All hospital appointments'}
           </p>
         </div>
-        {!isPatient && (
-          <button
-            onClick={() => setShowBook(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start"
-          >
-            <Plus className="w-5 h-5" />
-            Book Appointment
-          </button>
-        )}
-        {isPatient && (
-          <button
-            onClick={() => setShowBook(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-bold  hover:bg-blue-700 transition-all  self-start"
-          >
-            <Plus className="w-5 h-5" />
-            Book Appointment
-          </button>
-        )}
+        <button
+          onClick={() => navigate('/patient/book')}
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-md font-bold hover:bg-blue-700 transition-all self-start"
+        >
+          <Plus className="w-5 h-5" />
+          Book Appointment
+        </button>
       </motion.div>
 
       {/* Stats */}
@@ -830,7 +394,7 @@ const Appointments: React.FC = () => {
             <div className="space-y-3">
               {filtered.map((apt, idx) => {
                 const patient = patients.find(p => p.id === apt.patientId);
-                const doctor = staff.find(s => s.id === apt.doctorId);
+                const doctor = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                 const dept = departments.find(d => d.id === apt.departmentId);
                 const isExpanded = expandedId === apt.id;
                 const isToday = apt.date === today;
@@ -1067,7 +631,7 @@ const Appointments: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {appointments.filter(a => a.date === today).slice(0, 5).map(apt => {
-                  const doc = staff.find(s => s.id === apt.doctorId);
+                  const doc = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                   const pat = patients.find(p => p.id === apt.patientId);
                   return (
                     <div key={apt.id} className="flex items-center gap-3">

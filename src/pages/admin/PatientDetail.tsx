@@ -164,7 +164,7 @@ const PatientDetailPage: React.FC = () => {
   }, [id]);
 
   const assignedDoctor = useMemo(
-    () => patient?.assignedDoctorId ? allStaff.find(s => s.id === patient.assignedDoctorId) : null,
+    () => patient?.assignedDoctorId ? allStaff.find(s => s.userId === patient.assignedDoctorId || s.id === patient.assignedDoctorId) : null,
     [patient, allStaff]
   );
   const latestVital = vitals[0] ?? null;

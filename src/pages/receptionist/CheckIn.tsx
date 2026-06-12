@@ -9,6 +9,7 @@ import {
   listPatients, listStaff, listAppointments,
   listQueue, createQueueEntry, updateAppointment,
 } from '@/lib/services';
+import { ROLE_MAP } from '@/lib/mappers';
 import { toast } from 'sonner';
 import type { Patient, Appointment, Staff, QueueEntry } from '@/types';
 
@@ -50,14 +51,14 @@ const CheckIn: React.FC = () => {
 
   const load = useCallback(async () => {
     try {
-      const [pts, staff, apts, queueEntries] = await Promise.all([
+      const [pts, allStaff, apts, queueEntries] = await Promise.all([
         listPatients(),
-        listStaff({ role: 'DOCTOR' }),
+        listStaff({ status: 'active' }),
         listAppointments({ date: today }),
         listQueue(),
       ]);
       setPatients(pts);
-      setDoctors(staff);
+      setDoctors(allStaff.filter(s => ROLE_MAP[s.role.toLowerCase()] === 'DOCTOR'));
       setTodayApts(apts);
       setQueue(queueEntries.filter(q => q.status === 'waiting' || q.status === 'called' || q.status === 'in_progress'));
     } catch { /* silently ignore */ }
@@ -89,9 +90,10 @@ const CheckIn: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!selectedPatient) { toast.error('Select a patient first'); return; }
+    const walkinDoctor = doctors.find(d => d.id === selectedDoctor);
     const doctorId = selectedApt !== 'walkin'
-      ? (todayApts.find(a => a.id === selectedApt)?.doctorId ?? selectedDoctor)
-      : selectedDoctor;
+      ? (todayApts.find(a => a.id === selectedApt)?.doctorId ?? walkinDoctor?.userId ?? selectedDoctor)
+      : (walkinDoctor?.userId || selectedDoctor);
     if (!doctorId) { toast.error('Select a doctor'); return; }
 
     setSubmitting(true);
@@ -268,7 +270,7 @@ const CheckIn: React.FC = () => {
                       <div className={`${fieldCls} bg-slate-50 dark:bg-slate-800 text-slate-500`}>
                         {(() => {
                           const apt = todayApts.find(a => a.id === selectedApt);
-                          const doc = apt ? doctors.find(d => d.id === apt.doctorId) : null;
+                          const doc = apt ? doctors.find(d => d.userId === apt.doctorId || d.id === apt.doctorId) : null;
                           return doc ? `Dr. ${doc.firstName} ${doc.lastName}` : 'From appointment';
                         })()}
                       </div>
@@ -344,7 +346,7 @@ const CheckIn: React.FC = () => {
               ) : (
                 activeQueue.map(entry => {
                   const p   = patients.find(pt => pt.id === entry.patientId);
-                  const doc = doctors.find(d => d.id === entry.doctorId);
+                  const doc = doctors.find(d => d.userId === entry.doctorId || d.id === entry.doctorId);
                   return (
                     <div key={entry.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded border border-slate-100 dark:border-slate-700/50">
                       <div className="text-[15px] font-semibold text-slate-700 dark:text-white w-10 shrink-0 text-center">

@@ -42,6 +42,7 @@ import {
   History,
   ScanLine,
   Stethoscope,
+  KeyRound,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast, Toaster } from 'sonner';
@@ -127,6 +128,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { icon: ShieldCheck,     label: 'Audit Logs',      path: '/admin/audit-logs',        roles: ['ADMIN'] },
     { icon: Building2,       label: 'Departments',     path: '/admin/departments',       roles: ['ADMIN'] },
     { icon: BedDouble,       label: 'Rooms & Beds',    path: '/admin/rooms',             roles: ['ADMIN'] },
+    { icon: KeyRound,        label: 'Roles',           path: '/admin/roles',             roles: ['ADMIN'] },
     { icon: Settings,        label: 'Settings',        path: '/settings',                roles: ['ADMIN'] },
   ];
 

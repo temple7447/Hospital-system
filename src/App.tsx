@@ -30,6 +30,7 @@ import LabOrdersPage from './pages/doctor/LabOrders';
 import LabResultsPage from './pages/patient/LabResults';
 import InventoryPage from './pages/admin/Inventory';
 import AuditLogsPage from './pages/admin/AuditLogs';
+import RolesPage from './pages/admin/Roles';
 import NotificationsPage from './pages/Notifications';
 import MyAppointmentsPage from './pages/patient/MyAppointments';
 import PrescriptionsPage from './pages/patient/Prescriptions';
@@ -138,6 +139,12 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/admin/roles" element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <DashboardLayout><RolesPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+
             <Route path="/receptionist/register" element={
               <ProtectedRoute allowedRoles={['ADMIN', 'RECEPTIONIST']}>
                 <DashboardLayout><RegisterPatientPage /></DashboardLayout>
@@ -151,7 +158,7 @@ function App() {
             } />
 
             <Route path="/patient/book" element={
-              <ProtectedRoute allowedRoles={['PATIENT']}>
+              <ProtectedRoute allowedRoles={['PATIENT', 'ADMIN', 'RECEPTIONIST', 'DOCTOR', 'NURSE']}>
                 <DashboardLayout><BookAppointmentPage /></DashboardLayout>
               </ProtectedRoute>
             } />

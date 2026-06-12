@@ -219,7 +219,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
       await createConsultationNote({
         patientId,
         doctorId,
-        appointmentId: aptId || `standalone-${Date.now()}`,
+        appointmentId: aptId || undefined,
         ...soap,
       });
       onSaved();
@@ -327,7 +327,7 @@ const PatientRecord: React.FC = () => {
     setPatient(p);
     setAllStaff(staffList);
     if (p?.assignedDoctorId) {
-      const doc = staffList.find(s => s.id === p.assignedDoctorId) ?? null;
+      const doc = staffList.find(s => s.userId === p.assignedDoctorId || s.id === p.assignedDoctorId) ?? null;
       setAssignedDoc(doc);
       if (doc?.departmentId) {
         const d = depts.find(dep => dep.id === doc.departmentId) ?? null;
@@ -543,7 +543,7 @@ const PatientRecord: React.FC = () => {
                 ) : (
                   <div className="space-y-2">
                     {appointments.slice(0, 5).map(apt => {
-                      const doc = allStaff.find(s => s.id === apt.doctorId);
+                      const doc = allStaff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                       return (
                         <div key={apt.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md">
                           <div className="flex items-center gap-3">
@@ -702,7 +702,7 @@ const PatientRecord: React.FC = () => {
               </div>
             ) : (
               prescriptions.map(rx => {
-                const doc = allStaff.find(s => s.id === rx.doctorId);
+                const doc = allStaff.find(s => s.userId === rx.doctorId || s.id === rx.doctorId);
                 const expanded = expandedRxId === rx.id;
                 return (
                   <div key={rx.id} className="glass-card rounded-lg overflow-hidden">
@@ -779,7 +779,7 @@ const PatientRecord: React.FC = () => {
               </div>
             ) : (
               notes.map(note => {
-                const doc = allStaff.find(s => s.id === note.doctorId);
+                const doc = allStaff.find(s => s.userId === note.doctorId || s.id === note.doctorId);
                 const expanded = expandedNoteId === note.id;
                 return (
                   <div key={note.id} className="glass-card rounded-lg overflow-hidden">

@@ -49,7 +49,7 @@ const PatientDashboard: React.FC = () => {
     .filter(a => a.date >= today && (a.status === 'scheduled' || a.status === 'confirmed'))
     .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time))[0] ?? null;
 
-  const nextDoctor = nextApt ? doctors.find(d => d.id === nextApt.doctorId) : null;
+  const nextDoctor = nextApt ? doctors.find(d => d.userId === nextApt.doctorId || d.id === nextApt.doctorId) : null;
 
   const latestVital: VitalRecord | null = vitals[0] ?? null;
 

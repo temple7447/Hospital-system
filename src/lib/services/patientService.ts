@@ -23,9 +23,9 @@ export async function getPatient(id: string): Promise<Patient> {
   return mapBackendPatient(data);
 }
 
-export async function createPatient(data: Partial<Patient>): Promise<string> {
-  const result = await api.post<{ id: string }>('/patients', toBackendPatient(data));
-  return result.id;
+export async function createPatient(data: Partial<Patient>): Promise<{ id: string; patientNumber: string }> {
+  const result = await api.post<{ id: string; medical_record_number: string }>('/patients', toBackendPatient(data));
+  return { id: result.id, patientNumber: result.medical_record_number };
 }
 
 export async function updatePatient(id: string, data: Partial<Patient>): Promise<void> {

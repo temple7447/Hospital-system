@@ -107,7 +107,7 @@ const RegisterPatient: React.FC = () => {
     if (!validateStep()) return;
     setSaving(true);
     try {
-      const patientId = await createPatient({
+      const result = await createPatient({
         firstName: form.firstName, lastName: form.lastName,
         email: form.email, phone: form.phone,
         dateOfBirth: form.dateOfBirth, gender: form.gender,
@@ -120,8 +120,7 @@ const RegisterPatient: React.FC = () => {
         emergencyContactName: form.emergencyContactName,
         emergencyContactPhone: form.emergencyContactPhone,
       });
-      const patientNumber = `P-${patientId.slice(-6).toUpperCase()}`;
-      setCreatedPatient({ name: `${form.firstName} ${form.lastName}`, number: patientNumber });
+      setCreatedPatient({ name: `${form.firstName} ${form.lastName}`, number: result.patientNumber });
       toast.success('Patient registered successfully');
     } catch {
       toast.error('Registration failed. Please try again.');

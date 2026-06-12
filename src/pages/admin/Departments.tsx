@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Building2, BedDouble, Edit3, Save, X, Plus,
-  Stethoscope, TrendingUp, AlertTriangle, Palette,
+  Stethoscope, TrendingUp, AlertTriangle, Palette, Power, Search,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import type { Department, Staff, Room } from '@/types';
-import { useAuth } from '@/context/AuthContext';
 import { listDepartments, createDepartment, updateDepartment, listStaff, listRooms } from '@/lib/services';
+import { ROLE_MAP } from '@/lib/mappers';
 
 const PRESET_COLORS = [
   '#3B82F6','#8B5CF6','#EC4899','#10B981','#F59E0B',
@@ -155,7 +155,8 @@ const DeptCard: React.FC<{
   allStaff: Staff[];
   allRooms: Room[];
   onEdit: (d: Department) => void;
-}> = ({ dept, allStaff, allRooms, onEdit }) => {
+  onToggleActive: (d: Department) => void;
+}> = ({ dept, allStaff, allRooms, onEdit, onToggleActive }) => {
   const occupancy = dept.totalBeds > 0 ? ((dept.totalBeds - dept.availableBeds) / dept.totalBeds) * 100 : 0;
   const hod = dept.headDoctorId ? allStaff.find(s => s.id === dept.headDoctorId) ?? null : null;
   const staffCount = allStaff.filter(s => s.departmentId === dept.id).length;
@@ -169,27 +170,55 @@ const DeptCard: React.FC<{
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="glass-card rounded-lg overflow-hidden group transition-all duration-300"
+      className={cn(
+        'glass-card rounded-lg overflow-hidden group transition-all duration-300',
+        !dept.isActive && 'opacity-60 grayscale-[30%]',
+      )}
     >
-      {/* Color band */}
-      <div className="h-2 w-full" style={{ backgroundColor: dept.color }} />
+      {/* Color band — gray when inactive */}
+      <div className="h-2 w-full transition-colors duration-300"
+        style={{ backgroundColor: dept.isActive ? dept.color : '#94a3b8' }} />
 
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md flex items-center justify-center" style={{ backgroundColor: `${dept.color}20` }}>
-              <Building2 className="w-5 h-5" style={{ color: dept.color }} />
+            <div className="w-10 h-10 rounded-md flex items-center justify-center transition-colors duration-300"
+              style={{ backgroundColor: dept.isActive ? `${dept.color}20` : '#f1f5f9' }}>
+              <Building2 className="w-5 h-5 transition-colors duration-300"
+                style={{ color: dept.isActive ? dept.color : '#94a3b8' }} />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white text-base leading-tight">{dept.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-base leading-tight">{dept.name}</h3>
+                {!dept.isActive && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-400 uppercase tracking-wide">
+                    Inactive
+                  </span>
+                )}
+              </div>
               <p className="text-xs font-medium text-slate-400 mt-0.5">{dept.floor} Floor</p>
             </div>
           </div>
-          <button onClick={() => onEdit(dept)}
-            className="p-2 rounded-lg text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all opacity-0 group-hover:opacity-100">
-            <Edit3 className="w-4 h-4" />
-          </button>
+
+          {/* Action buttons — appear on hover */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => onToggleActive(dept)}
+              title={dept.isActive ? 'Deactivate department' : 'Activate department'}
+              className={cn(
+                'p-2 rounded-lg transition-all',
+                dept.isActive
+                  ? 'text-slate-300 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+                  : 'text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
+              )}>
+              <Power className="w-4 h-4" />
+            </button>
+            <button onClick={() => onEdit(dept)}
+              className="p-2 rounded-lg text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
+              <Edit3 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-5 leading-relaxed line-clamp-2">
@@ -252,20 +281,19 @@ const DeptCard: React.FC<{
   );
 };
 
-const DOCTOR_ROLES = new Set([
-  'doctor','surgeon','trauma_surgeon','anesthesiologist','intensivist',
-  'emergency_physician','pediatrician','cardiologist','neurologist','radiologist',
-  'oncologist','gynecologist','psychiatrist','pathologist','resident_doctor','intern',
-]);
+const isDoctorRole = (role: string) => ROLE_MAP[role.toLowerCase()] === 'DOCTOR';
+
+type ViewFilter = 'all' | 'active' | 'inactive';
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 const DepartmentsPage: React.FC = () => {
-  const { user } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [allStaff, setAllStaff] = useState<Staff[]>([]);
   const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [modal, setModal] = useState<'create' | 'edit' | null>(null);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
+  const [view, setView] = useState<ViewFilter>('all');
+  const [search, setSearch] = useState('');
 
   const refresh = useCallback(async () => {
     const [d, s, r] = await Promise.all([listDepartments(), listStaff(), listRooms()]);
@@ -277,14 +305,29 @@ const DepartmentsPage: React.FC = () => {
   useEffect(() => { refresh(); }, [refresh]);
 
   const doctors = useMemo(
-    () => allStaff.filter(s => DOCTOR_ROLES.has(s.role.toLowerCase()) && s.status === 'active'),
+    () => allStaff.filter(s => isDoctorRole(s.role) && s.status === 'active'),
     [allStaff]
   );
 
-  const totalBeds     = departments.reduce((s, d) => s + d.totalBeds, 0);
-  const availableBeds = departments.reduce((s, d) => s + d.availableBeds, 0);
+  const activeDepts   = useMemo(() => departments.filter(d => d.isActive), [departments]);
+  const inactiveDepts = useMemo(() => departments.filter(d => !d.isActive), [departments]);
+
+  const filtered = useMemo(() => {
+    const base = view === 'active' ? activeDepts : view === 'inactive' ? inactiveDepts : departments;
+    if (!search.trim()) return base;
+    const q = search.toLowerCase();
+    return base.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.floor.toLowerCase().includes(q) ||
+      d.description.toLowerCase().includes(q),
+    );
+  }, [departments, view, activeDepts, inactiveDepts, search]);
+
+  // Capacity stats based on active departments only
+  const totalBeds     = activeDepts.reduce((s, d) => s + d.totalBeds, 0);
+  const availableBeds = activeDepts.reduce((s, d) => s + d.availableBeds, 0);
   const occupiedBeds  = totalBeds - availableBeds;
-  const overloaded    = departments.filter(d => d.totalBeds > 0 && (d.totalBeds - d.availableBeds) / d.totalBeds >= 0.9).length;
+  const overloaded    = activeDepts.filter(d => d.totalBeds > 0 && (d.totalBeds - d.availableBeds) / d.totalBeds >= 0.9).length;
 
   const handleCreate = async (data: Partial<Department>) => {
     await createDepartment(data);
@@ -302,6 +345,19 @@ const DepartmentsPage: React.FC = () => {
     setEditingDept(null);
   };
 
+  const handleToggleActive = async (dept: Department) => {
+    const next = !dept.isActive;
+    await updateDepartment(dept.id, { isActive: next });
+    toast.success(`${dept.name} ${next ? 'activated' : 'deactivated'}`);
+    await refresh();
+  };
+
+  const viewTabs: { value: ViewFilter; label: string; count: number }[] = [
+    { value: 'active',   label: 'Active',   count: activeDepts.length   },
+    { value: 'inactive', label: 'Inactive', count: inactiveDepts.length },
+    { value: 'all',      label: 'All',      count: departments.length   },
+  ];
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-8">
       {/* Header */}
@@ -316,13 +372,13 @@ const DepartmentsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Stats — based on active departments only */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Departments', value: departments.length, icon: Building2,     color: 'blue'    },
-          { label: 'Total Beds',  value: totalBeds,           icon: BedDouble,     color: 'indigo'  },
-          { label: 'Occupied',    value: occupiedBeds,        icon: TrendingUp,    color: 'amber'   },
-          { label: 'Overloaded',  value: overloaded,          icon: AlertTriangle, color: 'red'     },
+          { label: 'Active Depts', value: activeDepts.length, icon: Building2,     color: 'blue'    },
+          { label: 'Total Beds',   value: totalBeds,           icon: BedDouble,     color: 'indigo'  },
+          { label: 'Occupied',     value: occupiedBeds,        icon: TrendingUp,    color: 'amber'   },
+          { label: 'Overloaded',   value: overloaded,          icon: AlertTriangle, color: 'red'     },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="glass-card p-5 rounded-lg">
             <div className={cn('w-10 h-10 rounded-md flex items-center justify-center mb-3',
@@ -339,12 +395,12 @@ const DepartmentsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Overall capacity bar */}
+      {/* Overall capacity bar — active departments only */}
       <div className="glass-card rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-white">Overall Hospital Capacity</h3>
-            <p className="text-sm text-slate-500 font-medium mt-0.5">{occupiedBeds} of {totalBeds} beds occupied across all departments</p>
+            <p className="text-sm text-slate-500 font-medium mt-0.5">{occupiedBeds} of {totalBeds} beds occupied across active departments</p>
           </div>
           <span className={cn('text-2xl font-semibold', totalBeds > 0 && occupiedBeds / totalBeds >= 0.9 ? 'text-red-600' : occupiedBeds / totalBeds >= 0.7 ? 'text-amber-600' : 'text-emerald-600')}>
             {totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0}%
@@ -358,9 +414,9 @@ const DepartmentsPage: React.FC = () => {
             className={cn('h-full rounded-full', totalBeds > 0 && occupiedBeds / totalBeds >= 0.9 ? 'bg-red-500' : occupiedBeds / totalBeds >= 0.7 ? 'bg-amber-500' : 'bg-emerald-500')}
           />
         </div>
-        {/* Per-department mini bars */}
+        {/* Per-department mini bars — active only */}
         <div className="mt-6 space-y-3">
-          {departments.map(d => {
+          {activeDepts.map(d => {
             const pct = d.totalBeds > 0 ? ((d.totalBeds - d.availableBeds) / d.totalBeds) * 100 : 0;
             return (
               <div key={d.id} className="flex items-center gap-3">
@@ -376,27 +432,91 @@ const DepartmentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Department cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {departments.length === 0 ? (
-          <div className="col-span-full glass-card rounded-lg p-16 flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-blue-500" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-900 dark:text-white">No departments yet</p>
-              <p className="text-sm text-slate-400 mt-1">Create your first department to get started</p>
-            </div>
-            <button onClick={() => setModal('create')} className="btn-primary px-6 py-2.5 flex items-center gap-2 text-sm font-bold">
-              <Plus className="w-4 h-4" /> Create Department
-            </button>
+      {/* Department cards section */}
+      <div className="space-y-4">
+        {/* Filter bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg shrink-0">
+            {viewTabs.map(tab => (
+              <button key={tab.value} onClick={() => setView(tab.value)}
+                className={cn(
+                  'px-4 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5',
+                  view === tab.value
+                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
+                )}>
+                {tab.label}
+                <span className={cn(
+                  'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                  view === tab.value
+                    ? 'bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-400',
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
           </div>
-        ) : (
-          departments.map(dept => (
-            <DeptCard key={dept.id} dept={dept} allStaff={allStaff} allRooms={allRooms}
-              onEdit={d => { setEditingDept(d); setModal('edit'); }} />
-          ))
-        )}
+
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search departments…"
+              className="w-full pl-9 pr-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
+          </div>
+
+          <p className="text-xs font-bold text-slate-400 sm:ml-auto">
+            {filtered.length} department{filtered.length !== 1 ? 's' : ''}
+            {!search && view === 'all'      && ' · hover to toggle'}
+            {!search && view === 'active'   && ' · hover to deactivate'}
+            {!search && view === 'inactive' && ' · hover to activate'}
+          </p>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filtered.length === 0 ? (
+            <div className="col-span-full glass-card rounded-lg p-16 flex flex-col items-center gap-4 text-center">
+              <div className="w-16 h-16 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                {search ? <Search className="w-8 h-8 text-blue-500" /> : <Building2 className="w-8 h-8 text-blue-500" />}
+              </div>
+              <div>
+                {search ? (
+                  <>
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white">No results for "{search}"</p>
+                    <p className="text-sm text-slate-400 mt-1">Try a different name, floor, or description</p>
+                    <button onClick={() => setSearch('')} className="mt-4 px-5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      Clear search
+                    </button>
+                  </>
+                ) : view === 'inactive' ? (
+                  <>
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white">No inactive departments</p>
+                    <p className="text-sm text-slate-400 mt-1">All departments are currently active</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white">No departments yet</p>
+                    <p className="text-sm text-slate-400 mt-1">Create your first department to get started</p>
+                    <button onClick={() => setModal('create')} className="mt-4 btn-primary px-6 py-2.5 flex items-center gap-2 text-sm font-bold">
+                      <Plus className="w-4 h-4" /> Create Department
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            filtered.map(dept => (
+              <DeptCard key={dept.id} dept={dept} allStaff={allStaff} allRooms={allRooms}
+                onEdit={d => { setEditingDept(d); setModal('edit'); }}
+                onToggleActive={handleToggleActive} />
+            ))
+          )}
+        </div>
       </div>
 
       <AnimatePresence>

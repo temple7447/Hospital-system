@@ -1,10 +1,11 @@
 import type { User, Role } from '@/types/auth';
 import type {
   Patient, BloodType, Appointment, Prescription, PrescriptionItem, VitalRecord,
-  AppointmentStatus, PrescriptionStatus,
+  AppointmentStatus, PrescriptionStatus, TriageLevel,
   Staff, StaffRole, StaffStatus, WeekDay,
   Department, Room, LabOrder, LabResult, Invoice, InvoiceItem, PaymentMethod,
   InventoryItem, ConsultationNote, QueueEntry, NursingTask, Notification,
+  Admission, AdmissionStatus,
 } from '@/types';
 
 // ─── Auth ─────────────────────────────────────────────────────
@@ -18,7 +19,7 @@ export interface BackendUser {
 }
 
 // Maps every backend role to one of the 7 dashboard categories used for route access control
-const ROLE_MAP: Record<string, Role> = {
+export const ROLE_MAP: Record<string, Role> = {
   // Administration
   admin: 'ADMIN', chief_medical_officer: 'ADMIN', medical_director: 'ADMIN',
   medical_superintendent: 'ADMIN', coo: 'ADMIN', cfo: 'ADMIN',
@@ -76,6 +77,7 @@ export function mapBackendLoginResponse(data: { token: string; user: BackendUser
 
 export interface BackendPatient {
   id: string;
+  user_id?: string | null;
   medical_record_number: string;
   first_name: string;
   last_name: string;
@@ -84,8 +86,16 @@ export interface BackendPatient {
   phone: string | null;
   email: string | null;
   address: string | null;
+  city: string | null;
   blood_type: string | null;
   allergies: string | null;
+  chronic_conditions: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  insurance_provider: string | null;
+  insurance_number: string | null;
+  assigned_doctor_id: string | null;
+  status: string;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -93,12 +103,13 @@ export interface BackendPatient {
 
 export function mapBackendPatient(p: BackendPatient): Patient {
   let allergies: string[] = [];
-  try {
-    if (p.allergies) allergies = JSON.parse(p.allergies);
-  } catch { /* ignore */ }
+  let chronicConditions: string[] = [];
+  try { if (p.allergies) allergies = JSON.parse(p.allergies); } catch { /* ignore */ }
+  try { if (p.chronic_conditions) chronicConditions = JSON.parse(p.chronic_conditions); } catch { /* ignore */ }
 
   return {
     id: p.id,
+    userId: p.user_id || undefined,
     patientNumber: p.medical_record_number,
     firstName: p.first_name,
     lastName: p.last_name,
@@ -108,21 +119,22 @@ export function mapBackendPatient(p: BackendPatient): Patient {
     gender: p.gender as 'male' | 'female' | 'other',
     bloodType: (p.blood_type as BloodType) || 'unknown',
     address: p.address || '',
-    city: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
+    city: p.city || '',
+    emergencyContactName: p.emergency_contact_name || '',
+    emergencyContactPhone: p.emergency_contact_phone || '',
     allergies,
-    chronicConditions: [],
-    insuranceProvider: '',
-    insuranceNumber: '',
-    status: 'active' as const,
+    chronicConditions,
+    insuranceProvider: p.insurance_provider || undefined,
+    insuranceNumber: p.insurance_number || undefined,
+    status: (p.status as Patient['status']) || 'active',
     registeredAt: p.created_at,
-    assignedDoctorId: undefined,
+    assignedDoctorId: p.assigned_doctor_id || undefined,
   };
 }
 
 export function toBackendPatient(data: Partial<Patient>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
+  if (data.patientNumber !== undefined) result.medical_record_number = data.patientNumber;
   if (data.firstName !== undefined) result.first_name = data.firstName;
   if (data.lastName !== undefined) result.last_name = data.lastName;
   if (data.dateOfBirth !== undefined) result.date_of_birth = data.dateOfBirth;
@@ -130,9 +142,16 @@ export function toBackendPatient(data: Partial<Patient>): Record<string, unknown
   if (data.phone !== undefined) result.phone = data.phone;
   if (data.email !== undefined) result.email = data.email;
   if (data.address !== undefined) result.address = data.address;
+  if (data.city !== undefined) result.city = data.city;
   if (data.bloodType !== undefined) result.blood_type = data.bloodType;
   if (data.allergies !== undefined) result.allergies = JSON.stringify(data.allergies);
-  if (data.patientNumber !== undefined) result.medical_record_number = data.patientNumber;
+  if (data.chronicConditions !== undefined) result.chronic_conditions = JSON.stringify(data.chronicConditions);
+  if (data.emergencyContactName !== undefined) result.emergency_contact_name = data.emergencyContactName;
+  if (data.emergencyContactPhone !== undefined) result.emergency_contact_phone = data.emergencyContactPhone;
+  if (data.insuranceProvider !== undefined) result.insurance_provider = data.insuranceProvider;
+  if (data.insuranceNumber !== undefined) result.insurance_number = data.insuranceNumber;
+  if (data.assignedDoctorId !== undefined) result.assigned_doctor_id = data.assignedDoctorId || null;
+  if (data.status !== undefined) result.status = data.status;
   return result;
 }
 
@@ -142,17 +161,21 @@ export interface BackendAppointment {
   id: string;
   patient_id: string;
   doctor_id: string;
+  department_id: string | null;
   appointment_date: string;
   start_time: string;
   end_time: string;
+  type: string | null;
   status: string;
   reason: string | null;
   notes: string | null;
+  cancelled_reason: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
   patient_name?: string;
   doctor_name?: string;
+  department_name?: string;
 }
 
 const APPOINTMENT_STATUS_MAP: Record<string, AppointmentStatus> = {
@@ -161,6 +184,7 @@ const APPOINTMENT_STATUS_MAP: Record<string, AppointmentStatus> = {
   in_progress: 'in_progress',
   completed: 'completed',
   cancelled: 'cancelled',
+  no_show: 'no_show',
 };
 
 export function mapBackendAppointment(a: BackendAppointment): Appointment {
@@ -169,14 +193,15 @@ export function mapBackendAppointment(a: BackendAppointment): Appointment {
     appointmentNumber: `APT-${a.id.slice(0, 8)}`,
     patientId: a.patient_id,
     doctorId: a.doctor_id,
-    departmentId: '',
+    departmentId: a.department_id || '',
     date: a.appointment_date,
     time: a.start_time,
     duration: timeToMinutes(a.start_time, a.end_time),
-    type: 'consultation' as const,
+    type: (a.type as Appointment['type']) || 'consultation',
     status: APPOINTMENT_STATUS_MAP[a.status] || 'scheduled',
     reason: a.reason || '',
-    notes: a.notes,
+    notes: a.notes ?? undefined,
+    cancelledReason: a.cancelled_reason ?? undefined,
     createdAt: a.created_at,
     updatedAt: a.updated_at,
   };
@@ -192,11 +217,14 @@ export function toBackendAppointment(data: Partial<Appointment>): Record<string,
   const result: Record<string, unknown> = {};
   if (data.patientId !== undefined) result.patient_id = data.patientId;
   if (data.doctorId !== undefined) result.doctor_id = data.doctorId;
+  if (data.departmentId !== undefined) result.department_id = data.departmentId || null;
   if (data.date !== undefined) result.appointment_date = data.date;
   if (data.time !== undefined) result.start_time = data.time;
+  if (data.type !== undefined) result.type = data.type;
   if (data.status !== undefined) result.status = data.status.toLowerCase();
   if (data.reason !== undefined) result.reason = data.reason;
   if (data.notes !== undefined) result.notes = data.notes;
+  if (data.cancelledReason !== undefined) result.cancelled_reason = data.cancelledReason;
 
   if (data.duration !== undefined && data.time) {
     const [h, m] = data.time.split(':').map(Number);
@@ -204,8 +232,6 @@ export function toBackendAppointment(data: Partial<Appointment>): Record<string,
     const endH = Math.floor(totalMinutes / 60);
     const endM = totalMinutes % 60;
     result.end_time = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
-  } else if (data.time) {
-    result.end_time = data.time;
   }
   return result;
 }
@@ -214,14 +240,21 @@ export function toBackendAppointment(data: Partial<Appointment>): Record<string,
 
 export interface BackendPrescription {
   id: string;
+  prescription_number: string | null;
   patient_id: string;
   doctor_id: string;
+  appointment_id: string | null;
   medication_name: string;
   dosage: string;
   frequency: string;
   duration: string | null;
+  diagnosis: string | null;
   notes: string | null;
+  expires_at: string | null;
+  dispensed_at: string | null;
+  dispensed_by: string | null;
   status: string;
+  items: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -237,27 +270,37 @@ const PRESCRIPTION_STATUS_MAP: Record<string, PrescriptionStatus> = {
 };
 
 export function mapBackendPrescription(rx: BackendPrescription): Prescription {
-  const item: PrescriptionItem = {
-    medicine: rx.medication_name,
-    dosage: rx.dosage,
-    frequency: rx.frequency,
-    duration: rx.duration || '',
-    instructions: rx.notes || undefined,
-  };
+  let items: PrescriptionItem[] = [];
+  if (rx.items) {
+    try {
+      const parsed = JSON.parse(rx.items);
+      if (Array.isArray(parsed) && parsed.length > 0) items = parsed;
+    } catch { /* ignore */ }
+  }
+  if (items.length === 0) {
+    items = [{
+      medicine: rx.medication_name,
+      dosage: rx.dosage,
+      frequency: rx.frequency,
+      duration: rx.duration || '',
+      instructions: rx.notes || undefined,
+    }];
+  }
 
   return {
     id: rx.id,
-    prescriptionNumber: `RX-${rx.id.slice(0, 8)}`,
+    prescriptionNumber: rx.prescription_number || `RX-${rx.id.slice(0, 8)}`,
     patientId: rx.patient_id,
     doctorId: rx.doctor_id,
-    items: [item],
-    diagnosis: rx.notes || '',
-    notes: rx.notes,
+    appointmentId: rx.appointment_id || undefined,
+    items,
+    diagnosis: rx.diagnosis || rx.notes || '',
+    notes: rx.notes ?? undefined,
     status: PRESCRIPTION_STATUS_MAP[rx.status] || 'active',
     createdAt: rx.created_at,
-    expiresAt: '',
-    dispensedAt: undefined,
-    dispensedBy: undefined,
+    expiresAt: rx.expires_at || '',
+    dispensedAt: rx.dispensed_at || undefined,
+    dispensedBy: rx.dispensed_by || undefined,
   };
 }
 
@@ -265,10 +308,25 @@ export function toBackendPrescription(data: Partial<Prescription>): Record<strin
   const result: Record<string, unknown> = {};
   if (data.patientId !== undefined) result.patient_id = data.patientId;
   if (data.doctorId !== undefined) result.doctor_id = data.doctorId;
+  if (data.appointmentId !== undefined) result.appointment_id = data.appointmentId || null;
+  if (data.diagnosis !== undefined) result.diagnosis = data.diagnosis;
   if (data.status !== undefined) result.status = data.status.toLowerCase();
   if (data.notes !== undefined) result.notes = data.notes;
+  if (data.expiresAt !== undefined) result.expires_at = data.expiresAt || null;
+  if (data.dispensedAt !== undefined) result.dispensed_at = data.dispensedAt;
+  if (data.dispensedBy !== undefined) result.dispensed_by = data.dispensedBy;
 
   if (data.items && data.items.length > 0) {
+    // Send full items array for multi-medication support
+    result.items = data.items.map(it => ({
+      medication_name: it.medicine,
+      medicine: it.medicine,
+      dosage: it.dosage,
+      frequency: it.frequency,
+      duration: it.duration || null,
+      instructions: it.instructions || null,
+    }));
+    // Also populate flat columns (from items[0]) for pharmacist dispense workflow
     result.medication_name = data.items[0].medicine;
     result.dosage = data.items[0].dosage;
     result.frequency = data.items[0].frequency;
@@ -290,6 +348,10 @@ export interface BackendVital {
   temperature: number | null;
   oxygen_saturation: number | null;
   respiratory_rate: number | null;
+  weight: number | null;
+  height: number | null;
+  bmi: number | null;
+  triage_level: string | null;
   notes: string | null;
   recorded_at: string;
   created_at: string;
@@ -307,10 +369,13 @@ export function mapBackendVital(v: BackendVital): VitalRecord {
     bloodPressureDiastolic: v.blood_pressure_diastolic || 0,
     heartRate: v.heart_rate || 0,
     temperature: v.temperature || 0,
-    weight: 0,
-    height: 0,
+    weight: v.weight || 0,
+    height: v.height || 0,
+    bmi: v.bmi ?? undefined,
     oxygenSaturation: v.oxygen_saturation || 0,
     respiratoryRate: v.respiratory_rate || 0,
+    triageLevel: (v.triage_level as TriageLevel) ?? undefined,
+    notes: v.notes ?? undefined,
     recordedAt: v.recorded_at,
   };
 }
@@ -325,6 +390,10 @@ export function toBackendVital(data: Partial<VitalRecord>): Record<string, unkno
   if (data.temperature !== undefined) result.temperature = data.temperature;
   if (data.oxygenSaturation !== undefined) result.oxygen_saturation = data.oxygenSaturation;
   if (data.respiratoryRate !== undefined) result.respiratory_rate = data.respiratoryRate;
+  if (data.weight !== undefined) result.weight = data.weight;
+  if (data.height !== undefined) result.height = data.height;
+  if (data.triageLevel !== undefined) result.triage_level = data.triageLevel;
+  if (data.notes !== undefined) result.notes = data.notes;
   if (data.recordedAt !== undefined) result.recorded_at = data.recordedAt;
   return result;
 }
@@ -368,6 +437,7 @@ export function mapBackendStaff(s: BackendStaff): Staff {
 
   return {
     id: s.id,
+    userId: s.user_id || undefined,
     staffNumber: s.staff_number,
     firstName: s.first_name,
     lastName: s.last_name,
@@ -397,7 +467,7 @@ export function toBackendStaff(data: Partial<Staff>): Record<string, unknown> {
   if (data.email !== undefined) r.email = data.email;
   if (data.phone !== undefined) r.phone = data.phone;
   if (data.role !== undefined) r.role = data.role.toLowerCase();
-  if (data.departmentId !== undefined) r.department_id = data.departmentId;
+  if (data.departmentId !== undefined) r.department_id = data.departmentId || null;
   if (data.specialization !== undefined) r.specialization = data.specialization;
   if (data.licenseNumber !== undefined) r.license_number = data.licenseNumber;
   if (data.dateJoined !== undefined) r.date_joined = data.dateJoined;
@@ -428,6 +498,7 @@ export interface BackendDepartment {
   available_beds: number;
   color: string | null;
   icon: string | null;
+  is_active: number;
 }
 
 export function mapBackendDepartment(d: BackendDepartment): Department {
@@ -441,6 +512,7 @@ export function mapBackendDepartment(d: BackendDepartment): Department {
     availableBeds: d.available_beds,
     color: d.color || '#3b82f6',
     icon: d.icon || 'Building2',
+    isActive: d.is_active !== 0,
   };
 }
 
@@ -448,12 +520,13 @@ export function toBackendDepartment(data: Partial<Department>): Record<string, u
   const r: Record<string, unknown> = {};
   if (data.name !== undefined) r.name = data.name;
   if (data.description !== undefined) r.description = data.description;
-  if (data.headDoctorId !== undefined) r.head_doctor_id = data.headDoctorId;
+  if (data.headDoctorId !== undefined) r.head_doctor_id = data.headDoctorId || null;
   if (data.floor !== undefined) r.floor = data.floor;
   if (data.totalBeds !== undefined) r.total_beds = data.totalBeds;
   if (data.availableBeds !== undefined) r.available_beds = data.availableBeds;
   if (data.color !== undefined) r.color = data.color;
   if (data.icon !== undefined) r.icon = data.icon;
+  if (data.isActive !== undefined) r.is_active = data.isActive ? 1 : 0;
   return r;
 }
 
@@ -487,13 +560,24 @@ export function mapBackendRoom(r: BackendRoom): Room {
   };
 }
 
+const ROOM_TYPE_TO_BACKEND: Record<string, string> = {
+  general: 'ward', private: 'private', icu: 'icu',
+  emergency: 'emergency', operation: 'operation', consultation: 'consultation',
+};
+const ROOM_STATUS_TO_BACKEND: Record<string, string> = {
+  available: 'available', full: 'occupied',
+  maintenance: 'maintenance', reserved: 'reserved',
+};
+
 export function toBackendRoom(data: Partial<Room>): Record<string, unknown> {
   const r: Record<string, unknown> = {};
   if (data.roomNumber !== undefined) r.room_number = data.roomNumber;
+  if (data.type !== undefined) r.type = ROOM_TYPE_TO_BACKEND[data.type] ?? data.type;
   if (data.floor !== undefined) r.floor = String(data.floor);
-  if (data.departmentId !== undefined) r.department_id = data.departmentId;
+  if (data.departmentId !== undefined) r.department_id = data.departmentId || null;
   if (data.capacity !== undefined) r.capacity = data.capacity;
   if (data.occupiedBeds !== undefined) r.occupied_beds = data.occupiedBeds;
+  if (data.status !== undefined) r.status = ROOM_STATUS_TO_BACKEND[data.status] ?? data.status;
   return r;
 }
 
@@ -565,13 +649,15 @@ export function toBackendLabOrder(data: Partial<LabOrder>): Record<string, unkno
   const r: Record<string, unknown> = {};
   if (data.patientId !== undefined) r.patient_id = data.patientId;
   if (data.doctorId !== undefined) r.doctor_id = data.doctorId;
-  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId;
+  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId || null;
   if (data.tests !== undefined) r.tests = JSON.stringify(data.tests);
   if (data.results !== undefined) r.results = JSON.stringify(data.results);
   if (data.status !== undefined) r.status = data.status;
   if (data.priority !== undefined) r.priority = data.priority;
   if (data.category !== undefined) r.category = data.category;
   if (data.notes !== undefined) r.notes = data.notes;
+  if (data.completedAt !== undefined) r.completed_at = data.completedAt;
+  if (data.processedBy !== undefined) r.processed_by = data.processedBy;
   return r;
 }
 
@@ -624,7 +710,7 @@ export function mapBackendInvoice(i: BackendInvoice): Invoice {
 export function toBackendInvoice(data: Partial<Invoice>): Record<string, unknown> {
   const r: Record<string, unknown> = {};
   if (data.patientId !== undefined) r.patient_id = data.patientId;
-  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId;
+  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId || null;
   if (data.items !== undefined) r.items = JSON.stringify(data.items);
   if (data.subtotal !== undefined) r.subtotal = data.subtotal;
   if (data.tax !== undefined) r.tax = data.tax;
@@ -635,6 +721,7 @@ export function toBackendInvoice(data: Partial<Invoice>): Record<string, unknown
   if (data.paymentMethod !== undefined) r.payment_method = data.paymentMethod;
   if (data.notes !== undefined) r.notes = data.notes;
   if (data.dueDate !== undefined) r.due_date = data.dueDate;
+  if (data.paidAt !== undefined) r.paid_at = data.paidAt;
   return r;
 }
 
@@ -681,6 +768,7 @@ export function toBackendInventoryItem(data: Partial<InventoryItem>): Record<str
   if (data.supplier !== undefined) r.supplier = data.supplier;
   if (data.expiryDate !== undefined) r.expiry_date = data.expiryDate;
   if (data.location !== undefined) r.location = data.location;
+  if (data.lastRestocked !== undefined) r.last_restocked = data.lastRestocked;
   return r;
 }
 
@@ -720,7 +808,7 @@ export function toBackendConsultationNote(data: Partial<ConsultationNote>): Reco
   const r: Record<string, unknown> = {};
   if (data.patientId !== undefined) r.patient_id = data.patientId;
   if (data.doctorId !== undefined) r.doctor_id = data.doctorId;
-  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId;
+  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId || null;
   if (data.subjective !== undefined) r.subjective = data.subjective;
   if (data.objective !== undefined) r.objective = data.objective;
   if (data.assessment !== undefined) r.assessment = data.assessment;
@@ -759,18 +847,22 @@ export function mapBackendQueueEntry(q: BackendQueueEntry): QueueEntry {
     checkedInAt: q.checked_in_at,
     calledAt: q.called_at || undefined,
     completedAt: q.completed_at || undefined,
+    patientName: q.patient_name || undefined,
+    doctorName: q.doctor_name || undefined,
   };
 }
 
 export function toBackendQueueEntry(data: Partial<QueueEntry>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   if (data.patientId !== undefined) result.patient_id = data.patientId;
-  if (data.doctorId !== undefined) result.doctor_id = data.doctorId;
-  if (data.appointmentId !== undefined) result.appointment_id = data.appointmentId;
+  if (data.doctorId !== undefined) result.doctor_id = data.doctorId || null;
+  if (data.appointmentId !== undefined) result.appointment_id = data.appointmentId || null;
   if (data.status !== undefined) result.status = data.status;
   if (data.priority !== undefined) result.priority = data.priority;
   if (data.estimatedWait !== undefined) result.estimated_wait = data.estimatedWait;
   if (data.tokenNumber !== undefined) result.token_number = data.tokenNumber;
+  if (data.calledAt !== undefined) result.called_at = data.calledAt;
+  if (data.completedAt !== undefined) result.completed_at = data.completedAt;
   return result;
 }
 
@@ -812,6 +904,7 @@ export function toBackendNursingTask(data: Partial<NursingTask>): Record<string,
   if (data.description !== undefined) r.description = data.description;
   if (data.scheduledAt !== undefined) r.scheduled_at = data.scheduledAt;
   if (data.status !== undefined) r.status = data.status;
+  if (data.completedAt !== undefined) r.completed_at = data.completedAt;
   if (data.notes !== undefined) r.notes = data.notes;
   return r;
 }
@@ -840,4 +933,65 @@ export function mapBackendNotification(n: BackendNotification): Notification {
     link: n.link || undefined,
     createdAt: n.created_at,
   };
+}
+
+// ─── Admissions ───────────────────────────────────────────────
+
+export interface BackendAdmission {
+  id: string;
+  patient_id: string;
+  room_id: string;
+  appointment_id: string | null;
+  admitted_by: string;
+  admission_reason: string | null;
+  admitted_at: string;
+  discharged_at: string | null;
+  discharge_diagnosis: string | null;
+  discharge_summary: string | null;
+  follow_up_plan: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  // joined
+  patient_name?: string;
+  medical_record_number?: string;
+  room_number?: string;
+  room_type?: string;
+  admitted_by_name?: string;
+}
+
+export function mapBackendAdmission(a: BackendAdmission): Admission {
+  return {
+    id: a.id,
+    patientId: a.patient_id,
+    roomId: a.room_id,
+    appointmentId: a.appointment_id || undefined,
+    admittedBy: a.admitted_by,
+    admissionReason: a.admission_reason || undefined,
+    admittedAt: a.admitted_at,
+    dischargedAt: a.discharged_at || undefined,
+    dischargeDiagnosis: a.discharge_diagnosis || undefined,
+    dischargeSummary: a.discharge_summary || undefined,
+    followUpPlan: a.follow_up_plan || undefined,
+    status: a.status as AdmissionStatus,
+    patientName: a.patient_name,
+    medicalRecordNumber: a.medical_record_number,
+    roomNumber: a.room_number,
+    roomType: a.room_type,
+    admittedByName: a.admitted_by_name,
+  };
+}
+
+export function toBackendAdmission(data: Partial<Admission>): Record<string, unknown> {
+  const r: Record<string, unknown> = {};
+  if (data.patientId !== undefined) r.patient_id = data.patientId;
+  if (data.roomId !== undefined) r.room_id = data.roomId;
+  if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId || null;
+  if (data.admittedBy !== undefined) r.admitted_by = data.admittedBy;
+  if (data.admissionReason !== undefined) r.admission_reason = data.admissionReason;
+  if (data.status !== undefined) r.status = data.status;
+  if (data.dischargeDiagnosis !== undefined) r.discharge_diagnosis = data.dischargeDiagnosis;
+  if (data.dischargeSummary !== undefined) r.discharge_summary = data.dischargeSummary;
+  if (data.followUpPlan !== undefined) r.follow_up_plan = data.followUpPlan;
+  return r;
 }

@@ -4,14 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import {
   Building2, Stethoscope, Calendar, Clock,
   CheckCircle2, ChevronLeft, ChevronRight,
-  User, CheckCheck, FileText, Loader2, Star,
+  User, CheckCheck, FileText, Loader2, Star, Search,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
 import {
-  listDepartments, listStaff, listAppointments, createAppointment,
+  listDepartments, listStaff, listPatients, listAppointments, createAppointment,
 } from '@/lib/services';
-import type { AppointmentType, Department, Staff } from '@/types';
+import { ROLE_MAP } from '@/lib/mappers';
+import type { AppointmentType, Department, Patient, Staff } from '@/types';
 import { toast } from 'sonner';
 
 const TYPE_OPTIONS: { value: AppointmentType; label: string; desc: string }[] = [
@@ -44,16 +45,28 @@ function dayNameOf(dateStr: string) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 }
 
-const STEPS = [
-  { label: 'Department', icon: Building2 },
-  { label: 'Doctor',     icon: Stethoscope },
-  { label: 'Date & Time',icon: Calendar },
-  { label: 'Details',    icon: FileText },
-];
-
 const BookAppointment: React.FC = () => {
   const { user }    = useAuth();
   const navigate    = useNavigate();
+
+  const isPatient      = user?.role === 'PATIENT';
+  const isStaffBooking = !isPatient; // admin, receptionist, doctor, etc.
+
+  // steps: staff gets an extra Patient step at index 0
+  const STEPS = isStaffBooking
+    ? [
+        { label: 'Patient',      icon: User },
+        { label: 'Department',   icon: Building2 },
+        { label: 'Doctor',       icon: Stethoscope },
+        { label: 'Date & Time',  icon: Calendar },
+        { label: 'Details',      icon: FileText },
+      ]
+    : [
+        { label: 'Department',   icon: Building2 },
+        { label: 'Doctor',       icon: Stethoscope },
+        { label: 'Date & Time',  icon: Calendar },
+        { label: 'Details',      icon: FileText },
+      ];
 
   const [step, setStep]     = useState(0);
   const [saving, setSaving] = useState(false);
@@ -61,33 +74,54 @@ const BookAppointment: React.FC = () => {
   const [bookedAptNumber, setBookedAptNumber] = useState('');
 
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [allDoctors, setAllDoctors]   = useState<Staff[]>([]);
+  const [allDoctors,  setAllDoctors]  = useState<Staff[]>([]);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
 
-  const [deptId,   setDeptId]   = useState('');
-  const [doctorId, setDoctorId] = useState('');
-  const [date,     setDate]     = useState('');
-  const [slot,     setSlot]     = useState('');
-  const [type,     setType]     = useState<AppointmentType>('consultation');
-  const [reason,   setReason]   = useState('');
+  // form state
+  const [patientId,  setPatientId]  = useState(isPatient ? (user?.id ?? '') : '');
+  const [patSearch,  setPatSearch]  = useState('');
+  const [deptId,     setDeptId]     = useState('');
+  const [doctorId,   setDoctorId]   = useState('');
+  const [date,       setDate]       = useState('');
+  const [slot,       setSlot]       = useState('');
+  const [type,       setType]       = useState<AppointmentType>('consultation');
+  const [reason,     setReason]     = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    listDepartments().then(setDepartments).catch(() => {});
-    listStaff({ role: 'DOCTOR', status: 'active' }).then(setAllDoctors).catch(() => {});
-  }, []);
+    listDepartments({ onlyActive: true }).then(setDepartments).catch(() => {});
+    listStaff({ status: 'active' })
+      .then(all => setAllDoctors(all.filter(s => ROLE_MAP[s.role.toLowerCase()] === 'DOCTOR')))
+      .catch(() => {});
+    if (isStaffBooking) {
+      listPatients({ limit: 500 }).then(setAllPatients).catch(() => {});
+    }
+  }, [isStaffBooking]);
 
   useEffect(() => {
     if (!doctorId || !date) { setBookedTimes([]); return; }
-    listAppointments({ doctor_id: doctorId, date })
+    const resolvedDoctorId = allDoctors.find(d => d.id === doctorId)?.userId || doctorId;
+    listAppointments({ doctor_id: resolvedDoctorId, date })
       .then(apts => setBookedTimes(apts.filter(a => a.status !== 'cancelled').map(a => a.time)))
       .catch(() => setBookedTimes([]));
-  }, [doctorId, date]);
+  }, [doctorId, date, allDoctors]);
 
   const deptDoctors    = useMemo(() => allDoctors.filter(d => d.departmentId === deptId), [allDoctors, deptId]);
   const selectedDoctor = useMemo(() => allDoctors.find(d => d.id === doctorId), [allDoctors, doctorId]);
   const selectedDept   = useMemo(() => departments.find(d => d.id === deptId), [departments, deptId]);
+  const selectedPatient = useMemo(() => allPatients.find(p => p.id === patientId), [allPatients, patientId]);
+
+  const filteredPatients = useMemo(() => {
+    if (!patSearch.trim()) return allPatients.slice(0, 10);
+    const q = patSearch.toLowerCase();
+    return allPatients.filter(p =>
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
+      p.email.toLowerCase().includes(q) ||
+      p.patientNumber.toLowerCase().includes(q)
+    ).slice(0, 10);
+  }, [allPatients, patSearch]);
 
   const timeSlots = useMemo(() => {
     if (!selectedDoctor || !date) return [];
@@ -115,17 +149,34 @@ const BookAppointment: React.FC = () => {
     return `${calMonth.year}-${m}-${day.toString().padStart(2, '0')}`;
   };
 
-  const canProceed = [deptId !== '', doctorId !== '', date !== '' && slot !== '', reason.trim().length >= 10];
+  // per-step validation — offset by 1 for staff (patient step at 0)
+  const patStep   = isStaffBooking ? 0 : -1;
+  const deptStep  = isStaffBooking ? 1 : 0;
+  const docStep   = isStaffBooking ? 2 : 1;
+  const dateStep  = isStaffBooking ? 3 : 2;
+  const detailStep = isStaffBooking ? 4 : 3;
+
+  const canProceed = () => {
+    if (step === patStep)   return patientId !== '';
+    if (step === deptStep)  return deptId !== '';
+    if (step === docStep)   return doctorId !== '';
+    if (step === dateStep)  return date !== '' && slot !== '';
+    if (step === detailStep) return reason.trim().length >= 10;
+    return true;
+  };
 
   const handleSubmit = async () => {
     if (!user) return;
     setSaving(true);
     try {
       const aptId = await createAppointment({
-        patientId: user.id, doctorId, departmentId: deptId, date, time: slot,
+        patientId,
+        doctorId: selectedDoctor?.userId || doctorId,
+        departmentId: deptId,
+        date, time: slot,
         duration: 30, type, status: 'scheduled', reason: reason.trim(),
       });
-      const apts = await listAppointments({ patient_id: user.id });
+      const apts = await listAppointments({ patient_id: patientId });
       const created = apts.find(a => a.id === aptId);
       setBookedAptNumber(created?.appointmentNumber ?? aptId);
       setSuccess(true);
@@ -144,7 +195,7 @@ const BookAppointment: React.FC = () => {
             <CheckCircle2 className="w-8 h-8 text-emerald-600" />
           </div>
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Appointment Booked!</h2>
-          <p className="text-slate-400 text-sm mt-1">Your visit has been scheduled</p>
+          <p className="text-slate-400 text-sm mt-1">The visit has been scheduled</p>
           <div className="mt-5 p-4 bg-slate-50 dark:bg-slate-800 rounded text-left space-y-3">
             <div>
               <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Appointment #</p>
@@ -152,12 +203,13 @@ const BookAppointment: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
+                ['Patient',    isStaffBooking && selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : undefined],
                 ['Doctor',     selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : '—'],
                 ['Department', selectedDept?.name || '—'],
                 ['Date',       date],
                 ['Time',       formatTime(slot)],
-              ].map(([label, val]) => (
-                <div key={label}>
+              ].filter(([, v]) => v !== undefined).map(([label, val]) => (
+                <div key={String(label)}>
                   <p className="text-[10px] text-slate-400 uppercase tracking-wider">{label}</p>
                   <p className="text-[13px] font-medium text-slate-800 dark:text-white mt-0.5">{val}</p>
                 </div>
@@ -167,9 +219,14 @@ const BookAppointment: React.FC = () => {
           <div className="flex gap-2 mt-5">
             <button onClick={() => navigate('/appointments')}
               className="flex-1 py-2.5 bg-blue-600 text-white rounded text-[13px] font-medium hover:bg-blue-700 transition-colors">
-              My Appointments
+              View Appointments
             </button>
-            <button onClick={() => { setSuccess(false); setSaving(false); setStep(0); setDeptId(''); setDoctorId(''); setDate(''); setSlot(''); setType('consultation'); setReason(''); }}
+            <button onClick={() => {
+              setSuccess(false); setSaving(false); setStep(0);
+              setPatientId(isPatient ? (user?.id ?? '') : '');
+              setPatSearch(''); setDeptId(''); setDoctorId('');
+              setDate(''); setSlot(''); setType('consultation'); setReason('');
+            }}
               className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-[13px] font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
               Book Another
             </button>
@@ -193,7 +250,6 @@ const BookAppointment: React.FC = () => {
 
         {/* ── Left: steps + selection summary ─────────────────────────────── */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Steps progress */}
           <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 p-4">
             <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-4">Progress</p>
             <div className="space-y-1">
@@ -220,10 +276,23 @@ const BookAppointment: React.FC = () => {
           </div>
 
           {/* Selections summary */}
-          {(deptId || doctorId || date) && (
+          {(patientId || deptId || doctorId || date) && (
             <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 p-4">
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Your Selections</p>
               <div className="space-y-2.5">
+                {isStaffBooking && selectedPatient && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-6 h-6 rounded bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
+                      <User className="w-3 h-3 text-violet-600" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Patient</p>
+                      <p className="text-[13px] font-medium text-slate-700 dark:text-slate-300">
+                        {selectedPatient.firstName} {selectedPatient.lastName}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {selectedDept && (
                   <div className="flex items-center gap-2.5">
                     <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base shrink-0">
@@ -272,8 +341,44 @@ const BookAppointment: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-5">
               <AnimatePresence mode="wait">
 
-                {/* Step 0: Department */}
-                {step === 0 && (
+                {/* Step 0 (staff only): Patient selection */}
+                {isStaffBooking && step === 0 && (
+                  <motion.div key="sp" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.15 }} className="space-y-3">
+                    <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200 mb-3">Select Patient</p>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text" value={patSearch} onChange={e => setPatSearch(e.target.value)}
+                        placeholder="Search by name, email or patient ID…"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5 max-h-80 overflow-y-auto">
+                      {filteredPatients.map(p => (
+                        <button key={p.id} onClick={() => setPatientId(p.id)}
+                          className={cn('w-full flex items-center gap-3 p-3 rounded border-2 text-left transition-all',
+                            patientId === p.id
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-transparent bg-slate-50 dark:bg-slate-800/50 hover:border-blue-500/30')}>
+                          <div className="w-9 h-9 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-[11px] font-bold text-violet-700 shrink-0">
+                            {getInitials(p.firstName, p.lastName)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-medium text-slate-800 dark:text-white">{p.firstName} {p.lastName}</p>
+                            <p className="text-[11px] text-slate-400">{p.patientNumber} · {p.phone}</p>
+                          </div>
+                          {patientId === p.id && <CheckCheck className="w-4 h-4 text-blue-600 shrink-0" />}
+                        </button>
+                      ))}
+                      {filteredPatients.length === 0 && (
+                        <p className="text-center text-[13px] text-slate-400 py-8">No patients found</p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Department step */}
+                {step === deptStep && (
                   <motion.div key="s0" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.15 }}>
                     <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200 mb-3">Select Department</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -299,8 +404,8 @@ const BookAppointment: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* Step 1: Doctor */}
-                {step === 1 && (
+                {/* Doctor step */}
+                {step === docStep && (
                   <motion.div key="s1" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.15 }}>
                     <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200 mb-3">
                       Choose a Doctor · <span className="font-normal text-slate-400">{selectedDept?.name}</span>
@@ -309,7 +414,7 @@ const BookAppointment: React.FC = () => {
                       <div className="py-12 text-center">
                         <User className="w-8 h-8 text-slate-300 mx-auto mb-3" />
                         <p className="text-slate-400 text-[13px]">No active doctors in this department</p>
-                        <button onClick={() => setStep(0)} className="mt-3 text-blue-600 text-[13px] hover:underline">← Pick another</button>
+                        <button onClick={() => setStep(deptStep)} className="mt-3 text-blue-600 text-[13px] hover:underline">← Pick another</button>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -341,8 +446,8 @@ const BookAppointment: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* Step 2: Date & Time */}
-                {step === 2 && (
+                {/* Date & Time step */}
+                {step === dateStep && (
                   <motion.div key="s2" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.15 }} className="space-y-5">
                     <div>
                       <div className="flex items-center justify-between mb-3">
@@ -370,7 +475,7 @@ const BookAppointment: React.FC = () => {
                         {Array.from({ length: calDays.daysInMonth }).map((_, i) => {
                           const day = i + 1;
                           const dateStr = makeDateStr(day);
-                          const isPast  = dateStr < today;
+                          const isPast    = dateStr < today;
                           const available = !isPast && isDateAvailable(dateStr);
                           const selected  = date === dateStr;
                           const isToday   = dateStr === today;
@@ -415,8 +520,8 @@ const BookAppointment: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* Step 3: Details */}
-                {step === 3 && (
+                {/* Details step */}
+                {step === detailStep && (
                   <motion.div key="s3" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.15 }} className="space-y-4">
                     <div>
                       <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-2">Type of Visit</p>
@@ -445,7 +550,7 @@ const BookAppointment: React.FC = () => {
                         Reason for Visit <span className="text-red-400">*</span>
                       </p>
                       <textarea value={reason} onChange={e => setReason(e.target.value)} rows={4}
-                        placeholder="Describe your symptoms or what you'd like to discuss (at least 10 characters)..."
+                        placeholder="Describe symptoms or what to discuss (at least 10 characters)..."
                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[13px] outline-none focus:ring-1 focus:ring-blue-500 resize-none" />
                       <p className={cn('text-[11px] text-right mt-1', reason.length >= 10 ? 'text-emerald-600' : 'text-slate-400')}>
                         {reason.length} / 10 min {reason.length >= 10 && '✓'}
@@ -458,20 +563,25 @@ const BookAppointment: React.FC = () => {
 
             {/* Navigation */}
             <div className="px-5 pb-5 flex gap-3 shrink-0 border-t border-slate-100 dark:border-slate-800 pt-4">
-              {step > 0 && (
+              {step > 0 ? (
                 <button onClick={() => setStep(s => s - 1)} disabled={saving}
                   className="flex items-center gap-1.5 px-4 py-2 rounded border border-slate-200 dark:border-slate-700 text-[13px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                   <ChevronLeft className="w-3.5 h-3.5" /> Back
                 </button>
+              ) : (
+                <button onClick={() => navigate(-1)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded border border-slate-200 dark:border-slate-700 text-[13px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <ChevronLeft className="w-3.5 h-3.5" /> Cancel
+                </button>
               )}
               <div className="flex-1" />
               {step < STEPS.length - 1 ? (
-                <button onClick={() => setStep(s => s + 1)} disabled={!canProceed[step]}
+                <button onClick={() => setStep(s => s + 1)} disabled={!canProceed()}
                   className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 text-white rounded text-[13px] font-medium hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   Next <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               ) : (
-                <button onClick={handleSubmit} disabled={saving || !canProceed[3]}
+                <button onClick={handleSubmit} disabled={saving || !canProceed()}
                   className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded text-[13px] font-medium hover:bg-blue-700 transition-colors disabled:opacity-40">
                   {saving
                     ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Booking…</>
