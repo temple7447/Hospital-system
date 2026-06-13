@@ -1,8 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/Login';
 import LandingPage from './pages/LandingPage';
-import RegisterPage from './pages/Register';
 import ForgotPasswordPage from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';

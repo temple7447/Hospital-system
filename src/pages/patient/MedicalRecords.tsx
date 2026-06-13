@@ -363,7 +363,7 @@ const MedicalRecords: React.FC = () => {
             ) : (
               appointments.map((apt, idx) => {
                 const doc = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
-                const dept = departments.find(d => d.id === apt.departmentId);
+                const deptName = departments.find(d => d.id === apt.departmentId)?.name ?? apt.departmentName;
                 const cfg = APT_STATUS_CFG[apt.status] ?? APT_STATUS_CFG.scheduled;
                 return (
                   <motion.div
@@ -390,9 +390,9 @@ const MedicalRecords: React.FC = () => {
                             <User className="w-3 h-3" /> Dr. {doc.firstName} {doc.lastName}
                           </span>
                         )}
-                        {dept && (
+                        {deptName && (
                           <span className="flex items-center gap-1 text-xs text-slate-400 font-bold">
-                            <Building2 className="w-3 h-3" /> {dept.name}
+                            <Building2 className="w-3 h-3" /> {deptName}
                           </span>
                         )}
                         <span className="flex items-center gap-1 text-xs text-slate-400 font-bold">
