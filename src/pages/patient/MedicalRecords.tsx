@@ -85,7 +85,7 @@ const MedicalRecords: React.FC = () => {
       listVitals({ patient_id: user.id }),
       listAppointments({ patient_id: user.id }),
       listStaff(),
-      listDepartments(),
+      listDepartments({ onlyActive: true }),
     ]).then(([rxs, vs, apts, st, depts]) => {
       rxs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       apts.sort((a, b) => b.date.localeCompare(a.date));
@@ -244,6 +244,7 @@ const MedicalRecords: React.FC = () => {
                   {appointments.filter(a => ['scheduled', 'confirmed'].includes(a.status)).slice(0, 3).map(apt => {
                     const doc = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                     const dept = departments.find(d => d.id === apt.departmentId);
+                    const deptName = dept?.name ?? apt.departmentName;
                     return (
                       <div key={apt.id} className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
                         <div className="w-12 h-12 rounded-md bg-blue-600 flex flex-col items-center justify-center text-white shrink-0">
@@ -252,7 +253,7 @@ const MedicalRecords: React.FC = () => {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-slate-900 dark:text-white">{doc ? `Dr. ${doc.firstName} ${doc.lastName}` : '—'}</p>
-                          <p className="text-xs text-slate-400 font-bold">{dept?.name} · {fmtTime(apt.time)} · {apt.type.replace('_', ' ')}</p>
+                          <p className="text-xs text-slate-400 font-bold">{deptName} · {fmtTime(apt.time)} · {apt.type.replace('_', ' ')}</p>
                         </div>
                         <span className={cn('px-2 py-1 rounded-lg text-[10px] font-semibold uppercase', apt.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/20')}>
                           {apt.status}

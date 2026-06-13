@@ -9,16 +9,17 @@ import { cn } from '@/utils/cn';
 import type { Room, RoomType, RoomStatus, Department } from '@/types';
 import { listRooms, updateRoom, listDepartments } from '@/lib/services';
 
-const ROOM_TYPES: RoomType[] = ['general', 'private', 'icu', 'emergency', 'operation', 'consultation'];
+const ROOM_TYPES: RoomType[] = ['general', 'private', 'icu', 'emergency', 'operation', 'consultation', 'lab'];
 const ROOM_STATUSES: RoomStatus[] = ['available', 'full', 'maintenance', 'reserved'];
 
-const typeMeta: Record<RoomType, { label: string; color: string; bg: string }> = {
+const typeMeta: Record<string, { label: string; color: string; bg: string }> = {
   general:      { label: 'General',      color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20' },
   private:      { label: 'Private',      color: 'text-purple-600',  bg: 'bg-purple-50 dark:bg-purple-900/20' },
   icu:          { label: 'ICU',          color: 'text-red-600',     bg: 'bg-red-50 dark:bg-red-900/20' },
   emergency:    { label: 'Emergency',    color: 'text-orange-600',  bg: 'bg-orange-50 dark:bg-orange-900/20' },
   operation:    { label: 'Operation',    color: 'text-slate-600',   bg: 'bg-slate-100 dark:bg-slate-800' },
   consultation: { label: 'Consultation', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  lab:          { label: 'Lab',          color: 'text-cyan-600',    bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
 };
 
 const statusMeta: Record<RoomStatus, { label: string; color: string; bg: string; icon: React.ElementType }> = {
@@ -33,8 +34,7 @@ const labelCls    = 'block text-[10px] font-medium text-slate-400 uppercase trac
 const sectionTitle = 'text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3';
 
 // ─── Room Card ─────────────────────────────────────────────────────────────────
-const RoomCard: React.FC<{ room: Room; departments: Department[]; onEdit: (r: Room) => void }> = ({ room, departments, onEdit }) => {
-  const dept   = departments.find(d => d.id === room.departmentId) ?? null;
+const RoomCard: React.FC<{ room: Room; onEdit: (r: Room) => void }> = ({ room, onEdit }) => {
   const type   = typeMeta[room.type] ?? typeMeta['general'];
   const status = statusMeta[room.status] ?? statusMeta['available'];
   const StatusIcon = status.icon;
@@ -63,8 +63,8 @@ const RoomCard: React.FC<{ room: Room; departments: Department[]; onEdit: (r: Ro
         </button>
       </div>
 
-      {dept && (
-        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-3 truncate">{dept.name}</p>
+      {room.departmentName && (
+        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-3">{room.departmentName}</p>
       )}
 
       <div className="mb-3">
@@ -109,7 +109,7 @@ const RoomsPage: React.FC = () => {
   });
 
   const refresh = useCallback(async () => {
-    const [r, d] = await Promise.all([listRooms(), listDepartments()]);
+    const [r, d] = await Promise.all([listRooms({ limit: 500 }), listDepartments({ onlyActive: true })]);
     setRooms(r);
     setDepartments(d);
   }, []);
@@ -190,6 +190,7 @@ const RoomsPage: React.FC = () => {
     const currentType   = typeMeta[form.type] ?? typeMeta['general'];
     const currentStatus = statusMeta[form.status] ?? statusMeta['available'];
     const dept = departments.find(d => d.id === form.departmentId) ?? null;
+    const deptDisplayName = dept?.name ?? editingRoom.departmentName;
     const occupancyPct = form.capacity > 0 ? (Number(form.occupiedBeds) / Number(form.capacity)) * 100 : 0;
 
     return (
@@ -223,8 +224,8 @@ const RoomsPage: React.FC = () => {
                 </div>
               </div>
 
-              {dept && (
-                <p className="text-[12px] text-slate-500 mb-3">{dept.name}</p>
+              {deptDisplayName && (
+                <p className="text-[12px] text-slate-500 mb-3">{deptDisplayName}</p>
               )}
 
               <div className="mb-3">
@@ -287,9 +288,18 @@ const RoomsPage: React.FC = () => {
 
                 <div>
                   <label className={labelCls}>Department</label>
-                  <select value={form.departmentId} onChange={e => set('departmentId', e.target.value)} className={fieldCls}>
-                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
+                  <div className="relative">
+                    <select value={form.departmentId} onChange={e => set('departmentId', e.target.value)}
+                      className={fieldCls + ' pr-8 appearance-none cursor-pointer'}>
+                      <option value="">— No Department —</option>
+                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      {/* include current dept even if it's inactive */}
+                      {editingRoom.departmentId && !departments.find(d => d.id === editingRoom.departmentId) && editingRoom.departmentName && (
+                        <option value={editingRoom.departmentId}>{editingRoom.departmentName} (inactive)</option>
+                      )}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -380,11 +390,11 @@ const RoomsPage: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-3">
             {[
-              { value: typeFilter,   onChange: setTypeFilter,   options: [['all', 'All Types'], ...ROOM_TYPES.map(t => [t, typeMeta[t].label])] },
-              { value: statusFilter, onChange: setStatusFilter, options: [['all', 'All Status'], ...ROOM_STATUSES.map(s => [s, statusMeta[s].label])] },
-              { value: deptFilter,   onChange: setDeptFilter,   options: [['all', 'All Depts'], ...departments.map(d => [d.id, d.name])] },
-            ].map(({ value, onChange, options }, i) => (
-              <div key={i} className="relative">
+              { value: typeFilter,   onChange: setTypeFilter,   minW: 'min-w-[120px]', options: [['all', 'All Types'],        ...ROOM_TYPES.map(t   => [t,   typeMeta[t]?.label   ?? t])] },
+              { value: statusFilter, onChange: setStatusFilter, minW: 'min-w-[120px]', options: [['all', 'All Statuses'],     ...ROOM_STATUSES.map(s => [s,   statusMeta[s]?.label ?? s])] },
+              { value: deptFilter,   onChange: setDeptFilter,   minW: 'min-w-[180px]', options: [['all', 'All Departments'],  ...departments.map(d => [d.id, d.name])] },
+            ].map(({ value, onChange, options, minW }, i) => (
+              <div key={i} className={cn('relative', minW)}>
                 <select value={value} onChange={e => onChange(e.target.value)}
                   className={fieldCls + ' pr-8 appearance-none cursor-pointer'}>
                   {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -414,7 +424,7 @@ const RoomsPage: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
               {floorRooms.map(room => (
-                <RoomCard key={room.id} room={room} departments={departments} onEdit={openEdit} />
+                <RoomCard key={room.id} room={room} onEdit={openEdit} />
               ))}
             </div>
           </div>

@@ -194,6 +194,7 @@ export function mapBackendAppointment(a: BackendAppointment): Appointment {
     patientId: a.patient_id,
     doctorId: a.doctor_id,
     departmentId: a.department_id || '',
+    departmentName: a.department_name || undefined,
     date: a.appointment_date,
     time: a.start_time,
     duration: timeToMinutes(a.start_time, a.end_time),
@@ -445,6 +446,7 @@ export function mapBackendStaff(s: BackendStaff): Staff {
     phone: s.phone || '',
     role: mapRole(s.role) as StaffRole,
     departmentId: s.department_id || undefined,
+    departmentName: s.department_name || undefined,
     specialization: s.specialization || undefined,
     licenseNumber: s.license_number || undefined,
     dateJoined: s.date_joined || '',
@@ -544,7 +546,7 @@ export interface BackendRoom {
   department_name?: string;
 }
 
-const ROOM_TYPE_MAP: Record<string, string> = { ward: 'general', private: 'private', icu: 'icu', emergency: 'emergency', operation: 'operation', consultation: 'consultation' };
+const ROOM_TYPE_MAP: Record<string, string> = { ward: 'general', private: 'private', icu: 'icu', emergency: 'emergency', operation: 'operation', consultation: 'consultation', lab: 'lab' };
 const ROOM_STATUS_MAP: Record<string, string> = { available: 'available', occupied: 'full', maintenance: 'maintenance', reserved: 'reserved', cleaning: 'maintenance' };
 
 export function mapBackendRoom(r: BackendRoom): Room {
@@ -554,6 +556,7 @@ export function mapBackendRoom(r: BackendRoom): Room {
     type: (ROOM_TYPE_MAP[r.type] || 'general') as Room['type'],
     floor: parseInt(r.floor || '0'),
     departmentId: r.department_id || '',
+    departmentName: r.department_name || undefined,
     capacity: r.capacity,
     occupiedBeds: r.occupied_beds,
     status: (ROOM_STATUS_MAP[r.status] || 'available') as Room['status'],
@@ -562,7 +565,7 @@ export function mapBackendRoom(r: BackendRoom): Room {
 
 const ROOM_TYPE_TO_BACKEND: Record<string, string> = {
   general: 'ward', private: 'private', icu: 'icu',
-  emergency: 'emergency', operation: 'operation', consultation: 'consultation',
+  emergency: 'emergency', operation: 'operation', consultation: 'consultation', lab: 'lab',
 };
 const ROOM_STATUS_TO_BACKEND: Record<string, string> = {
   available: 'available', full: 'occupied',
@@ -727,6 +730,22 @@ export function toBackendInvoice(data: Partial<Invoice>): Record<string, unknown
 
 // ─── Inventory ────────────────────────────────────────────────
 
+// Map frontend categories → backend categories (for writes & filter params)
+export const INVENTORY_CATEGORY_TO_BACKEND: Record<string, string> = {
+  medicine: 'medicine',
+  equipment: 'equipment',
+  consumable: 'supply',
+  lab_supply: 'lab_reagent',
+};
+// Map backend categories → frontend categories (for reads)
+export const INVENTORY_CATEGORY_FROM_BACKEND: Record<string, string> = {
+  medicine: 'medicine',
+  supply: 'consumable',
+  equipment: 'equipment',
+  lab_reagent: 'lab_supply',
+  ppe: 'consumable',
+};
+
 export interface BackendInventoryItem {
   id: string;
   name: string;
@@ -745,7 +764,7 @@ export function mapBackendInventoryItem(i: BackendInventoryItem): InventoryItem 
   return {
     id: i.id,
     name: i.name,
-    category: i.category as InventoryItem['category'],
+    category: (INVENTORY_CATEGORY_FROM_BACKEND[i.category] || i.category) as InventoryItem['category'],
     unit: i.unit,
     quantity: i.quantity,
     minQuantity: i.min_quantity,
@@ -760,7 +779,7 @@ export function mapBackendInventoryItem(i: BackendInventoryItem): InventoryItem 
 export function toBackendInventoryItem(data: Partial<InventoryItem>): Record<string, unknown> {
   const r: Record<string, unknown> = {};
   if (data.name !== undefined) r.name = data.name;
-  if (data.category !== undefined) r.category = data.category;
+  if (data.category !== undefined) r.category = INVENTORY_CATEGORY_TO_BACKEND[data.category] ?? data.category;
   if (data.unit !== undefined) r.unit = data.unit;
   if (data.quantity !== undefined) r.quantity = data.quantity;
   if (data.minQuantity !== undefined) r.min_quantity = data.minQuantity;

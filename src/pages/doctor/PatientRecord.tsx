@@ -322,7 +322,7 @@ const PatientRecord: React.FC = () => {
       listConsultationNotes({ patient_id: patientId }),
       listVitals({ patient_id: patientId }),
       listStaff(),
-      listDepartments(),
+      listDepartments({ onlyActive: true }),
     ]);
     setPatient(p);
     setAllStaff(staffList);
@@ -330,7 +330,8 @@ const PatientRecord: React.FC = () => {
       const doc = staffList.find(s => s.userId === p.assignedDoctorId || s.id === p.assignedDoctorId) ?? null;
       setAssignedDoc(doc);
       if (doc?.departmentId) {
-        const d = depts.find(dep => dep.id === doc.departmentId) ?? null;
+        const d = depts.find(dep => dep.id === doc.departmentId)
+          ?? (doc.departmentName ? { id: doc.departmentId, name: doc.departmentName } as Department : null);
         setDept(d);
       }
     }

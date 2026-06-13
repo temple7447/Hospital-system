@@ -1,6 +1,6 @@
 import { api } from '../api';
 import type { InventoryItem } from '@/types';
-import { mapBackendInventoryItem, toBackendInventoryItem, type BackendInventoryItem } from '../mappers';
+import { mapBackendInventoryItem, toBackendInventoryItem, INVENTORY_CATEGORY_TO_BACKEND, type BackendInventoryItem } from '../mappers';
 
 export interface InventoryListParams {
   category?: string;
@@ -12,7 +12,7 @@ export interface InventoryListParams {
 
 export async function listInventory(params?: InventoryListParams): Promise<InventoryItem[]> {
   const sp = new URLSearchParams();
-  if (params?.category) sp.set('category', params.category);
+  if (params?.category) sp.set('category', INVENTORY_CATEGORY_TO_BACKEND[params.category] ?? params.category);
   if (params?.low_stock) sp.set('low_stock', 'true');
   if (params?.search) sp.set('search', params.search);
   if (params?.page) sp.set('page', String(params.page));

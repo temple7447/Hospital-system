@@ -276,7 +276,7 @@ export const db = {
     markPaid: (id: string, method: PaymentMethod) => {
       const total = getById<Invoice>(KEYS.INVOICES, id)?.total ?? 0;
       const result = update<Invoice>(KEYS.INVOICES, id, { status: 'paid', amountPaid: total, paymentMethod: method, paidAt: now() });
-      if (apiAvailable() && id) updateInvoice(id, { status: 'paid', amount_paid: total, payment_method: method, paid_at: now() }).catch(() => {});
+      if (apiAvailable() && id) updateInvoice(id, { status: 'paid', amountPaid: total, paymentMethod: method, paidAt: now() }).catch(() => {});
       return result;
     },
     delete: (id: string) => {

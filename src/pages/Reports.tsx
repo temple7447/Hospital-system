@@ -10,19 +10,16 @@ import {
   Cell, PieChart, Pie, Legend,
 } from 'recharts';
 import { cn } from '@/utils/cn';
-import { useAuth } from '@/context/AuthContext';
-import { listAppointments, listPatients, listInvoices, getAdminStats, listStaff, listDepartments } from '@/lib/services';
+import { listAppointments, listPatients, listInvoices, listStaff, listDepartments } from '@/lib/services';
 import { ROLE_MAP } from '@/lib/mappers';
-import type { Appointment, Patient, Invoice, AdminStats, Staff, Department } from '@/types';
+import type { Appointment, Patient, Invoice, Staff, Department } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const Reports: React.FC = () => {
-  const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients]         = useState<Patient[]>([]);
   const [invoices, setInvoices]         = useState<Invoice[]>([]);
-  const [stats, setStats]               = useState<AdminStats | null>(null);
   const [staffList, setStaffList]       = useState<Staff[]>([]);
   const [departments, setDepartments]   = useState<Department[]>([]);
 
@@ -31,14 +28,12 @@ const Reports: React.FC = () => {
       listAppointments({ limit: 1000 }),
       listPatients({ limit: 1000 }),
       listInvoices({ limit: 1000 }),
-      getAdminStats(),
       listStaff(),
       listDepartments(),
-    ]).then(([apts, pats, invs, s, st, depts]) => {
+    ]).then(([apts, pats, invs, st, depts]) => {
       setAppointments(apts);
       setPatients(pats);
       setInvoices(invs);
-      setStats(s);
       setStaffList(st);
       setDepartments(depts);
     }).catch(() => {});
@@ -123,7 +118,7 @@ const Reports: React.FC = () => {
     const counts: Record<string, number> = {};
     staffList.forEach(s => {
       const dept = departments.find(d => d.id === s.departmentId);
-      const label = dept?.name ?? 'Unassigned';
+      const label = dept?.name ?? s.departmentName ?? 'Unassigned';
       counts[label] = (counts[label] ?? 0) + 1;
     });
     return Object.entries(counts)
@@ -134,6 +129,19 @@ const Reports: React.FC = () => {
 
   const totalRevenue = revenueData.reduce((s, d) => s + d.revenue, 0);
   const totalApts    = aptStats.reduce((s, d) => s + d.value, 0);
+
+  const stats = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return {
+      totalStaff:        staffList.length,
+      totalPatients:     patients.length,
+      todayAppointments: appointments.filter(a => a.date === today).length,
+      availableBeds:     departments.reduce((s, d) => s + d.availableBeds, 0),
+      totalBeds:         departments.reduce((s, d) => s + d.totalBeds, 0),
+      pendingInvoices:   invoices.filter(i => i.status === 'pending' || i.status === 'overdue').length,
+      lowStockItems:     undefined as number | undefined,
+    };
+  }, [staffList, patients, appointments, invoices, departments]);
 
   // Real month-over-month changes
   const changes = useMemo(() => {
@@ -163,11 +171,19 @@ const Reports: React.FC = () => {
     };
   }, [invoices, appointments, patients]);
 
+  const monthlyRevenue = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    return invoices
+      .filter(i => i.status === 'paid' && i.paidAt && new Date(i.paidAt) >= monthStart)
+      .reduce((sum, i) => sum + (i.total ?? 0), 0);
+  }, [invoices]);
+
   const KPI = [
-    { label: 'Revenue This Month',  value: `$${((stats?.monthlyRevenue ?? 0) / 1000).toFixed(1)}k`, icon: DollarSign, color: 'emerald', change: changes.revenue },
-    { label: 'Total Appointments',  value: totalApts,                                                icon: Calendar,   color: 'blue',    change: changes.appointments },
-    { label: 'Active Patients',     value: stats?.totalPatients ?? '—',                             icon: Users,      color: 'violet',  change: changes.patients },
-    { label: 'Active Staff',        value: stats?.totalStaff ?? '—',                                icon: Activity,   color: 'amber',   change: '—' },
+    { label: 'Revenue This Month',  value: `$${(monthlyRevenue / 1000).toFixed(1)}k`, icon: DollarSign, color: 'emerald', change: changes.revenue },
+    { label: 'Total Appointments',  value: totalApts,                                 icon: Calendar,   color: 'blue',    change: changes.appointments },
+    { label: 'Active Patients',     value: patients.length,                           icon: Users,      color: 'violet',  change: changes.patients },
+    { label: 'Active Staff',        value: staffList.length,                          icon: Activity,   color: 'amber',   change: '—' },
   ];
 
   return (

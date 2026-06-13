@@ -4,8 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hospital, Mail, ArrowLeft, CheckCircle2, AlertCircle, Loader2, KeyRound,
 } from 'lucide-react';
-import { listPatients, listStaff } from '@/lib/services';
-
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,23 +16,10 @@ const ForgotPassword: React.FC = () => {
     const q = email.trim().toLowerCase();
     if (!q) return;
     setLoading(true);
-    try {
-      const [staff, patients] = await Promise.all([
-        listStaff({ search: q }),
-        listPatients({ search: q }),
-      ]);
-      const found = staff.some(s => s.email.toLowerCase() === q) ||
-                    patients.some(p => p.email.toLowerCase() === q);
-      if (!found) {
-        setError('No account found with this email address.');
-        return;
-      }
-      setSent(true);
-    } catch {
-      setError('Unable to verify account. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // Demo mode: simulate password reset email
+    await new Promise(r => setTimeout(r, 1200));
+    setSent(true);
+    setLoading(false);
   };
 
   return (

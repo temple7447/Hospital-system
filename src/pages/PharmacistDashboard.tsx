@@ -41,7 +41,7 @@ const PharmacistDashboard: React.FC = () => {
   if (!user) return null;
 
   const getPatient = (id: string) => patients.find(p => p.id === id);
-  const getDoctor  = (id: string) => staff.find(s => s.id === id);
+  const getDoctor  = (id: string) => staff.find(s => s.id === id || s.userId === id);
   const getDisplayName = (s: Staff) =>
     s.role === 'DOCTOR' ? `Dr. ${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`;
 

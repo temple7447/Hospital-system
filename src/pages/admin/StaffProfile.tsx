@@ -141,7 +141,7 @@ const StaffProfilePage: React.FC = () => {
     if (!id) return;
     Promise.all([
       (getStaff as (id: string) => Promise<Staff & { account?: { id: string; username: string; role: string; created_at: string } | null }>)(id),
-      listDepartments(),
+      listDepartments({ onlyActive: true }),
     ])
       .then(([s, d]) => { setStaff(s); setDepartments(d); })
       .catch(() => toast.error('Failed to load staff profile'))
@@ -149,6 +149,7 @@ const StaffProfilePage: React.FC = () => {
   }, [id]);
 
   const department = staff?.departmentId ? departments.find(d => d.id === staff.departmentId) : null;
+  const departmentDisplayName = department?.name ?? staff?.departmentName;
   const roleMeta   = staff ? getRoleMeta(staff.role) : DEFAULT_META;
   const RoleIcon   = roleMeta.icon;
   const status     = staff ? (statusMeta[staff.status] ?? statusMeta.inactive) : statusMeta.inactive;
@@ -274,9 +275,9 @@ const StaffProfilePage: React.FC = () => {
                   <span className={cn('w-1.5 h-1.5 rounded-full', status.dot)} />
                   {status.label}
                 </span>
-                {department && (
+                {departmentDisplayName && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                    <Building2 className="w-3.5 h-3.5" /> {department.name}
+                    <Building2 className="w-3.5 h-3.5" /> {departmentDisplayName}
                   </span>
                 )}
               </div>
@@ -309,7 +310,7 @@ const StaffProfilePage: React.FC = () => {
           {/* Employment Details */}
           <Section title="Employment Details" icon={<BadgeCheck className="w-4 h-4" />}>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Department"     value={department?.name} icon={<Building2 className="w-3.5 h-3.5" />} />
+              <Field label="Department"     value={departmentDisplayName} icon={<Building2 className="w-3.5 h-3.5" />} />
               <Field label="Specialization" value={staff.specialization} icon={<Stethoscope className="w-3.5 h-3.5" />} />
               <Field label="License Number" value={staff.licenseNumber} icon={<BadgeCheck className="w-3.5 h-3.5" />} mono />
               <Field label="Date Joined"    value={staff.dateJoined} icon={<Calendar className="w-3.5 h-3.5" />} />

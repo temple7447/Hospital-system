@@ -38,6 +38,7 @@ export interface Staff {
   phone: string;
   role: StaffRole;
   departmentId?: string;
+  departmentName?: string;
   specialization?: string;
   licenseNumber?: string;
   dateJoined: string;
@@ -80,7 +81,7 @@ export interface Patient {
 }
 
 // ─── Room ─────────────────────────────────────────────────────────────────────
-export type RoomType = 'general' | 'private' | 'icu' | 'emergency' | 'operation' | 'consultation';
+export type RoomType = 'general' | 'private' | 'icu' | 'emergency' | 'operation' | 'consultation' | 'lab';
 export type RoomStatus = 'available' | 'full' | 'maintenance' | 'reserved';
 
 export interface Room {
@@ -89,6 +90,7 @@ export interface Room {
   type: RoomType;
   floor: number;
   departmentId: string;
+  departmentName?: string;
   capacity: number;
   occupiedBeds: number;
   status: RoomStatus;
@@ -104,6 +106,7 @@ export interface Appointment {
   patientId: string;
   doctorId: string;
   departmentId: string;
+  departmentName?: string;
   date: string;
   time: string;
   duration: number;

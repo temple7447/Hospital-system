@@ -48,7 +48,7 @@ const ReceptionistDashboard: React.FC = () => {
   }, []);
 
   const getPatient = (id: string) => patients.find(p => p.id === id);
-  const getDoctor  = (id: string) => doctors.find(d => d.id === id);
+  const getDoctor  = (id: string) => doctors.find(d => d.id === id || d.userId === id);
 
   const waiting  = apts.filter(a => a.status === 'scheduled' || a.status === 'confirmed').length;
   const progress = apts.filter(a => a.status === 'in_progress').length;

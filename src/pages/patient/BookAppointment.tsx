@@ -167,11 +167,13 @@ const BookAppointment: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!user) return;
+    const resolvedDoctorId = selectedDoctor?.userId;
+    if (!resolvedDoctorId) { toast.error('Could not resolve doctor. Please try again.'); setSaving(false); return; }
     setSaving(true);
     try {
       const aptId = await createAppointment({
         patientId,
-        doctorId: selectedDoctor?.userId || doctorId,
+        doctorId: resolvedDoctorId,
         departmentId: deptId,
         date, time: slot,
         duration: 30, type, status: 'scheduled', reason: reason.trim(),

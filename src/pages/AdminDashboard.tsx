@@ -79,7 +79,7 @@ const AdminDashboard: React.FC = () => {
     : 0;
 
   const getPatient = (id: string) => patients.find(p => p.id === id);
-  const getDoctor  = (id: string) => doctors.find(d => d.id === id);
+  const getDoctor  = (id: string) => doctors.find(d => d.id === id || d.userId === id);
 
   return (
     <div className="space-y-6">

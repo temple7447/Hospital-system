@@ -92,9 +92,9 @@ const CheckIn: React.FC = () => {
     if (!selectedPatient) { toast.error('Select a patient first'); return; }
     const walkinDoctor = doctors.find(d => d.id === selectedDoctor);
     const doctorId = selectedApt !== 'walkin'
-      ? (todayApts.find(a => a.id === selectedApt)?.doctorId ?? walkinDoctor?.userId ?? selectedDoctor)
-      : (walkinDoctor?.userId || selectedDoctor);
-    if (!doctorId) { toast.error('Select a doctor'); return; }
+      ? (todayApts.find(a => a.id === selectedApt)?.doctorId ?? walkinDoctor?.userId)
+      : walkinDoctor?.userId;
+    if (!doctorId) { toast.error('Select a valid doctor'); return; }
 
     setSubmitting(true);
     try {

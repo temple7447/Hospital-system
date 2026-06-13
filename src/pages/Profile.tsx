@@ -272,7 +272,7 @@ const Profile: React.FC = () => {
     const loadRecord = isPatient
       ? getPatient(user.id)
       : getStaff(user.id);
-    Promise.all([loadRecord, listDepartments(), listStaff()])
+    Promise.all([loadRecord, listDepartments({ onlyActive: true }), listStaff()])
       .then(([rec, depts, staff]) => {
         setRecord(rec as Staff | Patient);
         setDepartments(depts);
@@ -376,7 +376,7 @@ const Profile: React.FC = () => {
           />
         : <StaffProfile
             staff={record as Staff}
-            deptName={departments.find(d => d.id === (record as Staff).departmentId)?.name}
+            deptName={departments.find(d => d.id === (record as Staff).departmentId)?.name ?? (record as Staff).departmentName}
             mode={mode} onSave={handleSave}
           />
       }

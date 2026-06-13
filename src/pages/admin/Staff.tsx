@@ -228,12 +228,10 @@ const sectionTitle = 'text-[11px] font-semibold text-slate-500 dark:text-slate-4
 // ─── Staff Row ─────────────────────────────────────────────────────────────────
 const StaffRow: React.FC<{
   member: Staff;
-  departments: Department[];
   onEdit: (s: Staff) => void;
   onToggleStatus: (s: Staff) => void;
-}> = ({ member, departments, onEdit, onToggleStatus }) => {
+}> = ({ member, onEdit, onToggleStatus }) => {
   const navigate = useNavigate();
-  const dept = member.departmentId ? departments.find(d => d.id === member.departmentId) ?? null : null;
   const roleKey = member.role.toLowerCase();
   const roleDisplay = getRoleMeta(roleKey);
   const roleLabel = getRoleLabel(roleKey);
@@ -263,7 +261,7 @@ const StaffRow: React.FC<{
         </span>
       </td>
       <td className="px-5 py-4">
-        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{dept?.name ?? '—'}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{member.departmentName ?? '—'}</p>
         {member.specialization && <p className="text-xs text-slate-400">{member.specialization}</p>}
       </td>
       <td className="px-5 py-4">
@@ -343,7 +341,7 @@ const StaffPage: React.FC = () => {
   const [showEditPass, setShowEditPass] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [s, d, r] = await Promise.all([listStaff(), listDepartments(), listRoles({ is_active: 1 })]);
+    const [s, d, r] = await Promise.all([listStaff({ limit: 500 }), listDepartments({ onlyActive: true }), listRoles({ is_active: 1 })]);
     setStaffList(s);
     setDepartments(d);
     setActiveRoles(r);
@@ -622,7 +620,7 @@ const StaffPage: React.FC = () => {
                     <select value={onboard.departmentId}
                       onChange={e => setO('departmentId', e.target.value)} className={fieldCls}>
                       <option value="">— None —</option>
-                      {departments.filter(d => d.isActive).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
                   {(isDoctorRole(onboard.role) || SPECIALIZATION_ROLES.has(onboard.role)) && (
@@ -805,11 +803,10 @@ const StaffPage: React.FC = () => {
                     <select value={editForm.departmentId}
                       onChange={e => setE('departmentId', e.target.value)} className={fieldCls}>
                       <option value="">— None —</option>
-                      {departments.map(d => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}{!d.isActive ? ' (inactive)' : ''}
-                        </option>
-                      ))}
+                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      {editingStaff?.departmentId && !departments.find(d => d.id === editingStaff.departmentId) && editingStaff.departmentName && (
+                        <option value={editingStaff.departmentId}>{editingStaff.departmentName} (inactive)</option>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -961,7 +958,7 @@ const StaffPage: React.FC = () => {
                 </tr>
               ) : (
                 filtered.map(member => (
-                  <StaffRow key={member.id} member={member} departments={departments}
+                  <StaffRow key={member.id} member={member}
                     onEdit={openEdit} onToggleStatus={handleToggleStatus} />
                 ))
               )}

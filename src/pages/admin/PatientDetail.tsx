@@ -413,7 +413,7 @@ const PatientDetailPage: React.FC = () => {
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {appointments.map(appt => {
                     const s = apptStatusMeta[appt.status];
-                    const doctor = allStaff.find(st => st.id === appt.doctorId);
+                    const doctor = allStaff.find(st => st.id === appt.doctorId || st.userId === appt.doctorId);
                     return (
                       <div key={appt.id} className="flex items-start gap-4 p-5 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
                         <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
@@ -449,7 +449,7 @@ const PatientDetailPage: React.FC = () => {
                 </div>
               ) : prescriptions.map(rx => {
                 const s = rxStatusMeta[rx.status];
-                const doctor = allStaff.find(st => st.id === rx.doctorId);
+                const doctor = allStaff.find(st => st.id === rx.doctorId || st.userId === rx.doctorId);
                 return (
                   <div key={rx.id} className="glass-card rounded-lg p-5">
                     <div className="flex items-start justify-between gap-4 mb-4">
@@ -538,7 +538,7 @@ const PatientDetailPage: React.FC = () => {
                 </div>
               ) : labOrders.map(lab => {
                 const s = labStatusMeta[lab.status];
-                const doctor = allStaff.find(st => st.id === lab.doctorId);
+                const doctor = allStaff.find(st => st.id === lab.doctorId || st.userId === lab.doctorId);
                 const hasResults = lab.results && lab.results.length > 0;
                 return (
                   <div key={lab.id} className="glass-card rounded-lg p-5">

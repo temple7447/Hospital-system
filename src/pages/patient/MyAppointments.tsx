@@ -224,7 +224,7 @@ const MyAppointments: React.FC = () => {
       const [apts, staff, departments] = await Promise.all([
         listAppointments({ patient_id: user.id }),
         listStaff({ role: 'DOCTOR' }),
-        listDepartments(),
+        listDepartments({ onlyActive: true }),
       ]);
       apts.sort((a, b) => b.date.localeCompare(a.date));
       setAppointments(apts);
@@ -301,7 +301,7 @@ const MyAppointments: React.FC = () => {
               key={apt.id}
               apt={apt}
               doctor={doctors.find(d => d.userId === apt.doctorId || d.id === apt.doctorId)}
-              dept={depts.find(d => d.id === apt.departmentId)}
+              dept={depts.find(d => d.id === apt.departmentId) ?? (apt.departmentName ? { id: apt.departmentId, name: apt.departmentName } as Department : undefined)}
               onCancel={setCancelTarget}
               expanded={expandedId === apt.id}
               onToggle={() => setExpandedId(expandedId === apt.id ? null : apt.id)}

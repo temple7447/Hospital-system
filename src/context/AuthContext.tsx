@@ -4,6 +4,7 @@ import type { User, AuthState } from '@/types/auth';
 import { KEYS } from '@/lib/storage';
 import { login as apiLogin, getMe } from '@/lib/services';
 import { getToken, setToken, ApiError } from '@/lib/api';
+import { syncAll } from '@/lib/dataSync';
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<void>;

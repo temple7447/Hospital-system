@@ -109,7 +109,7 @@ const CancelModal: React.FC<CancelModalProps> = ({ appointment, onClose, onCance
     if (!reason.trim()) return;
     setSaving(true);
     try {
-      await updateAppointment(appointment.id, { status: 'cancelled', notes: reason.trim() });
+      await updateAppointment(appointment.id, { status: 'cancelled', cancelledReason: reason.trim() });
       onCancelled();
       onClose();
       toast.success('Appointment cancelled');
@@ -211,7 +211,7 @@ const Appointments: React.FC = () => {
       listAppointments(aptsParams),
       listPatients({ limit: 500 }),
       listStaff(),
-      listDepartments(),
+      listDepartments({ onlyActive: true }),
     ]);
     apts.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.time.localeCompare(b.time));
     setAppointments(apts);
@@ -396,6 +396,7 @@ const Appointments: React.FC = () => {
                 const patient = patients.find(p => p.id === apt.patientId);
                 const doctor = staff.find(s => s.userId === apt.doctorId || s.id === apt.doctorId);
                 const dept = departments.find(d => d.id === apt.departmentId);
+                const deptName = dept?.name ?? apt.departmentName;
                 const isExpanded = expandedId === apt.id;
                 const isToday = apt.date === today;
                 const isPast = apt.date < today;
@@ -449,10 +450,10 @@ const Appointments: React.FC = () => {
                                 <Clock className="w-3 h-3" />
                                 {formatTime(apt.time)}
                               </span>
-                              {dept && (
+                              {deptName && (
                                 <span className="flex items-center gap-1 text-xs font-bold text-slate-400">
                                   <Building2 className="w-3 h-3" />
-                                  {dept.name}
+                                  {deptName}
                                 </span>
                               )}
                             </div>

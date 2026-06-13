@@ -143,6 +143,7 @@ interface DetailPanelProps {
 const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, onClose, onStatusChange, doctorId }) => {
   const patient = apt ? patients.find(p => p.id === apt.patientId) : null;
   const dept = apt ? departments.find(d => d.id === apt.departmentId) : null;
+  const deptName = dept?.name ?? apt?.departmentName;
 
   return (
     <AnimatePresence>
@@ -195,7 +196,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ apt, patients, departments, o
                   { label: 'Date', value: apt.date, icon: Calendar },
                   { label: 'Time', value: formatTime(apt.time), icon: Clock },
                   { label: 'Duration', value: `${apt.duration} min`, icon: Activity },
-                  { label: 'Department', value: dept?.name || '—', icon: Building2 },
+                  { label: 'Department', value: deptName || '—', icon: Building2 },
                 ].map(({ label, value, icon: Icon }) => (
                   <div key={label} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
@@ -316,13 +317,13 @@ const Schedule: React.FC = () => {
     const [apts, pats, depts, staffList] = await Promise.all([
       listAppointments({ doctor_id: user.id }),
       listPatients(),
-      listDepartments(),
+      listDepartments({ onlyActive: true }),
       listStaff({ role: 'doctor' }),
     ]);
     setAppointments(apts);
     setPatients(pats);
     setDepartments(depts.map(d => ({ id: d.id, name: d.name })));
-    const doc = staffList.find(s => s.id === user.id);
+    const doc = staffList.find(s => s.userId === user.id || s.id === user.id);
     if (doc) setDoctor({ workingDays: doc.workingDays, workingHours: doc.workingHours });
   };
 
