@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/context/PermissionsContext';
 import {
   Hospital,
   LayoutDashboard,
@@ -43,6 +44,7 @@ import {
   ScanLine,
   Stethoscope,
   KeyRound,
+  ToggleRight,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast, Toaster } from 'sonner';
@@ -50,6 +52,7 @@ import { cn } from '@/utils/cn';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
+  const { canAccess } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
@@ -83,56 +86,131 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   };
 
   const handleLogout = () => {
-    toast.promise(new Promise(resolve => setTimeout(resolve, 800)), {
-      loading: 'Signing out…',
-      success: () => { logout(); navigate('/login'); return 'Signed out'; },
-    });
+    logout();
+    navigate('/login');
+    toast.success('Signed out');
   };
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard',       path: '/dashboard',               roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
-    { icon: UserRound,       label: 'Patients',        path: '/patients',                roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
-    { icon: Calendar,        label: 'Appointments',    path: '/appointments',            roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT'] },
-    { icon: PlusCircle,      label: 'Book Appointment',path: '/patient/book',            roles: ['PATIENT'] },
-    { icon: FolderHeart,     label: 'My Records',      path: '/patient/records',         roles: ['PATIENT'] },
-    { icon: CalendarDays,    label: 'My Schedule',     path: '/doctor/schedule',         roles: ['DOCTOR'] },
-    { icon: UsersRound,      label: 'My Patients',     path: '/doctor/patients',         roles: ['DOCTOR'] },
-    { icon: StickyNote,      label: 'SOAP Notes',      path: '/doctor/consultation-notes', roles: ['DOCTOR'] },
-    { icon: ClipboardList,   label: 'Write Rx',        path: '/doctor/prescription/new', roles: ['DOCTOR'] },
-    { icon: FlaskConical,    label: 'Lab Orders',      path: '/doctor/lab-orders',       roles: ['DOCTOR'] },
-    { icon: CalendarClock,   label: 'Availability',    path: '/doctor/availability',     roles: ['DOCTOR'] },
-    { icon: TestTube,        label: 'Lab Results',     path: '/patient/lab-results',     roles: ['PATIENT'] },
-    { icon: CalendarDays,    label: 'My Appointments', path: '/patient/appointments',    roles: ['PATIENT'] },
-    { icon: Pill,            label: 'Prescriptions',   path: '/patient/prescriptions',   roles: ['PATIENT'] },
-    { icon: HeartPulse,      label: 'Health Summary',  path: '/patient/health-summary',  roles: ['PATIENT'] },
-    { icon: Stethoscope,     label: 'My Patients',     path: '/nurse/patients',          roles: ['NURSE'] },
-    { icon: HeartPulse,      label: 'Record Vitals',   path: '/nurse/vitals',            roles: ['NURSE'] },
-    { icon: ClipboardCheck,  label: 'Tasks',           path: '/nurse/tasks',             roles: ['NURSE'] },
-    { icon: Pill,            label: 'Rx Queue',        path: '/pharmacist/queue',        roles: ['PHARMACIST'] },
-    { icon: Package,         label: 'Drug Inventory',  path: '/pharmacist/inventory',    roles: ['PHARMACIST'] },
-    { icon: History,         label: 'Dispense History',path: '/pharmacist/history',      roles: ['PHARMACIST'] },
-    { icon: FlaskConical,    label: 'Order Queue',     path: '/lab/queue',               roles: ['LAB_TECHNICIAN'] },
-    { icon: TestTube,        label: 'Completed Orders',path: '/lab/completed',           roles: ['LAB_TECHNICIAN'] },
-    { icon: ScanLine,        label: 'Imaging Queue',   path: '/radiology/queue',         roles: ['RADIOLOGIST'] },
-    { icon: History,         label: 'Report History',  path: '/radiology/history',       roles: ['RADIOLOGIST'] },
-    { icon: Bell,            label: 'Notifications',   path: '/notifications',           roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
-    { icon: FileText,        label: 'Reports',         path: '/reports',                 roles: ['ADMIN', 'DOCTOR'] },
-    { icon: UserPlus,        label: 'Register Patient',path: '/receptionist/register',   roles: ['ADMIN', 'RECEPTIONIST'] },
-    { icon: UserCheck,       label: 'Check In',        path: '/receptionist/checkin',    roles: ['ADMIN', 'RECEPTIONIST'] },
-    { icon: ListOrdered,     label: 'Arrival Queue',   path: '/receptionist/queue',      roles: ['ADMIN', 'RECEPTIONIST'] },
-    { icon: Receipt,         label: 'Billing',         path: '/receptionist/billing',    roles: ['RECEPTIONIST'] },
-    { icon: Receipt,         label: 'My Bills',        path: '/patient/bills',           roles: ['PATIENT'] },
-    { icon: Users,           label: 'Staff',           path: '/admin/staff',             roles: ['ADMIN'] },
-    { icon: Receipt,         label: 'Billing',         path: '/admin/billing',           roles: ['ADMIN'] },
-    { icon: Package,         label: 'Inventory',       path: '/admin/inventory',         roles: ['ADMIN'] },
-    { icon: ShieldCheck,     label: 'Audit Logs',      path: '/admin/audit-logs',        roles: ['ADMIN'] },
-    { icon: Building2,       label: 'Departments',     path: '/admin/departments',       roles: ['ADMIN'] },
-    { icon: BedDouble,       label: 'Rooms & Beds',    path: '/admin/rooms',             roles: ['ADMIN'] },
-    { icon: KeyRound,        label: 'Roles',           path: '/admin/roles',             roles: ['ADMIN'] },
-    { icon: Settings,        label: 'Settings',        path: '/settings',                roles: ['ADMIN'] },
+  type MenuItem = {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    path: string;
+    roles: string[];
+    pageKey?: string;
+    group?: string;
+  };
+
+  const menuItems: MenuItem[] = [
+    { icon: LayoutDashboard, label: 'Dashboard',        path: '/dashboard',               roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
+    { icon: UserRound,       label: 'Patients',         path: '/patients',                roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],  pageKey: 'patients', group: 'Front Desk' },
+    { icon: Calendar,        label: 'Appointments',     path: '/appointments',            roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE'], pageKey: 'appointments', group: 'Front Desk' },
+    { icon: PlusCircle,      label: 'Book Appointment', path: '/patient/book',            roles: ['PATIENT'], group: 'My Health' },
+    { icon: FolderHeart,     label: 'My Records',       path: '/patient/records',         roles: ['PATIENT'], group: 'My Health' },
+    { icon: CalendarDays,    label: 'My Schedule',      path: '/doctor/schedule',         roles: ['DOCTOR'],         pageKey: 'doctor_schedule', group: 'Clinical' },
+    { icon: UsersRound,      label: 'My Patients',      path: '/doctor/patients',         roles: ['DOCTOR'],         pageKey: 'doctor_patients', group: 'Clinical' },
+    { icon: StickyNote,      label: 'SOAP Notes',       path: '/doctor/consultation-notes', roles: ['DOCTOR'],       pageKey: 'doctor_soap_notes', group: 'Clinical' },
+    { icon: ClipboardList,   label: 'Write Rx',         path: '/doctor/prescription/new', roles: ['DOCTOR'],         pageKey: 'doctor_write_rx', group: 'Clinical' },
+    { icon: FlaskConical,    label: 'Lab Orders',       path: '/doctor/lab-orders',       roles: ['DOCTOR'],         pageKey: 'doctor_lab_orders', group: 'Clinical' },
+    { icon: CalendarClock,   label: 'Availability',     path: '/doctor/availability',     roles: ['DOCTOR'],         pageKey: 'doctor_availability', group: 'Clinical' },
+    { icon: TestTube,        label: 'Lab Results',      path: '/patient/lab-results',     roles: ['PATIENT'], group: 'My Health' },
+    { icon: CalendarDays,    label: 'My Appointments',  path: '/patient/appointments',    roles: ['PATIENT'], group: 'My Health' },
+    { icon: Pill,            label: 'Prescriptions',    path: '/patient/prescriptions',   roles: ['PATIENT'], group: 'My Health' },
+    { icon: HeartPulse,      label: 'Health Summary',   path: '/patient/health-summary',  roles: ['PATIENT'], group: 'My Health' },
+    { icon: Stethoscope,     label: 'My Patients',      path: '/nurse/patients',          roles: ['NURSE'],          pageKey: 'nurse_patients', group: 'Clinical' },
+    { icon: HeartPulse,      label: 'Record Vitals',    path: '/nurse/vitals',            roles: ['NURSE'],          pageKey: 'nurse_vitals', group: 'Clinical' },
+    { icon: ClipboardCheck,  label: 'Tasks',            path: '/nurse/tasks',             roles: ['NURSE'],          pageKey: 'nurse_tasks', group: 'Clinical' },
+    { icon: Pill,            label: 'Rx Queue',         path: '/pharmacist/queue',        roles: ['PHARMACIST'],     pageKey: 'pharmacist_queue', group: 'Pharmacy' },
+    { icon: Package,         label: 'Drug Inventory',   path: '/pharmacist/inventory',    roles: ['PHARMACIST'],     pageKey: 'pharmacist_inventory', group: 'Pharmacy' },
+    { icon: History,         label: 'Dispense History', path: '/pharmacist/history',      roles: ['PHARMACIST'],     pageKey: 'pharmacist_history', group: 'Pharmacy' },
+    { icon: FlaskConical,    label: 'Order Queue',      path: '/lab/queue',               roles: ['LAB_TECHNICIAN'], pageKey: 'lab_queue', group: 'Laboratory' },
+    { icon: TestTube,        label: 'Completed Orders', path: '/lab/completed',           roles: ['LAB_TECHNICIAN'], pageKey: 'lab_completed', group: 'Laboratory' },
+    { icon: ScanLine,        label: 'Imaging Queue',    path: '/radiology/queue',         roles: ['RADIOLOGIST'],    pageKey: 'radiology_queue', group: 'Radiology' },
+    { icon: History,         label: 'Report History',   path: '/radiology/history',       roles: ['RADIOLOGIST'],    pageKey: 'radiology_history', group: 'Radiology' },
+    { icon: Bell,            label: 'Notifications',    path: '/notifications',           roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
+    { icon: FileText,        label: 'Reports',          path: '/reports',                 roles: ['ADMIN', 'DOCTOR'], pageKey: 'reports' },
+    { icon: UserPlus,        label: 'Register Patient', path: '/receptionist/register',   roles: ['ADMIN', 'RECEPTIONIST'], pageKey: 'receptionist_register', group: 'Front Desk' },
+    { icon: UserCheck,       label: 'Check In',         path: '/receptionist/checkin',    roles: ['ADMIN', 'RECEPTIONIST'], pageKey: 'receptionist_checkin', group: 'Front Desk' },
+    { icon: ListOrdered,     label: 'Arrival Queue',    path: '/receptionist/queue',      roles: ['ADMIN', 'RECEPTIONIST'], pageKey: 'receptionist_queue', group: 'Front Desk' },
+    { icon: Receipt,         label: 'Billing',          path: '/receptionist/billing',    roles: ['RECEPTIONIST'],   pageKey: 'receptionist_billing', group: 'Front Desk' },
+    { icon: Receipt,         label: 'My Bills',         path: '/patient/bills',           roles: ['PATIENT'], group: 'My Health' },
+    { icon: Users,           label: 'Staff',            path: '/admin/staff',             roles: ['ADMIN'], group: 'Administration' },
+    { icon: Receipt,         label: 'Billing',          path: '/admin/billing',           roles: ['ADMIN'], group: 'Administration' },
+    { icon: Package,         label: 'Inventory',        path: '/admin/inventory',         roles: ['ADMIN'], group: 'Administration' },
+    { icon: ShieldCheck,     label: 'Audit Logs',       path: '/admin/audit-logs',        roles: ['ADMIN'], group: 'Administration' },
+    { icon: Building2,       label: 'Departments',      path: '/admin/departments',       roles: ['ADMIN'], group: 'Administration' },
+    { icon: BedDouble,       label: 'Rooms & Beds',     path: '/admin/rooms',             roles: ['ADMIN'], group: 'Administration' },
+    { icon: KeyRound,        label: 'Roles',            path: '/admin/roles',             roles: ['ADMIN'], group: 'Administration' },
+    { icon: ToggleRight,     label: 'Page Permissions', path: '/admin/permissions',       roles: ['ADMIN'], group: 'Administration' },
+    { icon: Settings,        label: 'Settings',         path: '/settings',                roles: ['ADMIN'] },
   ];
 
-  const filtered = menuItems.filter(item => !item.roles || (user && item.roles.includes(user.role)));
+  // Icon shown next to each collapsible group header
+  const GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+    'Front Desk':     UserCheck,
+    'Clinical':       Stethoscope,
+    'My Health':      HeartPulse,
+    'Pharmacy':       Pill,
+    'Laboratory':     FlaskConical,
+    'Radiology':      ScanLine,
+    'Administration': ShieldCheck,
+  };
+
+  const filtered = menuItems.filter(item => {
+    if (!user || !item.roles.includes(user.role)) return false;
+    if (item.pageKey && user.role !== 'ADMIN' && !canAccess(item.pageKey)) return false;
+    return true;
+  });
+
+  // Build an ordered render list: standalone items render on their own,
+  // grouped items collapse under a header positioned at the group's first item.
+  type Section =
+    | { type: 'item'; item: MenuItem }
+    | { type: 'group'; group: string; items: MenuItem[] };
+
+  const sections: Section[] = [];
+  const groupIndex: Record<string, Extract<Section, { type: 'group' }>> = {};
+  for (const item of filtered) {
+    if (!item.group) {
+      sections.push({ type: 'item', item });
+    } else if (groupIndex[item.group]) {
+      groupIndex[item.group].items.push(item);
+    } else {
+      const group = { type: 'group' as const, group: item.group, items: [item] };
+      groupIndex[item.group] = group;
+      sections.push(group);
+    }
+  }
+
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (group: string) =>
+    setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }));
+
+  // Auto-open the group that contains the active route
+  useEffect(() => {
+    const active = menuItems.find(i => i.path === location.pathname);
+    if (active?.group) setExpandedGroups(prev => ({ ...prev, [active.group!]: true }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const renderLink = (item: MenuItem) => {
+    const active = location.pathname === item.path;
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        onClick={() => isMobile && setSidebarOpen(false)}
+        className={cn(
+          'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
+          active
+            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
+            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+        )}
+      >
+        <item.icon className="w-4 h-4 shrink-0" />
+        <span className="truncate">{item.label}</span>
+      </Link>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex font-sans">
@@ -163,23 +241,45 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-          {filtered.map(item => {
-            const active = location.pathname === item.path;
+          {sections.map(section => {
+            if (section.type === 'item') return renderLink(section.item);
+
+            const expanded = !!expandedGroups[section.group];
+            const hasActive = section.items.some(i => i.path === location.pathname);
+            const GroupIcon = GROUP_ICONS[section.group] ?? ListOrdered;
+
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => isMobile && setSidebarOpen(false)}
-                className={cn(
-                  'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors',
-                  active
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-                )}
-              >
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </Link>
+              <div key={section.group}>
+                <button
+                  onClick={() => toggleGroup(section.group)}
+                  className={cn(
+                    'flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors',
+                    hasActive && !expanded
+                      ? 'text-blue-600 dark:text-blue-400 font-medium'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                  )}
+                >
+                  <GroupIcon className="w-4 h-4 shrink-0" />
+                  <span className="truncate flex-1 text-left">{section.group}</span>
+                  <ChevronDown className={cn('w-4 h-4 shrink-0 text-gray-400 transition-transform', expanded && 'rotate-180')} />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {expanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-0.5 ml-4 pl-2 border-l border-gray-200 dark:border-gray-800 space-y-0.5">
+                        {section.items.map(renderLink)}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
         </nav>
@@ -240,7 +340,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
-                  {user?.name.charAt(0).toUpperCase()}
+                  {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
                 </div>
                 <div className="hidden sm:block text-left">
                   <p className="text-sm font-medium text-gray-900 dark:text-white leading-none">{user?.name}</p>

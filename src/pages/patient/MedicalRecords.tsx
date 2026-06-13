@@ -49,10 +49,11 @@ const TABS = [
   { id: 'notes',         label: 'Doctor Notes',  icon: FileText },
 ];
 
-const RX_STATUS_CFG = {
+const RX_STATUS_CFG: Record<string, { label: string; bg: string; text: string }> = {
   active:    { label: 'Active',    bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600' },
   completed: { label: 'Completed', bg: 'bg-slate-100 dark:bg-slate-800',       text: 'text-slate-400' },
   cancelled: { label: 'Cancelled', bg: 'bg-red-50 dark:bg-red-900/20',         text: 'text-red-500' },
+  dispensed: { label: 'Dispensed', bg: 'bg-blue-50 dark:bg-blue-900/20',       text: 'text-blue-600' },
 };
 
 const APT_STATUS_CFG: Record<string, { label: string; icon: React.ElementType; color: string }> = {

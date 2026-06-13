@@ -198,7 +198,7 @@ const DoctorDashboard: React.FC = () => {
                   </defs>
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#94a3b8' }} />
                   <Tooltip
-                    formatter={(v: number) => [v, 'Appointments']}
+                    formatter={(v) => [Number(v ?? 0), 'Appointments']}
                     contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 12, border: 'none', fontSize: 11 }}
                   />
                   <Area type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#docFlow)" />

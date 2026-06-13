@@ -157,7 +157,7 @@ const AuditLogs: React.FC = () => {
       const p = patients.find(x => x.id === userId);
       return p ? `${p.firstName} ${p.lastName}` : 'Unknown Patient';
     }
-    const s = staff.find(x => x.id === userId);
+    const s = staff.find(x => x.userId === userId || x.id === userId);
     return s ? `${s.firstName} ${s.lastName}` : 'System';
   };
 

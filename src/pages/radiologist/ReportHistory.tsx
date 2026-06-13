@@ -72,7 +72,7 @@ const ReportHistory: React.FC = () => {
         <div className="space-y-3">
           {filtered.map(o => {
             const patient = patients.find(p => p.id === o.patientId);
-            const radiologist = o.processedBy ? staff.find(s => s.id === o.processedBy) : null;
+            const radiologist = o.processedBy ? staff.find(s => s.userId === o.processedBy || s.id === o.processedBy) : null;
             const isExpanded = expanded === o.id;
             const hasAbnormal = Array.isArray(o.results) && o.results.some(r => r.flag !== 'normal');
 

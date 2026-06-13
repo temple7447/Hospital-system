@@ -125,8 +125,8 @@ const ROLE_GROUPS = [
   },
 ] as const;
 
-const ROLES = ROLE_GROUPS.flatMap(g => g.roles);
-type StaffRoleValue = typeof ROLES[number]['value'];
+const ROLES: Array<{ value: string; label: string }> = ROLE_GROUPS.flatMap(g => [...g.roles]);
+type StaffRoleValue = string;
 
 const ROLE_CATEGORY_META: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string; bg: string }> = {
   admin:                    { icon: ShieldCheck, color: 'text-purple-600',  bg: 'bg-purple-50 dark:bg-purple-900/20' },

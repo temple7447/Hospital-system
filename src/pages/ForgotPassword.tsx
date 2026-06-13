@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hospital, Mail, ArrowLeft, CheckCircle2, AlertCircle, Loader2, KeyRound,
 } from 'lucide-react';
+import { forgotPassword } from '@/lib/services';
+
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,10 +18,14 @@ const ForgotPassword: React.FC = () => {
     const q = email.trim().toLowerCase();
     if (!q) return;
     setLoading(true);
-    // Demo mode: simulate password reset email
-    await new Promise(r => setTimeout(r, 1200));
-    setSent(true);
-    setLoading(false);
+    try {
+      await forgotPassword(q);
+      setSent(true);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -79,9 +85,9 @@ const ForgotPassword: React.FC = () => {
                 </button>
               </form>
 
-              <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-100 dark:border-amber-900/30">
-                <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                  Demo mode: password resets are simulated. Your email must exist in the system for the confirmation to appear.
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-900/30">
+                <p className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                  Use the email address linked to your staff account. Contact your system administrator if you do not have one registered.
                 </p>
               </div>
             </motion.div>

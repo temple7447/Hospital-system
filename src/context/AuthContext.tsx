@@ -28,19 +28,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const user = await getMe();
           setState({ user, isAuthenticated: true, isLoading: false });
-          syncAll();
+          syncAll().catch(() => {});
           return;
         } catch {
           setToken('');
+          localStorage.removeItem(KEYS.USER);
         }
       }
 
-      const storedUser = localStorage.getItem(KEYS.USER);
-      if (storedUser) {
-        setState({ user: JSON.parse(storedUser), isAuthenticated: true, isLoading: false });
-      } else {
-        setState(prev => ({ ...prev, isLoading: false }));
-      }
+      setState(prev => ({ ...prev, isLoading: false }));
     };
     init();
   }, []);

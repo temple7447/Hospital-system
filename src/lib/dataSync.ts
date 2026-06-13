@@ -65,7 +65,7 @@ async function syncStaff(): Promise<void> {
 }
 
 async function syncDepartments(): Promise<void> {
-  const departments = await listDepartments();
+  const departments = await listDepartments({ onlyActive: true });
   setAll<Department>(KEYS.DEPARTMENTS, departments);
 }
 
