@@ -13,6 +13,7 @@ const STATUS_CFG: Record<PrescriptionStatus, { label: string; bg: string; text: 
   active:    { label: 'Active',    bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600', icon: CheckCircle2 },
   completed: { label: 'Completed', bg: 'bg-slate-100 dark:bg-slate-800',       text: 'text-slate-500',   icon: Clock },
   cancelled: { label: 'Cancelled', bg: 'bg-red-50 dark:bg-red-900/20',         text: 'text-red-500',     icon: XCircle },
+  dispensed: { label: 'Dispensed', bg: 'bg-blue-50 dark:bg-blue-900/20',       text: 'text-blue-600',    icon: CheckCircle2 },
 };
 
 function fmtDate(d: string) {

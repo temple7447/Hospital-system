@@ -7,17 +7,17 @@ import type {
 
 // ─── Departments ──────────────────────────────────────────────────────────────
 const departments: Department[] = [
-  { id: 'dept-1', name: 'Cardiology',      description: 'Heart and cardiovascular care',       headDoctorId: 'staff-2', floor: '3rd', totalBeds: 30, availableBeds: 8,  color: '#ef4444', icon: 'heart' },
-  { id: 'dept-2', name: 'Neurology',       description: 'Brain and nervous system disorders',  headDoctorId: 'staff-3', floor: '4th', totalBeds: 25, availableBeds: 6,  color: '#8b5cf6', icon: 'brain' },
-  { id: 'dept-3', name: 'Pediatrics',      description: 'Healthcare for infants and children', headDoctorId: 'staff-4', floor: '2nd', totalBeds: 35, availableBeds: 14, color: '#10b981', icon: 'baby' },
-  { id: 'dept-4', name: 'Orthopedics',     description: 'Bone, joint and muscle treatment',    headDoctorId: 'staff-5', floor: '3rd', totalBeds: 20, availableBeds: 5,  color: '#f59e0b', icon: 'bone' },
-  { id: 'dept-5', name: 'Emergency',       description: '24/7 emergency and trauma care',      headDoctorId: 'staff-6', floor: '1st', totalBeds: 40, availableBeds: 12, color: '#dc2626', icon: 'zap' },
-  { id: 'dept-6', name: 'General Medicine',description: 'Primary and general healthcare',      headDoctorId: 'staff-7', floor: '2nd', totalBeds: 50, availableBeds: 20, color: '#3b82f6', icon: 'stethoscope' },
-  { id: 'dept-7', name: 'Gynecology',      description: 'Women\'s reproductive health',        headDoctorId: 'staff-8', floor: '4th', totalBeds: 28, availableBeds: 9,  color: '#ec4899', icon: 'heart' },
-  { id: 'dept-8', name: 'Dermatology',     description: 'Skin, hair and nail conditions',      headDoctorId: 'staff-9', floor: '2nd', totalBeds: 15, availableBeds: 7,  color: '#14b8a6', icon: 'sparkles' },
-  { id: 'dept-9', name: 'Pharmacy',        description: 'Medication dispensing and management', headDoctorId: undefined, floor: '1st', totalBeds: 0,  availableBeds: 0,  color: '#0891b2', icon: 'pill' },
-  { id: 'dept-10', name: 'Laboratory',     description: 'Pathology, blood work and diagnostics', headDoctorId: undefined, floor: '1st', totalBeds: 0, availableBeds: 0,  color: '#84cc16', icon: 'flask' },
-  { id: 'dept-11', name: 'Radiology',      description: 'Imaging services — X-ray, MRI, CT, ultrasound', headDoctorId: undefined, floor: '1st', totalBeds: 0, availableBeds: 0, color: '#6366f1', icon: 'scan' },
+  { id: 'dept-1', name: 'Cardiology',      description: 'Heart and cardiovascular care',       headDoctorId: 'staff-2', floor: '3rd', totalBeds: 30, availableBeds: 8,  color: '#ef4444', icon: 'heart', isActive: true },
+  { id: 'dept-2', name: 'Neurology',       description: 'Brain and nervous system disorders',  headDoctorId: 'staff-3', floor: '4th', totalBeds: 25, availableBeds: 6,  color: '#8b5cf6', icon: 'brain', isActive: true },
+  { id: 'dept-3', name: 'Pediatrics',      description: 'Healthcare for infants and children', headDoctorId: 'staff-4', floor: '2nd', totalBeds: 35, availableBeds: 14, color: '#10b981', icon: 'baby', isActive: true },
+  { id: 'dept-4', name: 'Orthopedics',     description: 'Bone, joint and muscle treatment',    headDoctorId: 'staff-5', floor: '3rd', totalBeds: 20, availableBeds: 5,  color: '#f59e0b', icon: 'bone', isActive: true },
+  { id: 'dept-5', name: 'Emergency',       description: '24/7 emergency and trauma care',      headDoctorId: 'staff-6', floor: '1st', totalBeds: 40, availableBeds: 12, color: '#dc2626', icon: 'zap', isActive: true },
+  { id: 'dept-6', name: 'General Medicine',description: 'Primary and general healthcare',      headDoctorId: 'staff-7', floor: '2nd', totalBeds: 50, availableBeds: 20, color: '#3b82f6', icon: 'stethoscope', isActive: true },
+  { id: 'dept-7', name: 'Gynecology',      description: 'Women\'s reproductive health',        headDoctorId: 'staff-8', floor: '4th', totalBeds: 28, availableBeds: 9,  color: '#ec4899', icon: 'heart', isActive: true },
+  { id: 'dept-8', name: 'Dermatology',     description: 'Skin, hair and nail conditions',      headDoctorId: 'staff-9', floor: '2nd', totalBeds: 15, availableBeds: 7,  color: '#14b8a6', icon: 'sparkles', isActive: true },
+  { id: 'dept-9', name: 'Pharmacy',        description: 'Medication dispensing and management', headDoctorId: undefined, floor: '1st', totalBeds: 0,  availableBeds: 0,  color: '#0891b2', icon: 'pill', isActive: true },
+  { id: 'dept-10', name: 'Laboratory',     description: 'Pathology, blood work and diagnostics', headDoctorId: undefined, floor: '1st', totalBeds: 0, availableBeds: 0,  color: '#84cc16', icon: 'flask', isActive: true },
+  { id: 'dept-11', name: 'Radiology',      description: 'Imaging services — X-ray, MRI, CT, ultrasound', headDoctorId: undefined, floor: '1st', totalBeds: 0, availableBeds: 0, color: '#6366f1', icon: 'scan', isActive: true },
 ];
 
 // ─── Staff ────────────────────────────────────────────────────────────────────

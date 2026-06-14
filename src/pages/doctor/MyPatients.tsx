@@ -65,7 +65,7 @@ const MyPatients: React.FC = () => {
 
   const visitCount = (pid: string) => apts.filter(a => a.patientId === pid).length;
   const rxCount   = (pid: string) => prescriptions.filter(rx => rx.patientId === pid && rx.status === 'active').length;
-  const labCount  = (pid: string) => labOrders.filter(l => l.patientId === pid && l.status === 'pending').length;
+  const labCount  = (pid: string) => labOrders.filter(l => l.patientId === pid && (l.status === 'ordered' || l.status === 'collected' || l.status === 'processing')).length;
 
   return (
     <div className="space-y-8">

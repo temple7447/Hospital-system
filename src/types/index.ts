@@ -1,5 +1,5 @@
 // ─── Auth ────────────────────────────────────────────────────────────────────
-export type Role = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'PATIENT' | 'NURSE' | 'PHARMACIST' | 'LAB_TECHNICIAN' | 'RADIOLOGIST';
+export type Role = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'PATIENT' | 'NURSE' | 'PHARMACIST' | 'LAB_TECHNICIAN' | 'LAB_SCIENTIST' | 'RADIOLOGIST';
 
 export interface AuthUser {
   id: string;         // matches staff.id or patient.id
@@ -150,12 +150,29 @@ export interface Prescription {
 export type LabTestStatus = 'ordered' | 'collected' | 'processing' | 'completed' | 'cancelled';
 export type ResultFlag = 'normal' | 'abnormal' | 'critical';
 
+// Legacy flat result (kept for mapper backward-compat)
 export interface LabResult {
   testName: string;
   value: string;
   unit: string;
   referenceRange: string;
   flag: ResultFlag;
+}
+
+// New: one row inside a test result section
+export interface LabResultField {
+  name: string;          // e.g. "WBC", "Haemoglobin"
+  value: string;
+  unit: string;
+  referenceRange: string;
+  flag: ResultFlag;
+}
+
+// New: one test with multiple dynamic fields
+export interface LabTestResult {
+  testName: string;      // e.g. "Full Blood Count"
+  fields: LabResultField[];
+  notes?: string;        // interpretation for this specific test
 }
 
 export interface LabOrder {
@@ -165,7 +182,7 @@ export interface LabOrder {
   doctorId: string;
   appointmentId?: string;
   tests: string[];
-  results?: LabResult[];
+  results?: LabTestResult[];
   status: LabTestStatus;
   priority: 'routine' | 'urgent' | 'stat';
   category?: 'lab' | 'radiology';

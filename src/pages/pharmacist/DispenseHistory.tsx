@@ -77,7 +77,7 @@ const DispenseHistory: React.FC = () => {
           {filtered.map(rx => {
             const patient = patients.find(p => p.id === rx.patientId);
             const doctor  = staff.find(s => s.userId === rx.doctorId || s.id === rx.doctorId);
-            const dispenser = rx.dispensedBy ? staff.find(s => s.id === rx.dispensedBy) : null;
+            const dispenser = rx.dispensedBy ? staff.find(s => s.userId === rx.dispensedBy || s.id === rx.dispensedBy) : null;
             return (
               <div key={rx.id} className="glass-card rounded-md p-4 flex items-center gap-4">
                 <div className="w-11 h-11 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center shrink-0">

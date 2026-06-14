@@ -261,20 +261,20 @@ const Appointments: React.FC = () => {
     return { firstDay, daysInMonth, year, month };
   }, [calendarDate]);
 
-  const aptsOnCalendarDate = useMemo(() => {
-    const dateStr = (d: number) => {
-      const y = calendarDays.year;
-      const m = (calendarDays.month + 1).toString().padStart(2, '0');
-      const day = d.toString().padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    };
+  const calendarMap = useMemo(() => {
     const map: Record<string, number> = {};
     appointments.forEach(a => {
-      const d = a.date;
-      map[d] = (map[d] || 0) + 1;
+      map[a.date] = (map[a.date] || 0) + 1;
     });
-    return (day: number) => map[aptsOnCalendarDate ? aptsOnCalendarDate : dateStr(day)] || map[dateStr(day)] || 0;
-  }, [appointments, calendarDays]);
+    return map;
+  }, [appointments]);
+
+  const getAptCount = (day: number) => {
+    const y = calendarDays.year;
+    const m = (calendarDays.month + 1).toString().padStart(2, '0');
+    const d = day.toString().padStart(2, '0');
+    return calendarMap[`${y}-${m}-${d}`] || 0;
+  };
 
   const handleStatusChange = async (apt: Appointment, newStatus: AppointmentStatus) => {
     await updateAppointment(apt.id, { status: newStatus });
@@ -601,7 +601,7 @@ const Appointments: React.FC = () => {
               {Array.from({ length: calendarDays.daysInMonth }).map((_, i) => {
                 const day = i + 1;
                 const dateStr = `${calendarDays.year}-${(calendarDays.month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                const count = aptsOnCalendarDate(day);
+                const count = getAptCount(day);
                 const isToday = dateStr === today;
                 return (
                   <button

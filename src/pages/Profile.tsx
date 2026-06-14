@@ -289,7 +289,7 @@ const Profile: React.FC = () => {
       } else {
         await updateStaff(user.id, data as Partial<Staff>);
       }
-      setRecord(prev => prev ? { ...prev, ...data } : prev);
+      setRecord(prev => prev ? { ...prev, ...data } as Staff | Patient : prev);
       setMode('view');
       toast.success('Profile updated successfully');
     } catch {

@@ -3,7 +3,8 @@ import type {
   Patient, BloodType, Appointment, Prescription, PrescriptionItem, VitalRecord,
   AppointmentStatus, PrescriptionStatus, TriageLevel,
   Staff, StaffRole, StaffStatus, WeekDay,
-  Department, Room, LabOrder, LabResult, Invoice, InvoiceItem, PaymentMethod,
+  Department, Room, LabOrder, LabResult, LabResultField, LabTestResult, ResultFlag,
+  Invoice, InvoiceItem, PaymentMethod,
   InventoryItem, ConsultationNote, QueueEntry, NursingTask, Notification,
   Admission, AdmissionStatus,
 } from '@/types';
@@ -42,6 +43,7 @@ export const ROLE_MAP: Record<string, Role> = {
   // Pharmacy
   pharmacist: 'PHARMACIST', pharmacy_technician: 'PHARMACIST',
   // Lab & Diagnostics
+  lab_scientist: 'LAB_SCIENTIST',
   lab_technician: 'LAB_TECHNICIAN', radiologic_technologist: 'LAB_TECHNICIAN',
   phlebotomist: 'LAB_TECHNICIAN', ecg_technician: 'LAB_TECHNICIAN',
   sonographer: 'LAB_TECHNICIAN', surgical_technologist: 'LAB_TECHNICIAN',
@@ -605,9 +607,32 @@ export interface BackendLabOrder {
   doctor_name?: string;
 }
 
+function normalizeLabResults(raw: string | null): LabTestResult[] | undefined {
+  if (!raw) return undefined;
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { return undefined; }
+  // Handle double-encoded string (legacy bug)
+  if (typeof parsed === 'string') {
+    try { parsed = JSON.parse(parsed); } catch { return undefined; }
+  }
+  if (!Array.isArray(parsed)) return undefined;
+  const arr = parsed as unknown[];
+  if (arr.length === 0) return [];
+  const first = arr[0] as Record<string, unknown>;
+  // New format: [{testName, fields:[...], notes?}]
+  if (Array.isArray(first?.fields)) return arr as LabTestResult[];
+  // Old flat format: [{testName, value, unit, referenceRange, flag}]
+  if (typeof first?.testName === 'string' && 'value' in first) {
+    return (arr as LabResult[]).map(r => ({
+      testName: r.testName,
+      fields: [{ name: 'Result', value: r.value ?? '', unit: r.unit ?? '', referenceRange: r.referenceRange ?? '', flag: (r.flag ?? 'normal') as ResultFlag }],
+    }));
+  }
+  return undefined;
+}
+
 export function mapBackendLabOrder(l: BackendLabOrder): LabOrder {
   let tests: string[] = [];
-  let results: LabResult[] | undefined;
   try {
     const parsed = JSON.parse(l.tests);
     tests = Array.isArray(parsed)
@@ -616,19 +641,7 @@ export function mapBackendLabOrder(l: BackendLabOrder): LabOrder {
         )
       : [l.tests];
   } catch { tests = [l.tests]; }
-  try {
-    if (l.results) {
-      const parsed = JSON.parse(l.results);
-      if (Array.isArray(parsed)) {
-        results = parsed.map((r: LabResult) => ({
-          ...r,
-          testName: typeof r.testName === 'string'
-            ? r.testName
-            : (r.testName as unknown as { name?: string })?.name ?? String(r.testName),
-        }));
-      }
-    }
-  } catch { /* ignore */ }
+  const results = normalizeLabResults(l.results);
 
   return {
     id: l.id,
@@ -654,7 +667,7 @@ export function toBackendLabOrder(data: Partial<LabOrder>): Record<string, unkno
   if (data.doctorId !== undefined) r.doctor_id = data.doctorId;
   if (data.appointmentId !== undefined) r.appointment_id = data.appointmentId || null;
   if (data.tests !== undefined) r.tests = JSON.stringify(data.tests);
-  if (data.results !== undefined) r.results = JSON.stringify(data.results);
+  if (data.results !== undefined) r.results = data.results; // backend stringifies once
   if (data.status !== undefined) r.status = data.status;
   if (data.priority !== undefined) r.priority = data.priority;
   if (data.category !== undefined) r.category = data.category;

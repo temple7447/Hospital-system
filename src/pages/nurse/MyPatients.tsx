@@ -29,7 +29,7 @@ const NurseMyPatients: React.FC = () => {
       listNursingTasks({ nurse_id: user.id }),
       listVitals(),
     ]).then(([allPatients, staffList, apts, nurseTasks, allVitals]) => {
-      const nurse = staffList.find(s => s.id === user.id);
+      const nurse = staffList.find(s => s.userId === user.id || s.id === user.id);
       let filtered = allPatients;
       if (nurse?.departmentId) {
         const deptPatientIds = new Set(

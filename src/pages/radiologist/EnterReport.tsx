@@ -4,7 +4,9 @@ import { toast } from 'sonner';
 import { ScanLine, Save, ArrowLeft, AlertTriangle, Loader2, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
+import { getToken } from '@/lib/api';
 import { getLabOrder, updateLabOrder, getPatient, getStaff } from '@/lib/services';
+import { db } from '@/lib/db';
 import type { LabOrder, LabResult, ResultFlag, Patient, Staff } from '@/types';
 
 const FLAG_CFG: Record<ResultFlag, { color: string; label: string }> = {
@@ -36,21 +38,33 @@ const EnterReport: React.FC = () => {
 
   useEffect(() => {
     if (!orderId) { setNotFound(true); setLoading(false); return; }
-    getLabOrder(orderId)
-      .then(async o => {
+
+    async function load() {
+      try {
+        let o: LabOrder | undefined;
+        if (getToken()) {
+          o = await getLabOrder(orderId);
+        } else {
+          o = db.labOrders.getById(orderId);
+        }
+        if (!o) { setNotFound(true); return; }
         setOrder(o);
         setResults(o.tests.map(t => ({
           testName: t, value: '', unit: '', referenceRange: 'Normal', flag: 'normal' as ResultFlag,
         })));
         const [pt, dr] = await Promise.all([
-          getPatient(o.patientId).catch(() => null),
-          getStaff(o.doctorId).catch(() => null),
+          getPatient(o.patientId).catch(() => db.patients.getById(o!.patientId)),
+          getStaff(o.doctorId).catch(() => db.staff.getById(o!.doctorId)),
         ]);
-        setPatient(pt);
-        setDoctor(dr);
-      })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
+        setPatient(pt || null);
+        setDoctor(dr || null);
+      } catch {
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, [orderId]);
 
   if (loading) return (

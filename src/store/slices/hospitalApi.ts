@@ -47,7 +47,7 @@ export const hospitalApi = createApi({
     'Patient', 'Appointment', 'Prescription', 'Vital',
     'Staff', 'Department', 'Room', 'LabOrder', 'Invoice',
     'Inventory', 'NursingTask', 'ConsultationNote', 'Queue',
-    'Notification', 'Stats',
+    'Notification', 'Stats', 'User',
   ],
   endpoints: (builder) => ({
 
@@ -55,7 +55,7 @@ export const hospitalApi = createApi({
     getMe: builder.query<User, void>({
       query: () => '/auth/me',
       transformResponse: (raw: BackendUser) => mapBackendUser(raw),
-      providesTags: ['Stats'],
+      providesTags: ['User'],
     }),
 
     // ─── Stats ──────────────────────────────────────────────────────────────────
@@ -83,8 +83,8 @@ export const hospitalApi = createApi({
     }),
     getNurseStats: builder.query<NurseStats, void>({
       query: () => '/stats/nurse',
-      transformResponse: (d: { tasks_today: number; tasks_completed: number; vitals_recorded_today: number }): NurseStats => ({
-        myPatients: 0, tasksToday: d.tasks_today, tasksCompleted: d.tasks_completed, vitalsRecordedToday: d.vitals_recorded_today,
+      transformResponse: (d: { my_patients: number; tasks_today: number; tasks_completed: number; vitals_recorded_today: number }): NurseStats => ({
+        myPatients: d.my_patients, tasksToday: d.tasks_today, tasksCompleted: d.tasks_completed, vitalsRecordedToday: d.vitals_recorded_today,
       }),
       providesTags: ['Stats'],
     }),

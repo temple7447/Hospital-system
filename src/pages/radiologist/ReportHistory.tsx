@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ScanLine, Search, CheckCircle2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { getToken } from '@/lib/api';
 import { listLabOrders, listPatients, listStaff } from '@/lib/services';
+import { db } from '@/lib/db';
 import type { LabOrder, Patient, Staff, ResultFlag } from '@/types';
 
 const FLAG_CFG: Record<ResultFlag, string> = {
@@ -24,19 +26,33 @@ const ReportHistory: React.FC = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      listLabOrders({ category: 'radiology', status: 'completed' }),
-      listPatients(),
-      listStaff(),
-    ]).then(([labOrders, pts, st]) => {
-      const completed = labOrders
-        .filter(o => isImagingOrder(o) && o.status === 'completed')
-        .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
-      setReports(completed);
-      setPatients(pts);
-      setStaff(st);
-    }).catch(() => {});
+    if (getToken()) {
+      Promise.all([
+        listLabOrders({ category: 'radiology', status: 'completed' }),
+        listPatients(),
+        listStaff(),
+      ]).then(([labOrders, pts, st]) => {
+        const completed = labOrders
+          .filter(o => isImagingOrder(o) && o.status === 'completed')
+          .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+        setReports(completed);
+        setPatients(pts);
+        setStaff(st);
+      }).catch(() => loadLocal());
+    } else {
+      loadLocal();
+    }
   }, []);
+
+  function loadLocal() {
+    const all = db.labOrders.getAll();
+    const completed = all
+      .filter(o => isImagingOrder(o) && o.status === 'completed')
+      .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+    setReports(completed);
+    setPatients(db.patients.getAll());
+    setStaff(db.staff.getAll());
+  }
 
   const filtered = useMemo(() => {
     if (!search) return reports;
@@ -72,7 +88,7 @@ const ReportHistory: React.FC = () => {
         <div className="space-y-3">
           {filtered.map(o => {
             const patient = patients.find(p => p.id === o.patientId);
-            const radiologist = o.processedBy ? staff.find(s => s.id === o.processedBy) : null;
+            const radiologist = o.processedBy ? staff.find(s => s.userId === o.processedBy || s.id === o.processedBy) : null;
             const isExpanded = expanded === o.id;
             const hasAbnormal = Array.isArray(o.results) && o.results.some(r => r.flag !== 'normal');
 

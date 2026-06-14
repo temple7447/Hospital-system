@@ -197,7 +197,7 @@ const AdminDashboard: React.FC = () => {
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }}
                   tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
-                  formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']}
+                  formatter={(v) => [`$${Number(v ?? 0).toLocaleString()}`, 'Revenue']}
                   contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', fontSize: 12 }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#adminRev)" />

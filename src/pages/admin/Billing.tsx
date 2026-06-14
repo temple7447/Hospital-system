@@ -632,7 +632,7 @@ const AdminBilling: React.FC = () => {
             <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
             <Tooltip
               contentStyle={{ background: 'var(--tooltip-bg, #1e293b)', border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 700 }}
-              formatter={(v: number) => [fmtMoney(v), 'Revenue']}
+              formatter={(v) => [fmtMoney(Number(v ?? 0)), 'Revenue']}
             />
             <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fill="url(#revenueGrad)" dot={{ fill: '#10b981', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
           </AreaChart>

@@ -40,8 +40,8 @@ interface ResultCardProps {
 
 const ResultCard: React.FC<ResultCardProps> = ({ order, doctor, expanded, onToggle }) => {
   const cfg = STATUS_CFG[order.status];
-  const hasCritical = order.results?.some(r => r.flag === 'critical');
-  const hasAbnormal = order.results?.some(r => r.flag === 'abnormal');
+  const hasCritical = order.results?.some(t => t.fields?.some(f => f.flag === 'critical'));
+  const hasAbnormal = order.results?.some(t => t.fields?.some(f => f.flag === 'abnormal'));
 
   return (
     <div className={cn('glass-card rounded-lg overflow-hidden', hasCritical && 'ring-2 ring-red-400/50')}>
@@ -123,35 +123,44 @@ const ResultCard: React.FC<ResultCardProps> = ({ order, doctor, expanded, onTogg
 
               {/* Results */}
               {order.status === 'completed' && order.results && order.results.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Results</p>
-                  {order.results.map((r, i) => {
-                    const fc = FLAG_CFG[r.flag];
-                    return (
-                      <div key={i} className={cn('flex items-center justify-between p-4 rounded-md', fc.bg)}>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <div className={cn('w-2 h-2 rounded-full shrink-0', fc.dot)} />
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white">{r.testName}</p>
-                          </div>
-                          {r.referenceRange && (
-                            <p className="text-xs text-slate-400 font-medium ml-4 mt-0.5">
-                              Reference: {r.referenceRange}{r.unit ? ` ${r.unit}` : ''}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-lg font-semibold text-slate-900 dark:text-white">
-                            {r.value}
-                            {r.unit && <span className="text-sm font-bold text-slate-400 ml-1">{r.unit}</span>}
-                          </span>
-                          <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', fc.bg, fc.text)}>
-                            {fc.label}
-                          </span>
-                        </div>
+                  {order.results.map((t, ti) => (
+                    <div key={ti}>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">{t.testName}</p>
+                      <div className="space-y-1.5">
+                        {t.fields?.map((f, fi) => {
+                          const fc = FLAG_CFG[f.flag];
+                          return (
+                            <div key={fi} className={cn('flex items-center justify-between p-3 rounded-md', fc.bg)}>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <div className={cn('w-2 h-2 rounded-full shrink-0', fc.dot)} />
+                                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{f.name}</p>
+                                </div>
+                                {f.referenceRange && (
+                                  <p className="text-xs text-slate-400 font-medium ml-4 mt-0.5">
+                                    Ref: {f.referenceRange}{f.unit ? ` ${f.unit}` : ''}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                  {f.value}{f.unit && <span className="text-xs font-bold text-slate-400 ml-1">{f.unit}</span>}
+                                </span>
+                                <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', fc.bg, fc.text)}>
+                                  {fc.label}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                      {t.notes && (
+                        <p className="text-[11px] text-slate-500 italic mt-1.5 px-1">{t.notes}</p>
+                      )}
+                    </div>
+                  ))}
 
                   {hasCritical && (
                     <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800">
@@ -207,7 +216,7 @@ const LabResults: React.FC = () => {
     total: orders.length,
     pending: orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length,
     completed: orders.filter(o => o.status === 'completed').length,
-    critical: orders.filter(o => o.results?.some(r => r.flag === 'critical')).length,
+    critical: orders.filter(o => o.results?.some(t => t.fields?.some(f => f.flag === 'critical'))).length,
   }), [orders]);
 
   const filtered = useMemo(() => {

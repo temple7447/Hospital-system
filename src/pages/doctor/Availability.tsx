@@ -35,7 +35,7 @@ const Availability: React.FC = () => {
   useEffect(() => {
     if (!user) return;
     listStaff().then(staffList => {
-      const s = staffList.find(st => st.id === user.id) ?? null;
+      const s = staffList.find(st => st.userId === user.id || st.id === user.id) ?? null;
       if (s) {
         setStaff(s);
         setWorkingDays(new Set(s.workingDays));

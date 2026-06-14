@@ -29,7 +29,7 @@ const Reports: React.FC = () => {
       listPatients({ limit: 1000 }),
       listInvoices({ limit: 1000 }),
       listStaff(),
-      listDepartments(),
+      listDepartments({ onlyActive: true }),
     ]).then(([apts, pats, invs, st, depts]) => {
       setAppointments(apts);
       setPatients(pats);
@@ -94,7 +94,7 @@ const Reports: React.FC = () => {
     const CATEGORY_COLORS: Record<string, string> = {
       ADMIN: '#8b5cf6', DOCTOR: '#3b82f6', NURSE: '#ec4899',
       RECEPTIONIST: '#10b981', PHARMACIST: '#f59e0b',
-      LAB_TECHNICIAN: '#06b6d4', RADIOLOGIST: '#6366f1', PATIENT: '#94a3b8',
+      LAB_TECHNICIAN: '#06b6d4', LAB_SCIENTIST: '#0891b2', RADIOLOGIST: '#6366f1', PATIENT: '#94a3b8',
     };
     const counts: Record<string, number> = {};
     staffList.forEach(s => {
@@ -245,7 +245,7 @@ const Reports: React.FC = () => {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }}
                   tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']}
+                <Tooltip formatter={(v) => [`$${Number(v ?? 0).toLocaleString()}`, 'Revenue']}
                   contentStyle={{ borderRadius: 12, border: 'none', fontSize: 11, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                 <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2.5}
                   fill="url(#revGrad)" dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 6 }} />

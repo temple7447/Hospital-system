@@ -203,7 +203,7 @@ const HealthSummary: React.FC = () => {
                         <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
                         <Tooltip
-                          formatter={(v: number) => [`${v} ${c.unit}`, c.title]}
+                          formatter={(v) => [`${Number(v ?? 0)} ${c.unit}`, c.title]}
                           contentStyle={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 12, border: 'none', fontSize: 11, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                         />
                         <ReferenceLine y={c.refLow}  stroke="#10b981" strokeDasharray="4 4" strokeWidth={1} />

@@ -16,6 +16,10 @@ export async function getMe(): Promise<User> {
   return mapBackendUser(data);
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await api.post('/auth/forgot-password', { email });
+}
+
 export function logout(): void {
   clearToken();
   localStorage.removeItem('hospital_user');

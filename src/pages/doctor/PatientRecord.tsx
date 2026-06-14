@@ -264,7 +264,10 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
               { key: 'objective',   label: 'O — Objective',   placeholder: 'Examination findings, test results, observations...' },
               { key: 'assessment',  label: 'A — Assessment',  placeholder: 'Diagnosis or differential diagnoses...', required: true },
               { key: 'plan',        label: 'P — Plan',        placeholder: 'Treatment plan, medications, follow-up, referrals...' },
-            ] as const).map(({ key, label, placeholder, required }) => (
+            ] as const).map((item) => {
+              const { key, label, placeholder } = item;
+              const required = 'required' in item ? item.required : false;
+              return (
               <div key={key} className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   {label} {required && <span className="text-red-400">*</span>}
@@ -277,7 +280,8 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ open, patientId, doctorId, 
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm outline-none resize-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 dark:text-slate-300"
                 />
               </div>
-            ))}
+              );
+            })}
           </div>
           <div className="px-6 pb-6 flex gap-3 shrink-0">
             <button onClick={onClose} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-md text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
