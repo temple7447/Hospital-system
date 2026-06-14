@@ -5,7 +5,9 @@ import { toast } from 'sonner';
 import { ScanLine, Search, Clock, ChevronRight, Activity } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
+import { getToken } from '@/lib/api';
 import { listLabOrders, updateLabOrder, listPatients, listStaff } from '@/lib/services';
+import { db } from '@/lib/db';
 import type { LabOrder, LabTestStatus, Patient, Staff } from '@/types';
 
 const PRIORITY_CFG = {
@@ -30,20 +32,34 @@ const ImagingQueue: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LabTestStatus | 'all'>('all');
 
-  const load = useCallback(async () => {
-    try {
-      const [labOrders, pts, st] = await Promise.all([
-        listLabOrders({ category: 'radiology' }),
-        listPatients(),
-        listStaff(),
-      ]);
-      setOrders(labOrders);
-      setPatients(pts);
-      setStaff(st);
-    } catch {
-      // silently ignore
-    }
+  const loadFromApi = useCallback(async () => {
+    const [labOrders, pts, st] = await Promise.all([
+      listLabOrders({ category: 'radiology' }),
+      listPatients(),
+      listStaff(),
+    ]);
+    setOrders(labOrders);
+    setPatients(pts);
+    setStaff(st);
   }, []);
+
+  function loadLocal() {
+    setOrders(db.labOrders.getAll());
+    setPatients(db.patients.getAll());
+    setStaff(db.staff.getAll());
+  }
+
+  const load = useCallback(async () => {
+    if (getToken()) {
+      try {
+        await loadFromApi();
+      } catch {
+        loadLocal();
+      }
+    } else {
+      loadLocal();
+    }
+  }, [loadFromApi]);
 
   useEffect(() => { load(); }, [load]);
 

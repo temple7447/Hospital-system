@@ -60,6 +60,7 @@ const ROLE_META: Record<string, { icon: React.ComponentType<{ className?: string
   pharmacist:               { icon: Pill,        color: 'text-violet-600',   bg: 'bg-violet-50 dark:bg-violet-900/20',   label: 'Pharmacist' },
   pharmacy_technician:      { icon: Pill,        color: 'text-violet-600',   bg: 'bg-violet-50 dark:bg-violet-900/20',   label: 'Pharmacy Technician' },
   lab_technician:           { icon: FlaskConical,color: 'text-amber-600',    bg: 'bg-amber-50 dark:bg-amber-900/20',     label: 'Lab Technician' },
+  lab_scientist:            { icon: FlaskConical,color: 'text-amber-600',    bg: 'bg-amber-50 dark:bg-amber-900/20',     label: 'Lab Scientist' },
   radiologic_technologist:  { icon: RadioTower,  color: 'text-amber-600',    bg: 'bg-amber-50 dark:bg-amber-900/20',     label: 'Radiologic Technologist' },
   phlebotomist:             { icon: Syringe,     color: 'text-amber-600',    bg: 'bg-amber-50 dark:bg-amber-900/20',     label: 'Phlebotomist' },
   ecg_technician:           { icon: Activity,    color: 'text-amber-600',    bg: 'bg-amber-50 dark:bg-amber-900/20',     label: 'ECG Technician' },

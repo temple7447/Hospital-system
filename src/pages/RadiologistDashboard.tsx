@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ScanLine, AlertTriangle, CheckCircle2, Activity, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { useApi } from '@/hooks/useApi';
+import { getToken } from '@/lib/api';
 import {
   getRadiologistStats,
   listLabOrders,
   listPatients,
   listStaff,
 } from '@/lib/services';
-import type { LabOrder, Patient, Staff } from '@/types';
+import { db } from '@/lib/db';
+import type { LabOrder, Patient, Staff, RadiologistStats as RadiologistStatsType } from '@/types';
 
 const IMAGING_KEYWORDS = ['mri', 'x-ray', 'xray', 'ct ', 'ct scan', 'ultrasound', 'echo', 'scan', 'mammogram', 'fluoroscopy'];
 
@@ -32,16 +33,34 @@ const RadiologistDashboard: React.FC = () => {
   const [pending, setPending] = useState<LabOrder[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
-
-  const { data: stats } = useApi(getRadiologistStats);
+  const [stats, setStats] = useState<RadiologistStatsType | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    Promise.all([
-      listLabOrders({ category: 'radiology' }),
-      listPatients({ limit: 500 }),
-      listStaff({ limit: 500 }),
-    ]).then(([orders, patientList, staffList]) => {
+    if (getToken()) {
+      getRadiologistStats().then(setStats).catch(() => setStats(db.stats.radiologist()));
+    } else {
+      setStats(db.stats.radiologist());
+    }
+  }, [user]);
+
+  const loadOrders = useCallback(async () => {
+    try {
+      let orders: LabOrder[];
+      if (getToken()) {
+        const [labOrders, patientList, staffList] = await Promise.all([
+          listLabOrders({ category: 'radiology' }),
+          listPatients({ limit: 500 }),
+          listStaff({ limit: 500 }),
+        ]);
+        orders = labOrders;
+        setPatients(patientList);
+        setStaff(staffList);
+      } else {
+        orders = db.labOrders.getAll();
+        setPatients(db.patients.getAll());
+        setStaff(db.staff.getAll());
+      }
       const priorityOrder = { stat: 0, urgent: 1, routine: 2 } as const;
       const filtered = orders
         .filter(o => isImagingOrder(o))
@@ -49,10 +68,18 @@ const RadiologistDashboard: React.FC = () => {
         .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
         .slice(0, 6);
       setPending(filtered);
-      setPatients(patientList);
-      setStaff(staffList);
-    });
-  }, [user]);
+    } catch {
+      const all = db.labOrders.getAll();
+      setPending(all.filter(o => isImagingOrder(o) && o.status !== 'completed' && o.status !== 'cancelled').slice(0, 6));
+      setPatients(db.patients.getAll());
+      setStaff(db.staff.getAll());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    loadOrders();
+  }, [user, loadOrders]);
 
   if (!user) return null;
 

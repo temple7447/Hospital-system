@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
     return <PharmacistDashboard />;
   }
 
-  if (user?.role === 'LAB_TECHNICIAN') {
+  if (user?.role === 'LAB_TECHNICIAN' || user?.role === 'LAB_SCIENTIST') {
     return <LabTechDashboard />;
   }
 

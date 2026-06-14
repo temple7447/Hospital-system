@@ -35,9 +35,9 @@ export const PAGE_REGISTRY: PageDef[] = [
   { key: 'pharmacist_inventory',  label: 'Drug Inventory',      description: 'View and manage drug stock levels',      path: '/pharmacist/inventory',      roles: ['PHARMACIST'],                      group: 'Pharmacist' },
   { key: 'pharmacist_history',    label: 'Dispense History',    description: 'History of dispensed prescriptions',     path: '/pharmacist/history',        roles: ['PHARMACIST'],                      group: 'Pharmacist' },
   // Lab Technician
-  { key: 'lab_queue',             label: 'Order Queue',         description: 'Pending lab orders to process',          path: '/lab/queue',                 roles: ['LAB_TECHNICIAN'],                  group: 'Lab Technician' },
-  { key: 'lab_results',           label: 'Enter Results',       description: 'Enter results for completed lab tests',  path: '/lab/results',               roles: ['LAB_TECHNICIAN'],                  group: 'Lab Technician' },
-  { key: 'lab_completed',         label: 'Completed Orders',    description: 'History of completed lab orders',        path: '/lab/completed',             roles: ['LAB_TECHNICIAN'],                  group: 'Lab Technician' },
+  { key: 'lab_queue',             label: 'Order Queue',         description: 'Pending lab orders to process',          path: '/lab/queue',                 roles: ['LAB_TECHNICIAN', 'LAB_SCIENTIST'], group: 'Lab Technician' },
+  { key: 'lab_results',           label: 'Enter Results',       description: 'Enter results for completed lab tests',  path: '/lab/results',               roles: ['LAB_TECHNICIAN', 'LAB_SCIENTIST'], group: 'Lab Technician' },
+  { key: 'lab_completed',         label: 'Completed Orders',    description: 'History of completed lab orders',        path: '/lab/completed',             roles: ['LAB_TECHNICIAN', 'LAB_SCIENTIST'], group: 'Lab Technician' },
   // Radiologist
   { key: 'radiology_queue',       label: 'Imaging Queue',       description: 'Pending imaging orders',                 path: '/radiology/queue',           roles: ['RADIOLOGIST'],                     group: 'Radiologist' },
   { key: 'radiology_report',      label: 'Enter Report',        description: 'Write and submit radiology reports',     path: '/radiology/report',          roles: ['RADIOLOGIST'],                     group: 'Radiologist' },

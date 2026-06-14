@@ -21,6 +21,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   RECEPTIONIST:   'Reception & Admin Support',
   PHARMACIST:     'Pharmacy',
   LAB_TECHNICIAN: 'Laboratory & Diagnostics',
+  LAB_SCIENTIST:  'Laboratory & Diagnostics',
   RADIOLOGIST:    'Radiology',
   PATIENT:        'Patient Portal',
 };
@@ -97,6 +98,7 @@ const ROLE_GROUPS = [
     group: 'Laboratory & Diagnostics',
     roles: [
       { value: 'lab_technician',           label: 'Lab Technician / Medical Technologist' },
+      { value: 'lab_scientist',            label: 'Lab Scientist / Biomedical Scientist' },
       { value: 'radiologic_technologist',  label: 'Radiologic Technologist (X-ray / CT / MRI)' },
       { value: 'phlebotomist',             label: 'Phlebotomist' },
       { value: 'ecg_technician',           label: 'ECG Technician' },
@@ -172,6 +174,7 @@ const ROLE_CATEGORY_META: Record<string, { icon: React.ComponentType<{ className
   pharmacist:               { icon: Pill,        color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20' },
   pharmacy_technician:      { icon: Pill,        color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20' },
   lab_technician:           { icon: FlaskConical,color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  lab_scientist:            { icon: FlaskConical,color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
   radiologic_technologist:  { icon: RadioTower,  color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
   phlebotomist:             { icon: Syringe,     color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
   ecg_technician:           { icon: Activity,    color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20' },
@@ -209,14 +212,14 @@ const statusMeta: Record<string, { label: string; color: string; bg: string }> =
 const isDoctorRole = (role: string) => ROLE_MAP[role.toLowerCase()] === 'DOCTOR';
 
 const SPECIALIZATION_ROLES = new Set([
-  'radiologist','lab_technician','radiologic_technologist',
+  'radiologist','lab_technician','lab_scientist','radiologic_technologist',
   'nurse','nurse_practitioner','pharmacist','respiratory_therapist',
   'physical_therapist','occupational_therapist','speech_therapist',
 ]);
 
 const LICENSE_ROLES = new Set([
   'pharmacist','nurse','nurse_practitioner','midwife',
-  'radiologist','lab_technician','respiratory_therapist',
+  'radiologist','lab_technician','lab_scientist','respiratory_therapist',
   'physical_therapist','occupational_therapist','speech_therapist',
 ]);
 

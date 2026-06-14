@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ScanLine, Search, CheckCircle2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { getToken } from '@/lib/api';
 import { listLabOrders, listPatients, listStaff } from '@/lib/services';
+import { db } from '@/lib/db';
 import type { LabOrder, Patient, Staff, ResultFlag } from '@/types';
 
 const FLAG_CFG: Record<ResultFlag, string> = {
@@ -24,19 +26,33 @@ const ReportHistory: React.FC = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      listLabOrders({ category: 'radiology', status: 'completed' }),
-      listPatients(),
-      listStaff(),
-    ]).then(([labOrders, pts, st]) => {
-      const completed = labOrders
-        .filter(o => isImagingOrder(o) && o.status === 'completed')
-        .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
-      setReports(completed);
-      setPatients(pts);
-      setStaff(st);
-    }).catch(() => {});
+    if (getToken()) {
+      Promise.all([
+        listLabOrders({ category: 'radiology', status: 'completed' }),
+        listPatients(),
+        listStaff(),
+      ]).then(([labOrders, pts, st]) => {
+        const completed = labOrders
+          .filter(o => isImagingOrder(o) && o.status === 'completed')
+          .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+        setReports(completed);
+        setPatients(pts);
+        setStaff(st);
+      }).catch(() => loadLocal());
+    } else {
+      loadLocal();
+    }
   }, []);
+
+  function loadLocal() {
+    const all = db.labOrders.getAll();
+    const completed = all
+      .filter(o => isImagingOrder(o) && o.status === 'completed')
+      .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+    setReports(completed);
+    setPatients(db.patients.getAll());
+    setStaff(db.staff.getAll());
+  }
 
   const filtered = useMemo(() => {
     if (!search) return reports;

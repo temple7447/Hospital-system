@@ -94,7 +94,7 @@ const Reports: React.FC = () => {
     const CATEGORY_COLORS: Record<string, string> = {
       ADMIN: '#8b5cf6', DOCTOR: '#3b82f6', NURSE: '#ec4899',
       RECEPTIONIST: '#10b981', PHARMACIST: '#f59e0b',
-      LAB_TECHNICIAN: '#06b6d4', RADIOLOGIST: '#6366f1', PATIENT: '#94a3b8',
+      LAB_TECHNICIAN: '#06b6d4', LAB_SCIENTIST: '#0891b2', RADIOLOGIST: '#6366f1', PATIENT: '#94a3b8',
     };
     const counts: Record<string, number> = {};
     staffList.forEach(s => {

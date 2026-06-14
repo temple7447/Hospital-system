@@ -325,19 +325,19 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Lab Technician routes */}
+            {/* Lab routes (shared by LAB_TECHNICIAN + LAB_SCIENTIST) */}
             <Route path="/lab/queue" element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN']} pageKey="lab_queue">
+              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN', 'LAB_SCIENTIST']} pageKey="lab_queue">
                 <DashboardLayout><LabOrderQueue /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/lab/results" element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN']} pageKey="lab_results">
+              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN', 'LAB_SCIENTIST']} pageKey="lab_results">
                 <DashboardLayout><LabEnterResults /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/lab/completed" element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN']} pageKey="lab_completed">
+              <ProtectedRoute allowedRoles={['ADMIN', 'LAB_TECHNICIAN', 'LAB_SCIENTIST']} pageKey="lab_completed">
                 <DashboardLayout><LabCompletedOrders /></DashboardLayout>
               </ProtectedRoute>
             } />

@@ -13,6 +13,7 @@ const ROLE_GROUPS: { role: string; label: string; color: string }[] = [
   { role: 'RECEPTIONIST',  label: 'Receptionist',    color: 'purple' },
   { role: 'PHARMACIST',    label: 'Pharmacist',      color: 'amber'  },
   { role: 'LAB_TECHNICIAN',label: 'Lab Technician',  color: 'cyan'   },
+  { role: 'LAB_SCIENTIST', label: 'Lab Scientist',   color: 'cyan'   },
   { role: 'RADIOLOGIST',   label: 'Radiologist',     color: 'rose'   },
 ];
 

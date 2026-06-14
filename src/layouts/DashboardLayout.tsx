@@ -101,7 +101,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   };
 
   const menuItems: MenuItem[] = [
-    { icon: LayoutDashboard, label: 'Dashboard',        path: '/dashboard',               roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
+    { icon: LayoutDashboard, label: 'Dashboard',        path: '/dashboard',               roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'LAB_SCIENTIST', 'RADIOLOGIST'] },
     { icon: UserRound,       label: 'Patients',         path: '/patients',                roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],  pageKey: 'patients', group: 'Front Desk' },
     { icon: Calendar,        label: 'Appointments',     path: '/appointments',            roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE'], pageKey: 'appointments', group: 'Front Desk' },
     { icon: PlusCircle,      label: 'Book Appointment', path: '/patient/book',            roles: ['PATIENT'], group: 'My Health' },
@@ -124,11 +124,11 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { icon: Pill,            label: 'Rx Queue',         path: '/pharmacist/queue',        roles: ['PHARMACIST'],     pageKey: 'pharmacist_queue', group: 'Pharmacy' },
     { icon: Package,         label: 'Drug Inventory',   path: '/pharmacist/inventory',    roles: ['PHARMACIST'],     pageKey: 'pharmacist_inventory', group: 'Pharmacy' },
     { icon: History,         label: 'Dispense History', path: '/pharmacist/history',      roles: ['PHARMACIST'],     pageKey: 'pharmacist_history', group: 'Pharmacy' },
-    { icon: FlaskConical,    label: 'Order Queue',      path: '/lab/queue',               roles: ['LAB_TECHNICIAN'], pageKey: 'lab_queue', group: 'Laboratory' },
-    { icon: TestTube,        label: 'Completed Orders', path: '/lab/completed',           roles: ['LAB_TECHNICIAN'], pageKey: 'lab_completed', group: 'Laboratory' },
+    { icon: FlaskConical,    label: 'Order Queue',      path: '/lab/queue',               roles: ['LAB_TECHNICIAN', 'LAB_SCIENTIST'], pageKey: 'lab_queue', group: 'Laboratory' },
+    { icon: TestTube,        label: 'Completed Orders', path: '/lab/completed',           roles: ['LAB_TECHNICIAN', 'LAB_SCIENTIST'], pageKey: 'lab_completed', group: 'Laboratory' },
     { icon: ScanLine,        label: 'Imaging Queue',    path: '/radiology/queue',         roles: ['RADIOLOGIST'],    pageKey: 'radiology_queue', group: 'Radiology' },
     { icon: History,         label: 'Report History',   path: '/radiology/history',       roles: ['RADIOLOGIST'],    pageKey: 'radiology_history', group: 'Radiology' },
-    { icon: Bell,            label: 'Notifications',    path: '/notifications',           roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'] },
+    { icon: Bell,            label: 'Notifications',    path: '/notifications',           roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT', 'NURSE', 'PHARMACIST', 'LAB_TECHNICIAN', 'LAB_SCIENTIST', 'RADIOLOGIST'] },
     { icon: FileText,        label: 'Reports',          path: '/reports',                 roles: ['ADMIN', 'DOCTOR'], pageKey: 'reports' },
     { icon: UserPlus,        label: 'Register Patient', path: '/receptionist/register',   roles: ['ADMIN', 'RECEPTIONIST'], pageKey: 'receptionist_register', group: 'Front Desk' },
     { icon: UserCheck,       label: 'Check In',         path: '/receptionist/checkin',    roles: ['ADMIN', 'RECEPTIONIST'], pageKey: 'receptionist_checkin', group: 'Front Desk' },

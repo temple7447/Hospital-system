@@ -5,10 +5,15 @@ import { cn } from '@/utils/cn';
 import { listLabOrders, listPatients, listStaff } from '@/lib/services';
 import type { LabOrder, Patient, Staff, ResultFlag } from '@/types';
 
-const FLAG_CFG: Record<ResultFlag, string> = {
+const FLAG_COLOR: Record<ResultFlag, string> = {
   normal:   'text-emerald-600',
   abnormal: 'text-amber-600',
   critical: 'text-red-600',
+};
+const FLAG_BADGE: Record<ResultFlag, string> = {
+  normal:   'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20',
+  abnormal: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20',
+  critical: 'bg-red-50 text-red-600 dark:bg-red-900/20',
 };
 
 const IMAGING_CATEGORIES = ['radiology', 'imaging', 'xray', 'mri', 'ct', 'ultrasound'];
@@ -74,7 +79,7 @@ const CompletedOrders: React.FC = () => {
             const patient = patients.find(p => p.id === o.patientId);
             const tech = o.processedBy ? staff.find(s => s.userId === o.processedBy || s.id === o.processedBy) : null;
             const isExpanded = expanded === o.id;
-            const hasAbnormal = Array.isArray(o.results) && o.results.some(r => r.flag !== 'normal');
+            const hasAbnormal = Array.isArray(o.results) && o.results.some(t => t.fields?.some(f => f.flag !== 'normal'));
 
             return (
               <motion.div key={o.id} layout className="glass-card rounded-lg overflow-hidden">
@@ -103,22 +108,38 @@ const CompletedOrders: React.FC = () => {
 
                 {isExpanded && o.results && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                    className="px-4 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-2">
-                    {o.results.map((r, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                        <div>
-                          <p className="font-semibold text-sm text-slate-900 dark:text-white">{r.testName}</p>
-                          <p className="text-xs text-slate-400 font-medium">Reference: {r.referenceRange}</p>
+                    className="px-4 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
+                    {o.results.map((t, ti) => (
+                      <div key={ti}>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">{t.testName}</p>
+                        <div className="space-y-1.5">
+                          {t.fields?.map((f, fi) => (
+                            <div key={fi} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[12px] font-semibold text-slate-800 dark:text-white">{f.name}</p>
+                                {f.referenceRange && (
+                                  <p className="text-[10px] text-slate-400">Ref: {f.referenceRange}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <p className={cn('text-[13px] font-semibold', FLAG_COLOR[f.flag])}>
+                                  {f.value}{f.unit ? ` ${f.unit}` : ''}
+                                </p>
+                                <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide', FLAG_BADGE[f.flag])}>
+                                  {f.flag}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="text-right">
-                          <p className={cn('font-semibold text-sm', FLAG_CFG[r.flag])}>{r.value} {r.unit}</p>
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{r.flag}</p>
-                        </div>
+                        {t.notes && (
+                          <p className="text-[11px] text-slate-500 italic mt-1.5 px-1">{t.notes}</p>
+                        )}
                       </div>
                     ))}
                     {o.notes && (
                       <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
-                        <p className="text-[10px] font-semibold text-blue-600 uppercase mb-1">Notes</p>
+                        <p className="text-[10px] font-semibold text-blue-600 uppercase mb-1">Overall Notes</p>
                         <p className="text-sm text-slate-700 dark:text-slate-300">{o.notes}</p>
                       </div>
                     )}

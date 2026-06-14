@@ -11,7 +11,7 @@ import {
   listLabOrders, createLabOrder, updateLabOrder,
   listPatients, getPatient, listAppointments,
 } from '@/lib/services';
-import type { LabOrder, LabResult, LabTestStatus, Patient, Appointment, ResultFlag } from '@/types';
+import type { LabOrder, LabTestResult, LabTestStatus, Patient, Appointment, ResultFlag } from '@/types';
 import { toast } from 'sonner';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -338,32 +338,31 @@ interface ResultsModalProps {
   order: LabOrder | null;
   onClose: () => void;
   onSaved: () => void;
-  doctorId: string;
 }
 
-const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, doctorId }) => {
-  const [results, setResults] = useState<LabResult[]>([]);
+const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved }) => {
+  const [results, setResults] = useState<LabTestResult[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (order) {
       setResults(order.tests.map(t => ({
         testName: t,
-        value: '',
-        unit: '',
-        referenceRange: '',
-        flag: 'normal' as ResultFlag,
+        fields: [{ name: 'Result', value: '', unit: '', referenceRange: '', flag: 'normal' as ResultFlag }],
       })));
     }
   }, [order]);
 
   if (!order) return null;
 
-  const updateResult = (i: number, field: keyof LabResult, val: string) => {
-    setResults(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
+  const updateField = (ti: number, fi: number, key: string, val: string) => {
+    setResults(prev => prev.map((t, idx) => idx !== ti ? t : {
+      ...t,
+      fields: t.fields.map((f, fidx) => fidx !== fi ? f : { ...f, [key]: val }),
+    }));
   };
 
-  const canSave = results.every(r => r.value.trim() !== '');
+  const canSave = results.every(t => t.fields.every(f => f.value.trim() !== ''));
 
   const handleSave = async () => {
     setSaving(true);
@@ -390,7 +389,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, do
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => !saving && onClose()}>
           <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-lg  overflow-hidden max-h-[92vh] flex flex-col"
+            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-lg overflow-hidden max-h-[92vh] flex flex-col"
             onClick={e => e.stopPropagation()}>
 
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -403,41 +402,40 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ order, onClose, onSaved, do
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-              {/* Column headers */}
-              <div className="grid grid-cols-12 gap-2 px-1">
-                <div className="col-span-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Test</div>
-                <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Value</div>
-                <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Unit</div>
-                <div className="col-span-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Reference</div>
-                <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Flag</div>
-              </div>
-
-              {results.map((r, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
-                  <div className="col-span-3">
-                    <p className="text-xs font-semibold text-slate-900 dark:text-white leading-tight">{r.testName}</p>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+              {results.map((t, ti) => (
+                <div key={ti} className="space-y-2">
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t.testName}</p>
+                  <div className="grid grid-cols-12 gap-2 px-1 mb-1">
+                    <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Value</div>
+                    <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Unit</div>
+                    <div className="col-span-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Reference</div>
+                    <div className="col-span-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Flag</div>
                   </div>
-                  <input type="text" value={r.value} onChange={e => updateResult(i, 'value', e.target.value)}
-                    placeholder="e.g. 120"
-                    className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
-                  <input type="text" value={r.unit} onChange={e => updateResult(i, 'unit', e.target.value)}
-                    placeholder="e.g. mg/dL"
-                    className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
-                  <input type="text" value={r.referenceRange} onChange={e => updateResult(i, 'referenceRange', e.target.value)}
-                    placeholder="e.g. 70-100"
-                    className="col-span-3 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
-                  <select value={r.flag} onChange={e => updateResult(i, 'flag', e.target.value)}
-                    className={cn(
-                      'col-span-2 px-2 py-2 rounded-lg text-xs font-semibold outline-none cursor-pointer',
-                      r.flag === 'normal' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700'
-                        : r.flag === 'abnormal' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700'
-                        : 'bg-red-50 dark:bg-red-900/30 text-red-700'
-                    )}>
-                    <option value="normal">Normal</option>
-                    <option value="abnormal">Abnormal</option>
-                    <option value="critical">Critical</option>
-                  </select>
+                  {t.fields.map((f, fi) => (
+                    <div key={fi} className="grid grid-cols-12 gap-2 items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
+                      <input type="text" value={f.value} onChange={e => updateField(ti, fi, 'value', e.target.value)}
+                        placeholder="e.g. 120"
+                        className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-bold" />
+                      <input type="text" value={f.unit} onChange={e => updateField(ti, fi, 'unit', e.target.value)}
+                        placeholder="e.g. mg/dL"
+                        className="col-span-2 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      <input type="text" value={f.referenceRange} onChange={e => updateField(ti, fi, 'referenceRange', e.target.value)}
+                        placeholder="e.g. 70-100"
+                        className="col-span-4 px-3 py-2 bg-white dark:bg-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                      <select value={f.flag} onChange={e => updateField(ti, fi, 'flag', e.target.value)}
+                        className={cn(
+                          'col-span-2 px-2 py-2 rounded-lg text-xs font-semibold outline-none cursor-pointer',
+                          f.flag === 'normal' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700'
+                            : f.flag === 'abnormal' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700'
+                            : 'bg-red-50 dark:bg-red-900/30 text-red-700'
+                        )}>
+                        <option value="normal">Normal</option>
+                        <option value="abnormal">Abnormal</option>
+                        <option value="critical">Critical</option>
+                      </select>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -472,8 +470,8 @@ interface OrderCardProps {
 
 const OrderCard: React.FC<OrderCardProps> = ({ order, patient, expanded, onToggle, onAdvance, onEnterResults }) => {
   const cfg = STATUS_CFG[order.status];
-  const hasCritical = order.results?.some(r => r.flag === 'critical');
-  const hasAbnormal = order.results?.some(r => r.flag === 'abnormal');
+  const hasCritical = order.results?.some(t => t.fields?.some(f => f.flag === 'critical'));
+  const hasAbnormal = order.results?.some(t => t.fields?.some(f => f.flag === 'abnormal'));
 
   return (
     <div className="border border-slate-200 dark:border-slate-700/60 rounded-lg bg-white dark:bg-slate-900 overflow-hidden">
@@ -523,27 +521,35 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, patient, expanded, onToggl
 
               {/* Results table */}
               {order.results && order.results.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Results</p>
-                  <div className="space-y-1.5">
-                    {order.results.map((r, i) => {
-                      const fc = FLAG_CFG[r.flag];
-                      return (
-                        <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-slate-900 dark:text-white">{r.testName}</p>
-                            <p className="text-xs text-slate-400 font-medium mt-0.5">
-                              Ref: {r.referenceRange || '—'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{r.value} {r.unit}</span>
-                            <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', fc.bg, fc.text)}>{fc.label}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {order.results.map((t, ti) => (
+                    <div key={ti}>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t.testName}</p>
+                      <div className="space-y-1.5">
+                        {t.fields?.map((f, fi) => {
+                          const fc = FLAG_CFG[f.flag];
+                          return (
+                            <div key={fi} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-md">
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-slate-900 dark:text-white">{f.name}</p>
+                                {f.referenceRange && (
+                                  <p className="text-xs text-slate-400 font-medium mt-0.5">Ref: {f.referenceRange}{f.unit ? ` ${f.unit}` : ''}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                  {f.value}{f.unit && <span className="text-xs font-bold text-slate-400 ml-1">{f.unit}</span>}
+                                </span>
+                                <span className={cn('px-2 py-0.5 rounded-lg text-[10px] font-semibold uppercase', fc.bg, fc.text)}>{fc.label}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {t.notes && <p className="text-[11px] text-slate-500 italic mt-1 px-1">{t.notes}</p>}
+                    </div>
+                  ))}
                   {order.completedAt && (
                     <p className="text-[10px] text-slate-400 font-bold">Completed {fmtDate(order.completedAt)}</p>
                   )}
@@ -608,7 +614,7 @@ const LabOrders: React.FC = () => {
     total: orders.length,
     pending: orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled').length,
     completed: orders.filter(o => o.status === 'completed').length,
-    critical: orders.filter(o => o.results?.some(r => r.flag === 'critical')).length,
+    critical: orders.filter(o => o.results?.some(t => t.fields?.some(f => f.flag === 'critical'))).length,
   }), [orders]);
 
   const filtered = useMemo(() => {
@@ -636,7 +642,7 @@ const LabOrders: React.FC = () => {
   return (
     <div className="space-y-8">
       <CreateModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={loadData} doctorId={user!.id} />
-      <ResultsModal order={resultsTarget} onClose={() => setResultsTarget(null)} onSaved={loadData} doctorId={user!.id} />
+      <ResultsModal order={resultsTarget} onClose={() => setResultsTarget(null)} onSaved={loadData} />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
