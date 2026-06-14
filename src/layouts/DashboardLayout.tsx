@@ -119,6 +119,8 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { icon: Stethoscope,     label: 'My Patients',      path: '/nurse/patients',          roles: ['NURSE'],          pageKey: 'nurse_patients', group: 'Clinical' },
     { icon: HeartPulse,      label: 'Record Vitals',    path: '/nurse/vitals',            roles: ['NURSE'],          pageKey: 'nurse_vitals', group: 'Clinical' },
     { icon: ClipboardCheck,  label: 'Tasks',            path: '/nurse/tasks',             roles: ['NURSE'],          pageKey: 'nurse_tasks', group: 'Clinical' },
+    { icon: StickyNote,      label: 'Shift Handover',   path: '/nurse/handover',          roles: ['NURSE'],          pageKey: 'nurse_handover', group: 'Clinical' },
+    { icon: UsersRound,      label: 'Patient Education',path: '/nurse/education',         roles: ['NURSE'],          pageKey: 'nurse_education', group: 'Clinical' },
     { icon: Pill,            label: 'Rx Queue',         path: '/pharmacist/queue',        roles: ['PHARMACIST'],     pageKey: 'pharmacist_queue', group: 'Pharmacy' },
     { icon: Package,         label: 'Drug Inventory',   path: '/pharmacist/inventory',    roles: ['PHARMACIST'],     pageKey: 'pharmacist_inventory', group: 'Pharmacy' },
     { icon: History,         label: 'Dispense History', path: '/pharmacist/history',      roles: ['PHARMACIST'],     pageKey: 'pharmacist_history', group: 'Pharmacy' },

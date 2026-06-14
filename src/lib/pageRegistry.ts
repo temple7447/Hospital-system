@@ -23,6 +23,8 @@ export const PAGE_REGISTRY: PageDef[] = [
   { key: 'nurse_patients',        label: 'My Patients',         description: "Patients in nurse's department",         path: '/nurse/patients',            roles: ['NURSE'],                           group: 'Nurse' },
   { key: 'nurse_vitals',          label: 'Record Vitals',       description: 'Enter patient vital signs',              path: '/nurse/vitals',              roles: ['NURSE'],                           group: 'Nurse' },
   { key: 'nurse_tasks',           label: 'Nursing Tasks',       description: 'Manage and complete nursing tasks',      path: '/nurse/tasks',               roles: ['NURSE'],                           group: 'Nurse' },
+  { key: 'nurse_handover',        label: 'Shift Handover',      description: 'Document patient handover for incoming shift', path: '/nurse/handover',       roles: ['NURSE'],                           group: 'Nurse' },
+  { key: 'nurse_education',       label: 'Patient Education',   description: 'Record health education sessions given to patients', path: '/nurse/education', roles: ['NURSE'],                        group: 'Nurse' },
   // Receptionist
   { key: 'receptionist_register', label: 'Register Patient',    description: 'Register new patients into the system',  path: '/receptionist/register',     roles: ['RECEPTIONIST'],                    group: 'Receptionist' },
   { key: 'receptionist_checkin',  label: 'Patient Check-in',    description: 'Check in arriving patients',             path: '/receptionist/checkin',      roles: ['RECEPTIONIST'],                    group: 'Receptionist' },

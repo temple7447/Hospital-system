@@ -43,6 +43,8 @@ import HealthSummaryPage from './pages/patient/HealthSummary';
 import NurseMyPatients from './pages/nurse/MyPatients';
 import NurseVitalEntry from './pages/nurse/VitalEntry';
 import NurseTasks from './pages/nurse/Tasks';
+import NurseShiftHandover from './pages/nurse/ShiftHandover';
+import NursePatientEducation from './pages/nurse/PatientEducation';
 // Pharmacist pages
 import PrescriptionQueue from './pages/pharmacist/PrescriptionQueue';
 import DrugInventory from './pages/pharmacist/DrugInventory';
@@ -293,6 +295,16 @@ function App() {
             <Route path="/nurse/tasks" element={
               <ProtectedRoute allowedRoles={['ADMIN', 'NURSE']} pageKey="nurse_tasks">
                 <DashboardLayout><NurseTasks /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/nurse/handover" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'NURSE']} pageKey="nurse_handover">
+                <DashboardLayout><NurseShiftHandover /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/nurse/education" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'NURSE']} pageKey="nurse_education">
+                <DashboardLayout><NursePatientEducation /></DashboardLayout>
               </ProtectedRoute>
             } />
 
